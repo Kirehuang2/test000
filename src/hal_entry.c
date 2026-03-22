@@ -1237,10 +1237,9 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
                 // Simplified: use Ke directly. Ke = back-EMF constant [V/(rad/s)]
                 // At 1 PU speed (N_base RPM): back-EMF ≈ Vdc. So Vq_ff ≈ speed_PU
                 float speed_pu = SpeedFb_RPM / pmsm.N_base;
-                // LPF-smoothed back-EMF feedforward
-                // α=0.01: τ=10 samples (1ms) → tracking error < 0.002 PU at 2000RPM/s accel
-                Vq_ff_filtered += 0.01f * (speed_pu - Vq_ff_filtered);
-                float Vq_ff = Vq_ff_filtered;
+                // Back-EMF feedforward disabled (causes DRV8302 trip at startup)
+                // TODO: implement proper open-loop startup sequence before enabling FF
+                float Vq_ff = 0.0f;
                 float Vd_ff = 0.0f;
 
                 // --- 5. PI Controllers with back-calculation anti-windup ---
