@@ -21,10 +21,10 @@
 
 /* Definition for custom storage class: ExportToFile */
 struct_DWWWf6N21VtITTqdrqSn0 PI_params = {
-  0.3F,       // Kp_id
-  0.0F,       // Ki_id - DISABLED until overcurrent protection verified
-  0.5F,       // Kp_iq
-  0.0F,       // Ki_iq - DISABLED until overcurrent protection verified
+  0.3F,       // Kp_id - moderate gain
+  0.0F,       // Ki_id - disabled (causes windup)
+  0.3F,       // Kp_iq - moderate gain
+  0.0F,       // Ki_iq - disabled (causes windup)
   1.0F,       // Kp_speed - startup torque > 0.07 threshold, noise < 2.0 (was 0.5)
   0.1F,       // Ki_speed - integral for steady-state torque (was 0.0)
   2,
@@ -52,12 +52,12 @@ real_T Ts_speed = 0.001;               /* Referenced by: '<S1>/Gain1' */
 /* Ts_speed - Speed controller sample time [sec] */
 struct_I5k2n9mWimERhc2OS6k9dF inverter = {
   18.0F,
-  16.5F,
+  8.25F,
   0.0033F
 } ;                                    /* Referenced by: '<S1>/Gain4' */
 
 /* inverter.V_dc - DC link voltage of the inverter (18V: Makita BL1820B nominal)
-   inverter.ISenseMax - Maximum measurement current (Vref/2 / (Rshunt*Gain) = 1.65/(0.01*10) = 16.5A)
+   inverter.ISenseMax - Maximum measurement current by the current measurement circuit
    inverter.R_board - Inverter board resistance */
 struct_hXFaRMdP3p9q6ruHP5AkdC pmsm = {
   8.0F,

@@ -9,7 +9,6 @@
 #include <stdlib.h>
 
 #include "r_three_phase_api.h"
-#include "assist_app_interface.h"
 
 unsigned char Enable = 0;
 
@@ -32,12 +31,9 @@ float SpeedFb_PU = 0.0F;
 float SpeedFb_Hall_PU = 0.0F;  // Hall sensor speed (filtered, for speed control)
 unsigned char EnCl = 0;
 float IqFb = 0.0F;
+float IdFb = 0.0F;                          // Id feedback for monitoring
 float SpeedRefIn_PU = 0.0F;
 float Mode = 2.0f;  // Mode >= 2 required to start speed control state machine
-
-// Speed control ramp variables (global for debugger access)
-volatile float speed_ref_ramp = 0.0f;
-volatile uint8_t ramp_complete = 0;
 
 // ============================================================
 // Improved speed estimation from angle derivative
@@ -45,7 +41,7 @@ volatile uint8_t ramp_complete = 0;
 // compute speed as d(angle)/dt using a sliding window over
 // the interpolated f_get_angle from FSP Hall module.
 // ============================================================
-#define SPEED_EST_WINDOW  100  // Window size in calls (100 = 10ms at 10kHz)
+#define SPEED_EST_WINDOW  200  // Window size in calls (200 = 20ms at 10kHz)
 static float angle_history[SPEED_EST_WINDOW];  // Ring buffer of unwrapped angles
 static uint16_t angle_hist_idx = 0;
 static uint8_t angle_hist_filled = 0;
@@ -58,7 +54,7 @@ volatile float debug_angle_unwrapped = 0.0f;   // Accumulated unwrapped angle [r
 volatile float debug_f_get_speed_raw = 0.0f;   // Raw FSP speed for comparison
 
 // Speed filter coefficient (tunable via debugger)
-volatile float speed_filter_alpha = 0.10f;      // 0.03=heavy, 0.10=default, 1.0=no filter
+volatile float speed_filter_alpha = 0.02f;      // 0.02=smooth (was 0.10), 1.0=no filter
 
 // ============================================================
 // Control mode switching (changeable via debugger)
@@ -67,7 +63,8 @@ volatile float speed_filter_alpha = 0.10f;      // 0.03=heavy, 0.10=default, 1.0
 // ============================================================
 volatile uint8_t control_mode = 0;              // 0=Speed, 1=Torque
 volatile float torque_ref_iq = 0.0f;            // Direct Iq command for torque mode [PU]
-volatile float torque_ref_iq_max = 0.3f;        // Iq clamp for torque mode [PU] (was 0.194)
+volatile float torque_ref_iq_max = 0.2f;        // Iq clamp: 0.2 PU × 16.5A = 3.3A ≈ rated 3.29A
+volatile float torque_max_speed_rpm = 500.0f;   // Speed limit for torque mode [RPM]
 
 // Debug counters
 volatile uint32_t adc_callback_count = 0;
@@ -109,6 +106,26 @@ volatile float debug_Ialpha = 0.0f;           // Clarke transform output
 volatile float debug_Ibeta = 0.0f;            // Clarke transform output
 volatile uint8_t debug_encl_smooth = 0;       // 0=Open-loop, 1=Closed-loop enabled
 volatile float debug_abs_speed_error = 0.0f;  // Absolute speed error for transition check
+volatile uint8_t debug_foc_state = 0;         // 0=disabled, 1=active, 2=idq_zero_brake, 3=enable_off
+volatile uint8_t debug_stop_reason = 0;       // Latched: 0=running, 1=enable_off, 2=idq_zero, 3=protection
+volatile float debug_stop_iq = 0.0f;          // Iq at moment of stop
+volatile float debug_stop_idqref = 0.0f;      // IdqRef[1] at moment of stop
+volatile uint16_t debug_stop_rpm = 0;         // RPM at moment of stop
+volatile uint8_t debug_enable_off_src = 0;    // Who set Enable=0: 1=drv_fault, 2=shutdown, 3=makita, 4=protection, 5=ble_cmd, 6=overcurrent
+
+// ============================================================
+// Software overcurrent protection (CRITICAL SAFETY)
+// Monitors actual Id/Iq feedback current every 10kHz cycle
+// Trips immediately if current exceeds limit
+// ============================================================
+#define OC_RAW_TRIP_PU    1.00f   // DISABLED for pre-smoke baseline test (PC adapter 2.37A is HW limit)
+#define OC_TRIP_PU        1.00f   // DISABLED for pre-smoke baseline test
+#define OC_SUSTAIN_PU     0.20f   // Sustained limit: 0.20 PU = 3.3A (rated)
+#define OC_SUSTAIN_MS     500     // Sustained overcurrent time limit [ms] (500 counts at 1kHz)
+volatile uint8_t overcurrent_fault = 0;       // 0=OK, 1=tripped (latched, requires power cycle or BLE reset)
+volatile float overcurrent_peak_iq = 0.0f;    // Peak Iq at trip [PU]
+volatile float overcurrent_peak_id = 0.0f;    // Peak Id at trip [PU]
+static uint16_t oc_sustain_count = 0;          // Sustained overcurrent counter
 
 // ============================================================
 // Data Logger - Ring Buffer for debugging
@@ -121,7 +138,6 @@ typedef struct {
     float IqFb;
     float IdqRef1;      // Iq reference
     uint8_t EnCl;       // Closed-loop enable
-    uint8_t ramp_phase; // ramp_complete value
 } LogEntry_t;
 
 volatile LogEntry_t log_buffer[LOG_SIZE];
@@ -144,21 +160,48 @@ volatile float hall_angle_offset = 0.0f;  // Start with 0, adjust via debugger
 static uint32_t power_switch_high_counter = 0;  // Counter for PE14 high duration (in ms)
 static uint8_t shutdown_requested = 0;          // Shutdown latch (once set, never cleared)
 
+// Debug: DA14531 flow control pin states
+volatile uint8_t debug_pe03_state = 0;          // PE03 (DA14531 RTS/P0_7): 0=LOW, 1=HIGH
+volatile uint8_t debug_pe04_state = 0;          // PE04 (DA14531 CTS/P0_8): 0=LOW, 1=HIGH
+
 // Debug variables for power switch (volatile for debugger visibility)
 volatile uint8_t debug_pe14_state = 0;          // Current state of PE14 input (0=Low, 1=High)
 volatile uint32_t debug_pe14_counter = 0;       // PE14 high duration counter (ms)
 volatile uint8_t debug_shutdown_requested = 0;  // Shutdown state (0=normal, 1=shutting down)
 
 // ============================================================
-// LED output pin definitions (Active Low via SN74LVC07APW)
-// MCU Low → LED ON, MCU High → LED OFF
+// Makita Battery AS Terminal
+// PE01 → diode → AS: wake-up signal output
+// P000 (AN016) ← 220kΩ/22kΩ divider ← AS: voltage detection
+// Divider: AS_voltage = ADC_raw / 4095 * 3.3 * (220+22)/22
 // ============================================================
-#define LED_POWER_GREEN  (BSP_IO_PORT_13_PIN_15)  // OUT1: Power LED Green
-#define LED_POWER_RED    (BSP_IO_PORT_12_PIN_06)  // OUT2: Power LED Red
-#define LED_TURBO        (BSP_IO_PORT_12_PIN_07)  // OUT3: Turbo LED
-#define LED_ASSIST_H     (BSP_IO_PORT_13_PIN_01)  // OUT4: Assist Level High (Red)
-#define LED_ASSIST_M     (BSP_IO_PORT_13_PIN_02)  // OUT5: Assist Level Mid (Green)
-#define LED_ASSIST_L     (BSP_IO_PORT_13_PIN_03)  // OUT6: Assist Level Low (Green)
+#define AS_PIN_OUT       (BSP_IO_PORT_14_PIN_01)  // PE01: wake-up signal output
+#define AS_DIVIDER_RATIO 11.0f                     // (220k+22k)/22k = 11.0
+#define AS_PERMIT_THRESHOLD 5.0f                   // AS > 5V = discharge permitted
+#define AS_PROHIBIT_DEBOUNCE_MS 15                 // >5ms periodic check, <24h timeout
+
+volatile uint8_t makita_battery_en = 0;       // 0=disabled, 1=enabled
+volatile uint8_t makita_battery_state = 0;    // 0=unknown, 1=permitted, 2=prohibited
+volatile float as_voltage = 0.0f;             // AS terminal voltage [V]
+volatile uint16_t as_adc_raw = 0;             // AS ADC raw value (AN016/P000)
+static uint16_t as_low_counter = 0;           // Counter for AS LOW duration (ms)
+
+// ============================================================
+// LED output pin definitions (Active Low: MCU Low → LED ON)
+// Hardware verified 2026-03-17
+// ============================================================
+#define LED_POWER_GREEN  (BSP_IO_PORT_13_PIN_15)  // PD15: Power LED Green
+#define LED_POWER_RED    (BSP_IO_PORT_12_PIN_06)  // PC06: Power LED Red
+#define LED_TURBO        (BSP_IO_PORT_12_PIN_07)  // PC07: Turbo LED
+#define LED_ASSIST_H     (BSP_IO_PORT_13_PIN_01)  // PD01: Assist Level High
+#define LED_ASSIST_M     (BSP_IO_PORT_13_PIN_02)  // PD02: Assist Level Middle
+#define LED_ASSIST_L     (BSP_IO_PORT_13_PIN_03)  // PD03: Assist Level Low
+
+// LED state: bit0=PwrGrn, bit1=PwrRed, bit2=Turbo, bit3=AssistH, bit4=AssistM, bit5=AssistL
+// 0=OFF, 1=ON (driver handles active-low inversion)
+// led_mode: 0=auto (base driver default), 1=manual (BLE/app control via led_state)
+volatile uint8_t led_mode = 0;
+volatile uint8_t led_state = 0;
 
 // ============================================================
 // Monitoring variables (volatile for debugger visibility)
@@ -177,10 +220,8 @@ volatile uint16_t temp_regen_adc_raw = 0;    // Raw ADC value
 volatile uint8_t protection_state = 0;       // 0=Normal, 1=Warning, 2=Derating, 3=Emergency stop
 volatile float output_derating = 1.0f;       // Output limit factor (0.0~1.0)
 
-// Assist app interface (Simulink model I/O)
-AssistApp_ExtU_T assist_U = {0};
-AssistApp_ExtY_T assist_Y = {0};
-volatile int32_t hall_enc_count = 0;          // Hall cumulative position count
+// JOG speed reference (settable via debugger or BLE)
+volatile float speed_ref_rpm = 0.0f;         // Target speed [RPM] (0=stopped)
 
 // Assist level and turbo mode
 volatile uint8_t assist_level = 0;           // 0=Low, 1=Mid, 2=High
@@ -214,6 +255,27 @@ static uint16_t sw_in2_debounce = 0;         // Debounce counter for IN2
 #define TEMP_SHUTDOWN       90.0f            // Temperature shutdown [°C]
 
 // ============================================================
+// I²t Motor Winding Thermal Protection (maxon EC45 flat 651614)
+// ============================================================
+// First-order thermal model: dE/dt = I² - E/τ
+// At steady state: E_eq = I² × τ
+// Trip when E > I_rated² × τ (= winding at 125°C)
+//
+// Datasheet values:
+//   I_rated = 3.29A = 0.1994 PU ≈ 0.20 PU
+//   τ_winding = 43.1 s
+//   T_winding_max = 125°C
+// ============================================================
+#define I2T_I_RATED_PU    0.20f              // Rated continuous current [PU] (3.29A / 16.5A)
+#define I2T_TAU_W         43.1f              // Winding thermal time constant [s]
+#define I2T_THRESHOLD     (I2T_I_RATED_PU * I2T_I_RATED_PU * I2T_TAU_W)  // 0.04 × 43.1 = 1.724 PU²·s
+#define I2T_WARNING_PCT   0.70f              // Warning at 70% (~88°C rise)
+#define I2T_DERATING_PCT  0.85f              // Derating at 85% (~106°C rise)
+#define I2T_TRIP_PCT      1.00f              // Trip at 100% (125°C winding)
+volatile float i2t_accumulator = 0.0f;       // Thermal energy accumulator [PU²·s]
+volatile float i2t_ratio = 0.0f;             // Thermal load ratio (0.0~1.0+), 1.0=trip
+
+// ============================================================
 // BLE UART Communication (DA14531MOD via SCI3 Hardware UART)
 // ============================================================
 // DA14531 DataPump: P0_6=TX, P0_5=RX, 57600 baud
@@ -229,6 +291,14 @@ static uint8_t uart_rx_buf[UART_RX_BUF_SIZE];
 
 static volatile uint16_t uart_rx_idx = 0;
 static volatile uint8_t uart_rx_complete = 0;   // 1=line received
+
+// RX command queue: ISR assembles lines, main loop processes them
+#define RX_CMD_SLOTS  4
+#define RX_CMD_SIZE   64
+static char rx_cmd_ring[RX_CMD_SLOTS][RX_CMD_SIZE];
+static volatile uint8_t rx_cmd_head = 0;
+static volatile uint8_t rx_cmd_tail = 0;
+static volatile uint8_t rx_cmd_count = 0;
 static volatile uint8_t uart_tx_busy = 0;       // 1=TX in progress (SCI3)
 
 // TX ring buffer: multiple messages can be queued, main loop drains them
@@ -287,6 +357,11 @@ volatile uint16_t dbg_cmd_timeout_count = 0; // commands completed via idle time
 volatile uint8_t tx_spacing_ms = 30;       // ms between messages (tunable via debugger)
 static volatile uint8_t tx_spacing_timer = 0;  // countdown timer (decremented in 1ms tick)
 
+// TX debug
+volatile uint8_t dbg_tx_last_err = 0xFF;   // last R_SCI_B_UART_Write return (0=OK)
+volatile uint16_t dbg_tx_last_len = 0;     // last TX message length
+volatile uint16_t dbg_tx_write_count = 0;  // number of R_SCI_B_UART_Write calls
+
 // BLE log streaming
 static volatile uint8_t ble_log_streaming = 0;      // 0=stopped, 1=running
 static volatile uint16_t ble_log_interval = 100;     // ms (default 10Hz)
@@ -294,7 +369,7 @@ static uint16_t ble_log_counter = 0;
 
 // LOG auto-stop: DA14531 SPS freezes after ~10 UART→BLE messages.
 // Send N lines then auto-stop. MATLAB sends LOG START again to resume.
-volatile uint8_t log_burst_max = 1;          // auto-stop after N packed msgs (DA14531 stalls after ~1)
+volatile uint8_t log_burst_max = 0;          // 0=continuous streaming (no burst limit)
 static uint8_t log_burst_sent = 0;           // lines sent in current burst
 volatile uint16_t dbg_log_lines_total = 0;   // DEBUG: total LOG lines sent
 volatile uint16_t dbg_log_bursts = 0;        // DEBUG: how many bursts completed
@@ -484,24 +559,42 @@ static const var_entry_t var_registry[] = {
     {"imu_gy",           (void*)&imu_gyro_dps[1],     VAR_FLOAT,  0},
     {"imu_gz",           (void*)&imu_gyro_dps[2],     VAR_FLOAT,  0},
     // Read-write (parameters)
+    {"enable",              (void*)&Enable,              VAR_UINT8,  1},
     {"control_mode",        (void*)&control_mode,        VAR_UINT8,  1},
+    {"speed_ref_rpm",       (void*)&speed_ref_rpm,       VAR_FLOAT,  1},
     {"torque_ref_iq",       (void*)&torque_ref_iq,       VAR_FLOAT,  1},
     {"torque_ref_iq_max",   (void*)&torque_ref_iq_max,   VAR_FLOAT,  1},
+    {"torque_max_speed",    (void*)&torque_max_speed_rpm, VAR_FLOAT, 1},
     {"speed_filter_alpha",  (void*)&speed_filter_alpha,  VAR_FLOAT,  1},
     {"vdc_compensation_en", (void*)&vdc_compensation_en, VAR_UINT8,  1},
+    {"led_mode",            (void*)&led_mode,            VAR_UINT8,  1},
+    {"led_state",           (void*)&led_state,           VAR_UINT8,  1},
+    {"Kp_id",              (void*)&PI_params.Kp_id,      VAR_FLOAT,  1},
+    {"Ki_id",              (void*)&PI_params.Ki_id,      VAR_FLOAT,  1},
+    {"Kp_iq",              (void*)&PI_params.Kp_iq,      VAR_FLOAT,  1},
+    {"Ki_iq",              (void*)&PI_params.Ki_iq,      VAR_FLOAT,  1},
+    {"Kp_speed",           (void*)&PI_params.Kp_speed,   VAR_FLOAT,  1},
+    {"Ki_speed",           (void*)&PI_params.Ki_speed,   VAR_FLOAT,  1},
+    {"foc_state",           (void*)&debug_foc_state,     VAR_UINT8,  0},
+    {"stop_reason",         (void*)&debug_stop_reason,   VAR_UINT8,  0},
+    {"stop_iq",             (void*)&debug_stop_iq,       VAR_FLOAT,  0},
+    {"stop_idqref",         (void*)&debug_stop_idqref,   VAR_FLOAT,  0},
+    {"stop_rpm",            (void*)&debug_stop_rpm,      VAR_UINT8,  0},
+    {"enable_off_src",      (void*)&debug_enable_off_src, VAR_UINT8, 0},
+    {"oc_fault",            (void*)&overcurrent_fault,   VAR_UINT8,  0},
+    {"oc_peak_iq",          (void*)&overcurrent_peak_iq, VAR_FLOAT,  0},
+    {"oc_peak_id",          (void*)&overcurrent_peak_id, VAR_FLOAT,  0},
+    {"makita_bat_en",       (void*)&makita_battery_en,   VAR_UINT8,  1},
+    // Makita battery (read-only)
+    {"as_voltage",          (void*)&as_voltage,          VAR_FLOAT,  0},
+    {"makita_bat_state",    (void*)&makita_battery_state, VAR_UINT8, 0},
+    {"i2t_ratio",           (void*)&i2t_ratio,           VAR_FLOAT,  0},
 };
 #define VAR_REGISTRY_SIZE (sizeof(var_registry)/sizeof(var_registry[0]))
 
 // LIST command state machine (sends one var per 1ms tick)
 static int16_t list_send_idx = -1;  // -1=idle, 0+=current index
-
-// ============================================================
-// FSP Hall Module Runtime Overrides
-// These override const values in hal_data.c so we never need to
-// hand-edit generated code after FSP regeneration.
-// ============================================================
-static motor_sense_hall_extended_cfg_t g_motor_angle0_extend_override;  // Mutable copy
-static motor_angle_cfg_t              g_motor_angle0_cfg_override;      // Mutable copy
+static int16_t dump_send_idx = -1;  // -1=idle, 0+=current index (D command)
 
 FSP_CPP_HEADER
 void R_BSP_WarmStart(bsp_warm_start_event_t event);
@@ -525,19 +618,6 @@ void hal_entry(void)
  // Initialize Hall sensor FIRST (before ADC interrupts can call AngleSpeedGet)
  RM_MOTOR_SENSE_HALL_Open(&g_motor_angle0_ctrl, &g_motor_angle0_cfg);
 
- // Override FSP-generated Hall config values at runtime.
- // This eliminates the need to hand-edit ra_gen/hal_data.c after every FSP regeneration.
- memcpy(&g_motor_angle0_extend_override, g_motor_angle0_cfg.p_extend,
-        sizeof(motor_sense_hall_extended_cfg_t));
- g_motor_angle0_extend_override.f_pwm_carrier_freq = 10.0f;   // was 20.0 (actual ADC = 10kHz)
- g_motor_angle0_extend_override.u2_maximum_period   = 2000;    // was 48 (low speed support)
- g_motor_angle0_extend_override.f4_start_speed_rad  = 0.0f;    // was 250.0 (disable pseudo speed)
-
- g_motor_angle0_cfg_override.p_context = g_motor_angle0_cfg.p_context;
- g_motor_angle0_cfg_override.p_extend  = &g_motor_angle0_extend_override;
-
- RM_MOTOR_SENSE_HALL_ParameterUpdate(&g_motor_angle0_ctrl, &g_motor_angle0_cfg_override);
-
  // Initialize FOC control before interrupts start
  FOCCurrentControl_initialize();
  SpeedControl_initialize();
@@ -555,6 +635,16 @@ void hal_entry(void)
  R_GPT_THREE_PHASE_Open(&g_three_phase0_ctrl, &g_three_phase0_cfg);
  R_GPT_THREE_PHASE_Start(&g_three_phase0_ctrl);
 
+ // Makita battery wake-up sequence (if enabled)
+ if (makita_battery_en) {
+     // Pulse PE01 HIGH for 10ms to wake battery from sleep
+     R_IOPORT_PinWrite(&g_ioport_ctrl, AS_PIN_OUT, BSP_IO_LEVEL_HIGH);
+     R_BSP_SoftwareDelay(10, BSP_DELAY_UNITS_MILLISECONDS);
+     R_IOPORT_PinWrite(&g_ioport_ctrl, AS_PIN_OUT, BSP_IO_LEVEL_LOW);
+     // Wait 60ms for battery response (spec: 50ms+)
+     R_BSP_SoftwareDelay(60, BSP_DELAY_UNITS_MILLISECONDS);
+ }
+
  // Reset and enable DRV8302 gate driver (EN_GATE pin) BEFORE enabling PWM
  // Apply Low pulse for reset, then set High to enable
  R_IOPORT_PinWrite(&g_ioport_ctrl, EN_GATE_RESET, BSP_IO_LEVEL_LOW);
@@ -567,12 +657,26 @@ void hal_entry(void)
 
  // Set default ADC offset for current sensors (midpoint of 12-bit ADC = 2048)
  // This is the zero-current point for current sensors with VCC/2 bias
+ // Default ADC offset (will be calibrated below)
  Iab_offset[0] = 2048;
  Iab_offset[1] = 2048;
 
  // Start ADC scanning
- R_ADC_B_ScanGroupStart(&g_adc0_ctrl, ADC_GROUP_MASK_0);  // Group 0 = all Unit 0 channels (current + monitoring)
- R_ADC_B_ScanGroupStart(&g_adc0_ctrl, ADC_GROUP_MASK_2);  // Group 2 = voltage monitoring (Unit 1: AN006/AN018)
+ R_ADC_B_ScanGroupStart(&g_adc0_ctrl, ADC_GROUP_MASK_0);
+ R_ADC_B_ScanGroupStart(&g_adc0_ctrl, ADC_GROUP_MASK_2);
+
+ // ADC offset calibration: average current sensor readings with motor stopped
+ {
+     uint32_t sum_a = 0, sum_b = 0;
+     const int N_CAL = 500;  // 500ms (shorter than before)
+     for (int i = 0; i < N_CAL; i++) {
+         R_BSP_SoftwareDelay(1, BSP_DELAY_UNITS_MILLISECONDS);
+         sum_a += Iab[0];
+         sum_b += Iab[1];
+     }
+     Iab_offset[0] = (uint16_t)(sum_a / N_CAL);
+     Iab_offset[1] = (uint16_t)(sum_b / N_CAL);
+ }
 
  // Enable PWM output
  R_GPT_OutputEnable(&g_timer0_ctrl, GPT_IO_PIN_GTIOCA_AND_GTIOCB);
@@ -618,6 +722,7 @@ void hal_entry(void)
  if (uart_err == FSP_SUCCESS) {
      ble_debug_state = 2;
 
+
      // Now switch PE06 to UART peripheral function (TXD3)
      R_IOPORT_PinCfg(&g_ioport_ctrl, BSP_IO_PORT_14_PIN_06,
          ((uint32_t) IOPORT_CFG_PERIPHERAL_PIN
@@ -653,6 +758,15 @@ void hal_entry(void)
 
     while(1)
     {
+        // Read DA14531 flow control pin states
+        {
+            bsp_io_level_t lvl;
+            R_IOPORT_PinRead(&g_ioport_ctrl, BSP_IO_PORT_14_PIN_03, &lvl);
+            debug_pe03_state = (lvl == BSP_IO_LEVEL_HIGH) ? 1 : 0;
+            R_IOPORT_PinRead(&g_ioport_ctrl, BSP_IO_PORT_14_PIN_04, &lvl);
+            debug_pe04_state = (lvl == BSP_IO_LEVEL_HIGH) ? 1 : 0;
+        }
+
         // Baud rate measurement using DWT cycle counter (precise)
         // Set dbg_baud_cycles=1 in debugger, then send 0x00 from nRF Connect.
         // 0x00 = start bit(L) + 8 data bits(L) + stop bit(H) = 9 consecutive LOW bits.
@@ -712,7 +826,10 @@ void hal_entry(void)
             uint16_t len = (uint16_t)strlen(tx_ring[tx_ring_tail]);
             if (len > 0) {
                 uart_tx_busy = 1;
-                R_SCI_B_UART_Write(&g_uart3_ctrl, (uint8_t *)tx_ring[tx_ring_tail], len);
+                fsp_err_t tx_err = R_SCI_B_UART_Write(&g_uart3_ctrl, (uint8_t *)tx_ring[tx_ring_tail], len);
+                dbg_tx_last_err = (uint8_t)tx_err;
+                dbg_tx_last_len = len;
+                dbg_tx_write_count++;
                 tx_spacing_timer = tx_spacing_ms;  // wait before next message
             }
             tx_ring_tail = (tx_ring_tail + 1) % TX_RING_SLOTS;
@@ -790,7 +907,7 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
             drv8302_fault_latched = 1;  // Latch fault (requires power cycle)
         }
         if(drv8302_fault_latched) {
-            Enable = 0;                 // Disable motor control
+            Enable = 0; debug_enable_off_src = 1;  // DRV fault
             IdqRef[0] = 0.0f;           // Clear current references
             IdqRef[1] = 0.0f;
             Vabc_out[0] = 0.5f;         // Set PWM to 50% (zero voltage output)
@@ -825,6 +942,7 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
                 case 12: temp_inv_adc_raw = val; break;   // AN012 = Inverter temperature
                 case 13: temp_regen_adc_raw = val; break;  // AN013 = Regen temperature
                 case 14: battery_adc_raw = val; break;     // AN014 = Battery voltage
+                case 16: as_adc_raw = val; break;          // AN016 = AS terminal (Makita battery)
                 default: break;
             }
         }
@@ -832,6 +950,9 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
         // Convert battery ADC to voltage
         // V_bat = (ADC / 4095) * 3.3V * divider_ratio
         battery_voltage = ((float)battery_adc_raw / 4095.0f) * VBAT_ADC_VREF * VBAT_DIVIDER_RATIO;
+
+        // Convert AS terminal ADC to voltage
+        as_voltage = ((float)as_adc_raw / 4095.0f) * VBAT_ADC_VREF * AS_DIVIDER_RATIO;
 
         // Convert NTC ADC to temperature [°C]
         // Using B-parameter equation: T = 1 / (1/T0 + (1/B)*ln(R/R0))
@@ -848,47 +969,33 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
             temp_regen = t_kelvin - 273.15f;
         }
 
-        // Set speed reference for startup sequence
-        // Speed range is -pmsm.N_base to +pmsm.N_base
-        // SpeedRefIn_PU = ((float) (ADC_data1.fifo_data[1].data - 2048) / 2047.0f);  // POT input (commented out)
-
-        // Gradually ramp up speed reference to help state machine transition
-        // State machine requires SpeedRef >= 0.15 PU to transition from OpenLoop to ClosedLoop
-        // speed_ref_ramp and ramp_complete are now global variables for debugger access
-        //
-        // IMPORTANT: Do NOT track SpeedFb in open-loop!
-        // Tracking SpeedFb creates positive feedback: higher SpeedFb -> higher SpeedRef
-        // -> higher voltage -> motor accelerates -> even higher SpeedFb
-        // Instead, use fixed low SpeedRef to limit open-loop voltage.
-
-        if(ramp_complete == 0) {
-            // Phase 1: Ramp to 0.03 PU (very low initial speed for safety)
-            // Start with very low target to prevent scary fast startup
-            if(speed_ref_ramp < 0.1f) {
-                speed_ref_ramp += 0.00001f;  // Ramp to 0.1 PU (~10 seconds)
-            } else {
-                ramp_complete = 1;  // Ramp complete
+        // ============================================================
+        // JOG speed reference with rate limiter
+        // speed_ref_rpm is set via debugger or BLE SET command.
+        // Ramp SpeedRefIn_PU toward target at safe rate (10kHz call rate).
+        // ============================================================
+        {
+            float target_pu = 0.0f;
+            if (pmsm.N_base > 0.0f) {
+                target_pu = speed_ref_rpm / pmsm.N_base;
             }
-            SpeedRefIn_PU = speed_ref_ramp;
-        } else {
-            // Phase 2: Hold at low target speed for safety
-            // Can increase this value manually via debugger once stable
-            SpeedRefIn_PU = 0.1f;
+            // Clamp target to [0, 1] PU (forward only)
+            if (target_pu < 0.0f) target_pu = 0.0f;
+            if (target_pu > 1.0f) target_pu = 1.0f;
+
+            // Rate limiter: 0.00002 PU/call = 0.2 PU/s at 10kHz (~312 RPM/s)
+            const float ramp_rate = 0.00002f;
+            if (SpeedRefIn_PU < target_pu) {
+                SpeedRefIn_PU += ramp_rate;
+                if (SpeedRefIn_PU > target_pu) SpeedRefIn_PU = target_pu;
+            } else if (SpeedRefIn_PU > target_pu) {
+                SpeedRefIn_PU -= ramp_rate;
+                if (SpeedRefIn_PU < target_pu) SpeedRefIn_PU = target_pu;
+            }
         }
-        // SpeedRefIn_PU is now fixed (not tracking SpeedFb)
         SpeedRef_RPM = SpeedRefIn_PU * pmsm.N_base;
 
-        // R_IOPORT_PinRead(&g_ioport_ctrl, BSP_IO_PORT_13_PIN_04, &p_pin_value);
-        // Enable = (unsigned char) p_pin_value;
-
-        // Delay enable signal to allow system stabilization
-        // Wait for at least 100ms after power-up before enabling motor control
-        static uint32_t startup_delay_counter = 0;
-        if(adc_callback_count > 100) {
-            Enable = 1;  // Enable motor control after stabilization
-        } else {
-            Enable = 0;  // Keep disabled during startup
-        }
+        // Enable is controlled via debugger or BLE SET command (no auto-enable)
 
         // Get angle/speed data from Hall sensor
         (void) RM_MOTOR_SENSE_HALL_AngleSpeedGet(&g_motor_angle0_ctrl, &f_get_angle, &f_get_speed, &f_get_phase_err);
@@ -919,7 +1026,6 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
         prev_angle_for_unwrap = angle_now;
         angle_accumulated += angle_delta;
         debug_angle_unwrapped = angle_accumulated;
-        hall_enc_count = (int32_t)(angle_accumulated * (6.0f / (2.0f * 3.14159265f)));
 
         // Step 2: Store in ring buffer, retrieve oldest value
         float old_accumulated = angle_history[angle_hist_idx];
@@ -1003,67 +1109,219 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
         debug_encl_smooth = EnCl_smooth;
         debug_abs_speed_error = abs_speed_error;
 
-        // Use local offset copy to prevent FOCCurrentControl_step from overwriting global Iab_offset
-        uint16_t Iab_offset_local[2] = {2048, 2048};
-
-        // Apply angle offset to Hall sensor angle (adjust via debugger)
-        // hall_angle_offset: 30°=0.5236, 60°=1.0472, 90°=1.5708, 120°=2.0944, 180°=3.1416
-        float hall_angle_with_offset = f_get_angle + hall_angle_offset;
-
-        FOCCurrentControl_step(Enable, IdqRef, SpeedRefFinal_PU, EnCl_smooth, Iab, QuadCounts,
-                hall_angle_with_offset, Vabc_out, &SpeedFb_PU, &IqFb, &Mode, Iab_offset_local);
-
-        #if TEST_BYPASS_FOC
-        // TEST: Direct voltage output using Hall sensor angle (bypass current PI control)
-        // This tests if Hall sensor angle is correct for FOC
-        // Apply fixed Vd voltage and see if motor rotates smoothly
-
-        // f_get_angle is ALREADY electrical angle (not mechanical)
-        // Do NOT multiply by pmsm.p
-        float theta_e = f_get_angle;  // Already electrical angle [rad]
-
-        // Use global variable for angle offset (change via debugger Real-time Chart)
-        // 30=0.5236, 60=1.0472, 90=1.5708, 120=2.0944, 150=2.6180, 180=3.1416
-        theta_e += hall_angle_offset;
-
-        float sin_theta = sinf(theta_e);
-        float cos_theta = cosf(theta_e);
-
-        // Fixed voltage: Vd = 0, Vq = 0.15 (Vq creates torque, Vd=0 for no field weakening)
-        float Vd = 0.0f;
-        float Vq = 0.15f;  // Positive Vq = forward torque
-
-        // Inverse Park Transform: Vd,Vq -> Valpha,Vbeta
-        float Valpha = Vd * cos_theta - Vq * sin_theta;
-        float Vbeta  = Vd * sin_theta + Vq * cos_theta;
-
-        // Inverse Clarke Transform: Valpha,Vbeta -> Va,Vb,Vc (SVPWM)
-        float Va = Valpha;
-        float Vb = -0.5f * Valpha + 0.866025f * Vbeta;
-        float Vc = -0.5f * Valpha - 0.866025f * Vbeta;
-
-        // Add offset and convert to duty cycle [0, 1]
-        Vabc_out[0] = 0.5f + 0.5f * Va;
-        Vabc_out[1] = 0.5f + 0.5f * Vb;
-        Vabc_out[2] = 0.5f + 0.5f * Vc;
-        #endif
-
-        // Update global Iab_offset for debug visibility (FOCCurrentControl may have calibrated it)
-        Iab_offset[0] = Iab_offset_local[0];
-        Iab_offset[1] = Iab_offset_local[1];
-
-        // Restore Hall sensor SpeedFb_PU for display (FOCCurrentControl overwrites it)
-        if(base_speed_radps > 0.0f) {
-            SpeedFb_PU = f_mechanical_speed / base_speed_radps;
+        // TEMPORARILY REVERTED TO SIMULINK FOC for motor diagnostic
+        {
+            uint16_t Iab_offset_local[2] = {2048, 2048};
+            float hall_angle_with_offset = f_get_angle + hall_angle_offset;
+            FOCCurrentControl_step(Enable, IdqRef, SpeedRefFinal_PU, EnCl_smooth, Iab, QuadCounts,
+                    hall_angle_with_offset, Vabc_out, &SpeedFb_PU, &IqFb, &Mode, Iab_offset_local);
         }
 
-        // Debug: Calculate speed error and current components for sign investigation
-        debug_speed_error = SpeedRefIn_PU - SpeedFb_PU;  // Positive = below target speed
-        // Calculate Ialpha and Ibeta manually for debugging
-        float Ia_pu = ((float)Iab[0] - 2048.0f) * 0.00048828125f;
-        float Ib_pu = ((float)Iab[1] - 2048.0f) * 0.00048828125f;
-        debug_Ialpha = Ia_pu;
-        debug_Ibeta = ((Ia_pu + Ib_pu) + Ib_pu) * 0.577350259f;
+        #if 0  // Hand-written FOC disabled for diagnostic
+        // ============================================================
+        // Hand-written FOC Current Controller (replaces Simulink code)
+        // 10kHz execution rate (ADC callback)
+        //
+        // Flow: ADC → Clarke → Park → Id/Iq PI → Inv Park → Inv Clarke → PWM
+        // ============================================================
+        {
+            // Electrical angle from Hall sensor
+            float theta_e = f_get_angle + hall_angle_offset;
+            float sin_theta = sinf(theta_e);
+            float cos_theta = cosf(theta_e);
+
+            // --- 1. ADC to Per-Unit current ---
+            // Use calibrated offset (measured at startup with motor stopped)
+            float Ia_pu = ((float)Iab[0] - (float)Iab_offset[0]) * 0.00048828125f;
+            float Ib_pu = ((float)Iab[1] - (float)Iab_offset[1]) * 0.00048828125f;
+
+            // --- 2. Clarke Transform: Ia,Ib → Iα,Iβ ---
+            float Ialpha = Ia_pu;
+            float Ibeta  = (Ia_pu + 2.0f * Ib_pu) * 0.577350259f;  // 1/√3
+
+            // --- 3. Park Transform: Iα,Iβ → Id,Iq ---
+            // Convention matches Simulink: Id = Iα*cos + Iβ*sin, Iq = Iβ*cos - Iα*sin
+            float Id_raw =  Ialpha * cos_theta + Ibeta * sin_theta;
+            float Iq_raw = Ibeta * cos_theta - Ialpha * sin_theta;
+
+            // --- RAW (unfiltered) overcurrent check ---
+            // Catches extreme spikes BEFORE LPF smoothing (0 sample delay)
+            {
+                float abs_iq_raw = Iq_raw > 0 ? Iq_raw : -Iq_raw;
+                float abs_id_raw = Id_raw > 0 ? Id_raw : -Id_raw;
+                if (abs_iq_raw > OC_RAW_TRIP_PU || abs_id_raw > OC_RAW_TRIP_PU) {
+                    overcurrent_fault = 1;
+                    overcurrent_peak_iq = abs_iq_raw;
+                    overcurrent_peak_id = abs_id_raw;
+                    Enable = 0;
+                    debug_enable_off_src = 7;  // Raw overcurrent
+                    Vabc_out[0] = 0.5f;
+                    Vabc_out[1] = 0.5f;
+                    Vabc_out[2] = 0.5f;
+                }
+            }
+
+            // --- 3b. Low-pass filter on Id/Iq feedback ---
+            // alpha=0.1: cutoff ≈ 160Hz at 10kHz (balanced: noise rejection + fast response)
+            static float Id_fb = 0.0f;
+            static float Iq_fb_val = 0.0f;
+            const float iq_lpf_alpha = 0.1f;
+            Id_fb     += iq_lpf_alpha * (Id_raw  - Id_fb);
+            Iq_fb_val += iq_lpf_alpha * (Iq_raw - Iq_fb_val);
+
+            // Export Id/Iq feedback for speed controller and logging
+            IqFb = Iq_fb_val;
+            IdFb = Id_fb;
+            debug_Ialpha = Ialpha;
+            debug_Ibeta  = Ibeta;
+            debug_speed_error = SpeedRefIn_PU - SpeedFb_PU;
+
+            static float Id_integral = 0.0f;
+            static float Iq_integral = 0.0f;
+            static uint8_t foc_was_enabled = 0;
+
+            // ============================================================
+            // SOFTWARE OVERCURRENT PROTECTION (10kHz, every ADC cycle)
+            // ============================================================
+            {
+                float abs_iq = Iq_fb_val > 0 ? Iq_fb_val : -Iq_fb_val;
+                float abs_id = Id_fb > 0 ? Id_fb : -Id_fb;
+                if (abs_iq > OC_TRIP_PU || abs_id > OC_TRIP_PU) {
+                    overcurrent_fault = 1;
+                    overcurrent_peak_iq = abs_iq;
+                    overcurrent_peak_id = abs_id;
+                    Enable = 0;
+                    debug_enable_off_src = 6;  // Filtered overcurrent
+                    Id_integral = 0.0f;
+                    Iq_integral = 0.0f;
+                    Vabc_out[0] = 0.5f;
+                    Vabc_out[1] = 0.5f;
+                    Vabc_out[2] = 0.5f;
+                }
+            }
+
+            // Short brake when IdqRef is zero for extended period
+            static uint16_t idq_zero_count = 0;
+            if (IdqRef[0] == 0.0f && IdqRef[1] == 0.0f) {
+                if (idq_zero_count < 10000) idq_zero_count++;
+            } else {
+                idq_zero_count = 0;
+            }
+            uint8_t idq_is_zero = (idq_zero_count >= 5000) ? 1 : 0;
+
+            // Debug: record FOC state + latch stop reason
+            {
+                uint8_t prev_state = debug_foc_state;
+                if (!Enable) debug_foc_state = 3;
+                else if (idq_is_zero) debug_foc_state = 2;
+                else debug_foc_state = 1;
+                if (prev_state == 1 && debug_foc_state != 1) {
+                    debug_stop_reason = debug_foc_state;
+                    debug_stop_iq = Iq_fb_val;
+                    debug_stop_idqref = IdqRef[1];
+                    debug_stop_rpm = (uint16_t)(SpeedFb_RPM > 0 ? SpeedFb_RPM : 0);
+                    if (protection_state >= 3) debug_stop_reason = 3;
+                }
+            }
+
+            if (Enable && EnCl_smooth && !idq_is_zero) {
+                // Reset integrators on rising edge of enable
+                if (!foc_was_enabled) {
+                    Id_integral = 0.0f;
+                    Iq_integral = 0.0f;
+                    foc_was_enabled = 1;
+                }
+
+                // --- 4. Back-EMF feedforward compensation ---
+                // Reduces PI workload: PI only handles transients, not steady-state back-EMF
+                // ωe = electrical speed [rad/s] = mechanical_speed * pole_pairs
+                float omega_e = SpeedFb_RPM * (2.0f * 3.14159265f / 60.0f) * pmsm.p;
+                // Feedforward: Vq_ff = ωe × FluxPM / Vbase_pu
+                // FluxPM = pmsm.FluxPM (Wb), Vbase ≈ Vdc/2 for SVPWM ≈ 9V
+                // In PU: Vq_ff = ωe × FluxPM × ISenseMax / (Vdc/2)
+                // Simplified: use Ke directly. Ke = back-EMF constant [V/(rad/s)]
+                // At 1 PU speed (N_base RPM): back-EMF ≈ Vdc. So Vq_ff ≈ speed_PU
+                float speed_pu = SpeedFb_RPM / pmsm.N_base;
+                float Vq_ff = speed_pu;  // back-EMF feedforward (dominant term)
+                float Vd_ff = -omega_e * pmsm.Lq * Iq_fb_val;  // cross-coupling (small)
+
+                // --- 5. PI Controllers with back-calculation anti-windup ---
+                const float Ts_curr = 0.0001f;  // 10kHz = 100us
+                const float Kaw = 1.0f;          // Anti-windup gain (1/Kp is typical)
+                const float V_limit = 0.95f;     // Voltage output limit
+
+                // Id PI (d-axis)
+                float Id_error = IdqRef[0] - Id_fb;
+                float Vd_pi = PI_params.Kp_id * Id_error + Id_integral;
+                float Vd = Vd_pi + Vd_ff;  // PI + feedforward
+
+                // Iq PI (q-axis)
+                float Iq_error = IdqRef[1] - Iq_fb_val;
+                float Vq_pi = PI_params.Kp_iq * Iq_error + Iq_integral;
+                float Vq = Vq_pi + Vq_ff;  // PI + feedforward
+
+                // --- 6. Circle limiter with back-calculation anti-windup ---
+                float Vd_sat = Vd, Vq_sat = Vq;
+                {
+                    float Vmag2 = Vd * Vd + Vq * Vq;
+                    if (Vmag2 > V_limit * V_limit) {
+                        float inv_mag = V_limit / sqrtf(Vmag2);
+                        Vd_sat = Vd * inv_mag;
+                        Vq_sat = Vq * inv_mag;
+                    }
+                }
+
+                // Back-calculation: reduce integral when output is saturated
+                // integral += Ki*Ts*error + Kaw*(V_saturated - V_unsaturated)
+                Id_integral += PI_params.Ki_id * Ts_curr * Id_error + Kaw * (Vd_sat - Vd);
+                Iq_integral += PI_params.Ki_iq * Ts_curr * Iq_error + Kaw * (Vq_sat - Vq);
+
+                // Safety clamp on integrator
+                // Worst case (stopped motor): I = (Kp*error + integral + ff) * Vbase / Rs
+                // At integral=0.05: V=0.5*0.2+0.05=0.15 → I=0.15*9/0.29=4.7A (0.28PU, below 0.35 raw trip)
+                // At integral=0.10: V=0.5*0.2+0.10=0.20 → I=0.20*9/0.29=6.3A (0.38PU, exceeds raw trip!)
+                if (Id_integral >  0.05f) Id_integral =  0.05f;
+                if (Id_integral < -0.05f) Id_integral = -0.05f;
+                if (Iq_integral >  0.05f) Iq_integral =  0.05f;
+                if (Iq_integral < -0.05f) Iq_integral = -0.05f;
+
+                // Use saturated voltage for output
+                Vd = Vd_sat;
+                Vq = Vq_sat;
+
+                // --- 6. Inverse Park Transform: Vd,Vq → Vα,Vβ ---
+                float Valpha = Vd * cos_theta - Vq * sin_theta;
+                float Vbeta  = Vq * cos_theta + Vd * sin_theta;
+
+                // --- 7. SVPWM: Inverse Clarke + min-max injection (matches Simulink) ---
+                float Va = Valpha;
+                float Vb = 0.866025f * Vbeta - 0.5f * Valpha;
+                float Vc = -0.5f * Valpha - 0.866025f * Vbeta;
+
+                // Min-max injection (center-aligned third harmonic)
+                float Vmax = Va; if (Vb > Vmax) Vmax = Vb; if (Vc > Vmax) Vmax = Vc;
+                float Vmin = Va; if (Vb < Vmin) Vmin = Vb; if (Vc < Vmin) Vmin = Vc;
+                float Voff = -0.5f * (Vmax + Vmin);
+
+                Va = (Va + Voff) * 1.15470052f;  // 2/sqrt(3)
+                Vb = (Vb + Voff) * 1.15470052f;
+                Vc = (Vc + Voff) * 1.15470052f;
+
+                // --- 8. Convert to duty cycle [0, 1] ---
+                Vabc_out[0] = 0.5f * Va + 0.5f;
+                Vabc_out[1] = 0.5f * Vb + 0.5f;
+                Vabc_out[2] = 0.5f * Vc + 0.5f;
+            } else {
+                // Disabled: zero voltage, mark for integrator reset
+                Vabc_out[0] = 0.5f;
+                Vabc_out[1] = 0.5f;
+                Vabc_out[2] = 0.5f;
+                foc_was_enabled = 0;
+            }
+
+            Mode = 2.0f;  // Always in normal mode
+        }
+        #endif  // End of disabled hand-written FOC
 
         // ============================================================
         // Data Logger: Record data at 100Hz (every 100 PWM cycles)
@@ -1079,7 +1337,6 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
                 log_buffer[log_index].IqFb = IqFb;
                 log_buffer[log_index].IdqRef1 = IdqRef[1];
                 log_buffer[log_index].EnCl = EnCl_smooth;
-                log_buffer[log_index].ramp_phase = ramp_complete;
 
                 log_index++;
                 if(log_index >= LOG_SIZE) {
@@ -1108,9 +1365,14 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
         //   compensated = 0.5 + (duty - 0.5) * V_DC_NOMINAL / V_battery
         if (vdc_compensation_en && battery_voltage > 10.0f) {
             float vdc_scale = V_DC_NOMINAL / battery_voltage;
+            if (vdc_scale > 1.5f) vdc_scale = 1.5f;
             Vabc_out[0] = 0.5f + (Vabc_out[0] - 0.5f) * vdc_scale;
             Vabc_out[1] = 0.5f + (Vabc_out[1] - 0.5f) * vdc_scale;
             Vabc_out[2] = 0.5f + (Vabc_out[2] - 0.5f) * vdc_scale;
+            for (int i = 0; i < 3; i++) {
+                if (Vabc_out[i] < 0.02f) Vabc_out[i] = 0.02f;
+                if (Vabc_out[i] > 0.98f) Vabc_out[i] = 0.98f;
+            }
         }
 
         // Update inverter.V_dc for reference (not used by Simulink FOC at runtime)
@@ -1260,6 +1522,35 @@ static void ble_process_command(char *cmd) {
         snprintf(resp, sizeof(resp), "ERR unknown: %s\r\n", name);
         uart_queue(resp);
 
+    } else if (strcmp(cmd, "GETALL") == 0) {
+do_getall:
+        // Return all writable variables in one response (avoids BLE byte-drop on multiple GETs)
+        int pos = 0;
+        pos += snprintf(resp + pos, sizeof(resp) - pos, "ALL ");
+        for (uint16_t i = 0; i < VAR_REGISTRY_SIZE; i++) {
+            if (!var_registry[i].writable) continue;
+            if (pos >= (int)sizeof(resp) - 40) break;  // safety margin
+            switch (var_registry[i].type) {
+                case VAR_FLOAT: {
+                    char vbuf[16];
+                    fmt_float(vbuf, sizeof(vbuf), *(volatile float*)var_registry[i].ptr, 4);
+                    pos += snprintf(resp + pos, sizeof(resp) - pos, "%s=%s,", var_registry[i].name, vbuf);
+                    break;
+                }
+                case VAR_UINT8:
+                    pos += snprintf(resp + pos, sizeof(resp) - pos, "%s=%u,",
+                                   var_registry[i].name, (unsigned)*(volatile uint8_t*)var_registry[i].ptr);
+                    break;
+                case VAR_UINT32:
+                    pos += snprintf(resp + pos, sizeof(resp) - pos, "%s=%lu,",
+                                   var_registry[i].name, (unsigned long)*(volatile uint32_t*)var_registry[i].ptr);
+                    break;
+            }
+        }
+        if (pos > 4 && resp[pos-1] == ',') resp[pos-1] = '\0';  // remove trailing comma
+        strncat(resp, "\r\n", sizeof(resp) - strlen(resp) - 1);
+        uart_queue(resp);
+
     } else if (strncmp(cmd, "LOG START", 9) == 0) {
         uint16_t hz = 10;  // default 10Hz
         if (cmd[9] == ' ') {
@@ -1276,13 +1567,81 @@ static void ble_process_command(char *cmd) {
 
     } else if (strcmp(cmd, "R") == 0) {
         // Short restart: resume LOG with previous settings (1 byte = reliable over BLE)
-        // Cooldown: ignore if already streaming (prevents triple-R from generating 3 packs)
-        if (ble_log_streaming == 0) {
-            ble_log_streaming = 1;
-            ble_log_counter = 0;
-            log_burst_sent = 0;
-            pack_idx = 0;
+        // Always restart unconditionally (no guard — MATLAB sends single R per burst)
+        ble_log_streaming = 1;
+        ble_log_counter = 0;
+        log_burst_sent = 0;
+        pack_idx = 0;
+
+    } else if (cmd[0] == 'W' && (cmd[1] >= '0' && cmd[1] <= '9')) {
+        // Short max speed set: "W500" = torque_max_speed_rpm = 500 (BLE-safe)
+        torque_max_speed_rpm = (float)atoi(cmd + 1);
+        if (torque_max_speed_rpm > 4500.0f) torque_max_speed_rpm = 4500.0f;
+
+    } else if (cmd[0] == 'G' && cmd[1] >= '0' && cmd[1] <= '9') {
+        // GET by index: "G26" → "#26=0.5000\r\n" (short, BLE-safe)
+        uint16_t idx = (uint16_t)atoi(cmd + 1);
+        if (idx < VAR_REGISTRY_SIZE) {
+            const var_entry_t *v = &var_registry[idx];
+            char resp[32];
+            if (v->type == VAR_FLOAT) {
+                char vbuf[12];
+                fmt_float(vbuf, sizeof(vbuf), *(volatile float*)v->ptr, 4);
+                snprintf(resp, sizeof(resp), "#%u=%s\r\n", idx, vbuf);
+            } else {
+                snprintf(resp, sizeof(resp), "#%u=%u\r\n", idx, (unsigned)(*(volatile uint8_t*)v->ptr));
+            }
+            uart_queue(resp);
         }
+
+    } else if (cmd[0] == 'P' && cmd[1] >= '0' && cmd[1] <= '9') {
+        // SET by index: "P26=0.5" → "#26=0.5000\r\n" (short, BLE-safe)
+        // Format: P<idx>=<value>
+        char *eq = strchr(cmd, '=');
+        if (eq) {
+            uint16_t idx = (uint16_t)atoi(cmd + 1);
+            if (idx < VAR_REGISTRY_SIZE && var_registry[idx].writable) {
+                const var_entry_t *v = &var_registry[idx];
+                char resp[32];
+                if (v->type == VAR_FLOAT) {
+                    float val = (float)atof(eq + 1);
+                    // Safety limits for critical parameters
+                    if (v->ptr == (void*)&torque_ref_iq_max) {
+                        if (val > OC_TRIP_PU) val = OC_TRIP_PU;
+                        if (val < 0.0f) val = 0.0f;
+                    } else if (v->ptr == (void*)&torque_ref_iq) {
+                        if (val > OC_TRIP_PU) val = OC_TRIP_PU;
+                        if (val < -OC_TRIP_PU) val = -OC_TRIP_PU;
+                    } else if (v->ptr == (void*)&PI_params.Ki_id || v->ptr == (void*)&PI_params.Ki_iq) {
+                        if (val > 50.0f) val = 50.0f;
+                        if (val < 0.0f) val = 0.0f;
+                    }
+                    *(volatile float*)v->ptr = val;
+                    char vbuf[12];
+                    fmt_float(vbuf, sizeof(vbuf), val, 4);
+                    snprintf(resp, sizeof(resp), "#%u=%s\r\n", idx, vbuf);
+                } else {
+                    uint8_t val = (uint8_t)atoi(eq + 1);
+                    *(volatile uint8_t*)v->ptr = val;
+                    snprintf(resp, sizeof(resp), "#%u=%u\r\n", idx, val);
+                }
+                uart_queue(resp);
+            }
+        }
+
+    } else if (cmd[0] == '?' && cmd[1] == 'M') {
+        // Short speed query: "?M" → "=300\r\n" (6 bytes, BLE-safe verify)
+        char resp[16];
+        snprintf(resp, sizeof(resp), "=%d\r\n", (int)speed_ref_rpm);
+        uart_queue(resp);
+
+    } else if (cmd[0] == '?' && cmd[1] == 'T') {
+        // Short torque query: "?T" → "=0.100\r\n"
+        char resp[16];
+        char val[12];
+        fmt_float(val, sizeof(val), torque_ref_iq, 3);
+        snprintf(resp, sizeof(resp), "=%s\r\n", val);
+        uart_queue(resp);
 
     } else if (cmd[0] == 'F' && cmd[1] >= '0' && cmd[1] <= '9') {
         // Short frequency set: "F100" = 100Hz, "F1" = 1Hz (no restart)
@@ -1290,6 +1649,50 @@ static void ble_process_command(char *cmd) {
         if (hz == 0) hz = 1;
         if (hz > 100) hz = 100;
         ble_log_interval = 1000 / hz;
+
+    } else if (cmd[0] == 'M' && (cmd[1] == '-' || (cmd[1] >= '0' && cmd[1] <= '9'))) {
+        // Short speed set: "M100" = SET speed_ref_rpm 100 (≤6 bytes, BLE-safe)
+        speed_ref_rpm = (float)atoi(cmd + 1);
+        if (speed_ref_rpm > 1000.0f) speed_ref_rpm = 1000.0f;
+        if (speed_ref_rpm < -1000.0f) speed_ref_rpm = -1000.0f;
+
+    } else if (cmd[0] == 'T' && (cmd[1] == '-' || (cmd[1] >= '0' && cmd[1] <= '9'))) {
+        // Short torque set: "T18" = 18/1000 = 0.018 PU (integer milliPU, BLE-safe)
+        torque_ref_iq = (float)atoi(cmd + 1) * 0.001f;
+        if (torque_ref_iq > torque_ref_iq_max) torque_ref_iq = torque_ref_iq_max;
+        if (torque_ref_iq < -torque_ref_iq_max) torque_ref_iq = -torque_ref_iq_max;
+
+    } else if (cmd[0] == 'E' && (cmd[1] == '0' || cmd[1] == '1')) {
+        // Short enable: "E1" = enable, "E0" = disable (2 bytes, BLE-safe)
+        if (cmd[1] == '1') {
+            if (overcurrent_fault) {
+                // Don't enable while overcurrent fault is latched
+                // Send "E0" first to clear the fault, then "E1" to enable
+            } else {
+                Enable = 1;
+            }
+        } else {
+            Enable = 0;
+            overcurrent_fault = 0;  // E0 clears the overcurrent fault
+            // Reset I²t to 50% — motor is still warm after trip
+            if (i2t_accumulator > I2T_THRESHOLD * 0.5f) {
+                i2t_accumulator = I2T_THRESHOLD * 0.5f;
+            }
+            debug_enable_off_src = 5;
+        }
+
+    } else if (cmd[0] == 'C' && (cmd[1] == '0' || cmd[1] == '1')) {
+        // Short control mode: "C0" = speed, "C1" = torque (2 bytes, BLE-safe)
+        control_mode = (uint8_t)(cmd[1] - '0');
+
+    } else if (strcmp(cmd, "A") == 0) {
+        // Short alias for GETALL (1 byte = reliable over BLE)
+        goto do_getall;
+
+    } else if (strcmp(cmd, "D") == 0) {
+        // DUMP: send all var_registry values as V<idx>=<value> (1 per ms tick)
+        // Uses reliable MCU→MATLAB notification path, ~35ms for all params
+        dump_send_idx = 0;
 
     } else if (strcmp(cmd, "LOG STOP") == 0 || strcmp(cmd, "STOP") == 0 || strcmp(cmd, "S") == 0) {
         ble_log_streaming = 0;
@@ -1319,23 +1722,30 @@ static void ble_uart_tick(void) {
         tx_spacing_timer--;
     }
 
-    // Timeout: if bytes in buffer and no new data for 200ms, treat as complete
-    // (nRF Connect / BLE apps don't send CR/LF after text)
-    if (uart_rx_idx > 0 && !uart_rx_complete) {
+    // Timeout: if bytes in buffer and no CR/LF for 200ms, treat as complete
+    // (nRF Connect / BLE apps don't always send CR/LF after text)
+    if (uart_rx_idx > 0) {
         uart_rx_idle_ms++;
         if (uart_rx_idle_ms >= 200) {
-            uart_rx_buf[uart_rx_idx] = '\0';
-            uart_rx_complete = 1;
+            if (rx_cmd_count < RX_CMD_SLOTS) {
+                uint16_t copy_len = uart_rx_idx < RX_CMD_SIZE - 1 ? uart_rx_idx : RX_CMD_SIZE - 1;
+                memcpy(rx_cmd_ring[rx_cmd_head], uart_rx_buf, copy_len);
+                rx_cmd_ring[rx_cmd_head][copy_len] = '\0';
+                rx_cmd_head = (rx_cmd_head + 1) % RX_CMD_SLOTS;
+                rx_cmd_count++;
+            }
+            uart_rx_idx = 0;
+            uart_rx_idle_ms = 0;
             dbg_cmd_timeout_count++;
         }
     }
 
-    // Process received command line
-    if (uart_rx_complete) {
-        char cmd_copy[UART_RX_BUF_SIZE];
-        memcpy(cmd_copy, (const void*)uart_rx_buf, uart_rx_idx + 1);  // +1 for null terminator
-        uart_rx_idx = 0;
-        uart_rx_complete = 0;
+    // Process received commands from ring buffer (up to 1 per ms tick)
+    if (rx_cmd_count > 0) {
+        char cmd_copy[RX_CMD_SIZE];
+        memcpy(cmd_copy, rx_cmd_ring[rx_cmd_tail], RX_CMD_SIZE);
+        rx_cmd_tail = (rx_cmd_tail + 1) % RX_CMD_SLOTS;
+        rx_cmd_count--;
         ble_process_command(cmd_copy);
     }
 
@@ -1352,6 +1762,32 @@ static void ble_uart_tick(void) {
             list_send_idx++;
         } else {
             list_send_idx = -1;  // Done
+        }
+    }
+
+    // DUMP: send one V<idx>=<value> every 5ms (triggered by "D" command)
+    if (dump_send_idx >= 0) {
+        static uint8_t dump_tick2 = 0;
+        dump_tick2++;
+        if (dump_tick2 >= 5 && tx_ring_count < TX_RING_SLOTS) {
+            dump_tick2 = 0;
+            if (dump_send_idx < (int16_t)VAR_REGISTRY_SIZE) {
+                char resp[32];
+                const var_entry_t *v = &var_registry[dump_send_idx];
+                if (v->type == VAR_FLOAT) {
+                    char vbuf[12];
+                    fmt_float(vbuf, sizeof(vbuf), *(volatile float*)v->ptr, 4);
+                    snprintf(resp, sizeof(resp), "V%d=%s\r\n", dump_send_idx, vbuf);
+                } else {
+                    snprintf(resp, sizeof(resp), "V%d=%u\r\n", dump_send_idx,
+                             (unsigned)(*(volatile uint8_t*)v->ptr));
+                }
+                uart_queue(resp);
+                dump_send_idx++;
+            } else {
+                dump_send_idx = -1;
+                uart_queue("VEND\r\n");
+            }
         }
     }
 
@@ -1390,16 +1826,23 @@ static void ble_uart_tick(void) {
                         pos += snprintf(resp + pos, sizeof(resp) - (size_t)pos, ",%d", pack_rpm[i]);
                     }
                     // Compact: iq(int*100), vbat, IMU(milli-g, deci-dps) — no tinv/treg
-                    snprintf(resp + pos, sizeof(resp) - (size_t)pos,
-                             ",%d,%u,%d,%d,%d,%d,%d,%d\r\n",
+                    pos += snprintf(resp + pos, sizeof(resp) - (size_t)pos,
+                             ",%d,%u,%d,%d,%d,%d,%d,%d,%d",
                              (int)(IqFb * 100),
-                             (unsigned)(battery_voltage + 0.5f),
+                             (int)(battery_voltage * 10 + 0.5f),
                              (int)(imu_accel_g[0] * 1000),
                              (int)(imu_accel_g[1] * 1000),
                              (int)(imu_accel_g[2] * 1000),
                              (int)(imu_gyro_dps[0] * 10),
                              (int)(imu_gyro_dps[1] * 10),
-                             (int)(imu_gyro_dps[2] * 10));
+                             (int)(imu_gyro_dps[2] * 10),
+                             (int)(IdFb * 100));
+                    // XOR checksum of payload (B...data), append *XX\r\n
+                    {
+                        uint8_t csum = 0;
+                        for (int ci = 0; ci < pos; ci++) csum ^= (uint8_t)resp[ci];
+                        snprintf(resp + pos, sizeof(resp) - (size_t)pos, "*%02X\r\n", csum);
+                    }
                     uart_queue(resp);
                     pack_idx = 0;
                     dbg_log_lines_total += PACK_SIZE;
@@ -1458,11 +1901,31 @@ void One_ms_Int(timer_callback_args_t *p_args)
     if (control_mode == 0) {
         // Mode 0: Speed control (existing behavior)
         SpeedControl_step(Enable, SpeedRefIn_PU, SpeedFb_Hall_PU, IqFb, Mode, IdqRef, &SpeedRefFinal_PU, &EnCl);
+        // Apply thermal derating to speed controller Iq output
+        IdqRef[1] *= output_derating;
     } else {
         // Mode 1: Torque control (direct Iq command, bypass speed PI loop)
         float iq_cmd = torque_ref_iq;
         if (iq_cmd > torque_ref_iq_max)  iq_cmd = torque_ref_iq_max;
         if (iq_cmd < -torque_ref_iq_max) iq_cmd = -torque_ref_iq_max;
+
+        // Speed limiter: linearly reduce Iq when speed > 90% of max
+        if (torque_max_speed_rpm > 0.0f) {
+            // Use filtered speed for limiter (reduces oscillation from speed estimation noise)
+            float speed_rpm_filtered = SpeedFb_Hall_PU * pmsm.N_base;
+            float speed_abs = speed_rpm_filtered > 0 ? speed_rpm_filtered : -speed_rpm_filtered;
+            float limit_start = torque_max_speed_rpm * 0.9f;
+            if (speed_abs > torque_max_speed_rpm) {
+                iq_cmd = 0.0f;  // hard cutoff above max
+            } else if (speed_abs > limit_start) {
+                // Linear ramp-down: 90%→100% of max → Iq 100%→0%
+                float ratio = (torque_max_speed_rpm - speed_abs) / (torque_max_speed_rpm - limit_start);
+                iq_cmd *= ratio;
+            }
+        }
+
+        // Apply thermal derating to torque command
+        iq_cmd *= output_derating;
 
         IdqRef[0] = 0.0f;     // Id = 0 (no field weakening)
         IdqRef[1] = iq_cmd;   // Iq = direct torque command
@@ -1492,7 +1955,7 @@ void One_ms_Int(timer_callback_args_t *p_args)
                 debug_shutdown_requested = 1;
 
                 // Stop motor before power cut
-                Enable = 0;
+                Enable = 0; debug_enable_off_src = 2;  // Shutdown
                 IdqRef[0] = 0.0f;
                 IdqRef[1] = 0.0f;
                 Vabc_out[0] = 0.5f;
@@ -1511,21 +1974,85 @@ void One_ms_Int(timer_callback_args_t *p_args)
     }
 
     // ============================================================
+    // Makita battery AS terminal monitoring (1kHz rate)
+    // ============================================================
+    if (makita_battery_en && !shutdown_requested) {
+        if (as_voltage < AS_PERMIT_THRESHOLD) {
+            as_low_counter++;
+            // Debounce: >15ms LOW = discharge prohibited (ignore 5ms periodic check)
+            if (as_low_counter >= AS_PROHIBIT_DEBOUNCE_MS) {
+                makita_battery_state = 2;  // prohibited
+                // Self-shutdown: stop motor and cut power
+                shutdown_requested = 1;
+                debug_shutdown_requested = 1;
+                Enable = 0; debug_enable_off_src = 3;  // Makita AS
+                IdqRef[0] = 0.0f;
+                IdqRef[1] = 0.0f;
+                Vabc_out[0] = 0.5f;
+                Vabc_out[1] = 0.5f;
+                Vabc_out[2] = 0.5f;
+                R_IOPORT_PinWrite(&g_ioport_ctrl, LATCH_OFF, BSP_IO_LEVEL_HIGH);
+            }
+        } else {
+            as_low_counter = 0;
+            makita_battery_state = 1;  // permitted
+        }
+    }
+
+    // ============================================================
     // Protection monitoring (1kHz rate)
     // ============================================================
     {
         uint8_t new_protection = 0;
         float new_derating = 1.0f;
 
-        // Battery low voltage check
+        // Battery low voltage check (with debounce to ignore transient dips)
+        static uint16_t vbat_low_count = 0;
         if(battery_voltage < VBAT_LOW_CUTOFF && battery_voltage > 1.0f) {
-            // Below cutoff - emergency stop (ignore if voltage reads near 0 = no sensor)
-            new_protection = 3;
-            new_derating = 0.0f;
-        } else if(battery_voltage < VBAT_LOW_WARNING && battery_voltage > 1.0f) {
+            vbat_low_count++;
+            if (vbat_low_count >= 500) {  // 500ms continuous low → emergency stop
+                new_protection = 3;
+                new_derating = 0.0f;
+            }
+        } else {
+            vbat_low_count = 0;
+        }
+        if(battery_voltage < VBAT_LOW_WARNING && battery_voltage > 1.0f) {
             // Below warning - reduce output
             if(new_protection < 1) new_protection = 1;
             if(new_derating > 0.5f) new_derating = 0.5f;
+        }
+
+        // I²t motor winding thermal protection
+        // First-order model: dE/dt = I² - E/τ  (natural cooling when I<I_rated)
+        {
+            float iq = IqFb;
+            float id = IdFb;
+            float I2 = iq * iq + id * id;  // |I|² in PU²
+            const float dt = 0.001f;        // 1ms
+
+            // Accumulate heat, subtract natural cooling (exponential decay)
+            i2t_accumulator += (I2 - i2t_accumulator / I2T_TAU_W) * dt;
+            if (i2t_accumulator < 0.0f) i2t_accumulator = 0.0f;
+
+            i2t_ratio = i2t_accumulator / I2T_THRESHOLD;
+
+            if (i2t_ratio >= I2T_TRIP_PCT) {
+                new_protection = 3;
+                new_derating = 0.0f;
+                overcurrent_fault = 1;
+                overcurrent_peak_iq = iq > 0 ? iq : -iq;
+                overcurrent_peak_id = id > 0 ? id : -id;
+                debug_enable_off_src = 8;  // I²t thermal trip
+            } else if (i2t_ratio >= I2T_DERATING_PCT) {
+                if (new_protection < 2) new_protection = 2;
+                float derate = 0.5f * (1.0f - (i2t_ratio - I2T_DERATING_PCT) / (I2T_TRIP_PCT - I2T_DERATING_PCT));
+                if (new_derating > derate) new_derating = derate;
+            } else if (i2t_ratio >= I2T_WARNING_PCT) {
+                if (new_protection < 1) new_protection = 1;
+                float derate = 1.0f - 0.5f * (i2t_ratio - I2T_WARNING_PCT) / (I2T_DERATING_PCT - I2T_WARNING_PCT);
+                if (new_derating > derate) new_derating = derate;
+            }
         }
 
         // Inverter temperature check
@@ -1557,7 +2084,7 @@ void One_ms_Int(timer_callback_args_t *p_args)
 
         // Emergency stop on critical protection
         if(protection_state >= 3) {
-            Enable = 0;
+            Enable = 0; debug_enable_off_src = 4;  // Protection
         }
     }
 
@@ -1604,75 +2131,36 @@ void One_ms_Int(timer_callback_args_t *p_args)
     }
 
     // ============================================================
-    // Assist app model input population (1kHz)
-    // ============================================================
-    assist_U.SVON        = (Enable != 0);
-    assist_U.err_type    = protection_state;
-    assist_U.hall_enccnt = hall_enc_count;
-    assist_U.Mot_spd     = (int16_T)SpeedFb_RPM;
-    assist_U.batterycnt  = (int32_T)battery_adc_raw;
-    assist_U.Acc_x       = imu_accel_raw[0];
-    assist_U.Acc_y       = imu_accel_raw[1];
-    assist_U.Acc_z       = imu_accel_raw[2];
-    assist_U.in_flags.btn_normal_assist = (sw_in1_now == 0);  /* active low */
-    assist_U.in_flags.btn_force         = (sw_in2_now == 0);  /* active low */
-    assist_U.in_flags.btn_power         = (power_switch_pin == BSP_IO_LEVEL_HIGH);
-
-    /* assist_app_step();  // TODO: uncomment when Simulink model is integrated */
-
-    // ============================================================
     // LED output control (Active Low: MCU Low → LED ON)
+    // led_mode=0: auto (base driver default)
+    // led_mode=1: manual (led_state controlled by BLE/app)
     // ============================================================
     {
-        // Power LED: Green=normal, Red=fault/warning
-        if(drv8302_fault_latched || protection_state >= 3) {
-            // Fault or emergency: Red ON, Green OFF
-            R_IOPORT_PinWrite(&g_ioport_ctrl, LED_POWER_GREEN, BSP_IO_LEVEL_HIGH);
-            R_IOPORT_PinWrite(&g_ioport_ctrl, LED_POWER_RED, BSP_IO_LEVEL_LOW);
-        } else if(protection_state >= 1) {
-            // Warning: Both ON (blink Red at 2Hz)
-            R_IOPORT_PinWrite(&g_ioport_ctrl, LED_POWER_GREEN, BSP_IO_LEVEL_LOW);
-            bsp_io_level_t blink = ((timer_callback_count / 250) % 2) ? BSP_IO_LEVEL_LOW : BSP_IO_LEVEL_HIGH;
-            R_IOPORT_PinWrite(&g_ioport_ctrl, LED_POWER_RED, blink);
+        uint8_t ls;
+        if (led_mode == 0) {
+            // Auto mode: base driver default pattern
+            ls = 0;
+            if (drv8302_fault_latched || protection_state >= 3) {
+                ls |= 0x02;  // PwrRed ON
+            } else if (protection_state >= 1) {
+                ls |= 0x01;  // PwrGrn ON
+                if ((timer_callback_count / 250) % 2) ls |= 0x02;  // PwrRed blink 2Hz
+            } else {
+                ls |= 0x01;  // PwrGrn ON
+            }
+            if (Enable) ls |= 0x04;  // Turbo LED = motor enabled indicator
+            led_state = ls;
         } else {
-            // Normal: Green ON, Red OFF
-            R_IOPORT_PinWrite(&g_ioport_ctrl, LED_POWER_GREEN, BSP_IO_LEVEL_LOW);
-            R_IOPORT_PinWrite(&g_ioport_ctrl, LED_POWER_RED, BSP_IO_LEVEL_HIGH);
+            ls = led_state;  // Manual: use BLE/app-set value directly
         }
 
-        // Turbo LED — override for BLE debug
-        if (ble_debug_state == 0) {
-            // Normal: turbo switch controls LED
-            R_IOPORT_PinWrite(&g_ioport_ctrl, LED_TURBO,
-                turbo_mode ? BSP_IO_LEVEL_LOW : BSP_IO_LEVEL_HIGH);
-        } else if (ble_debug_state == 1) {
-            // Before Open: fast blink (100ms)
-            R_IOPORT_PinWrite(&g_ioport_ctrl, LED_TURBO,
-                ((timer_callback_count / 100) % 2) ? BSP_IO_LEVEL_LOW : BSP_IO_LEVEL_HIGH);
-        } else if (ble_debug_state == 4) {
-            // All OK: solid ON
-            R_IOPORT_PinWrite(&g_ioport_ctrl, LED_TURBO, BSP_IO_LEVEL_LOW);
-        } else {
-            // Error (99=Open fail, 3=BaudCalc fail): slow blink (500ms)
-            R_IOPORT_PinWrite(&g_ioport_ctrl, LED_TURBO,
-                ((timer_callback_count / 500) % 2) ? BSP_IO_LEVEL_LOW : BSP_IO_LEVEL_HIGH);
-        }
-
-        // Assist level LEDs — override for UART RX debug
-        if (uart_rx_byte_count > 0) {
-            // ANY byte received on UART RX: Assist_L ON (solid)
-            R_IOPORT_PinWrite(&g_ioport_ctrl, LED_ASSIST_L, BSP_IO_LEVEL_LOW);
-            R_IOPORT_PinWrite(&g_ioport_ctrl, LED_ASSIST_M, BSP_IO_LEVEL_HIGH);
-            R_IOPORT_PinWrite(&g_ioport_ctrl, LED_ASSIST_H, BSP_IO_LEVEL_HIGH);
-        } else {
-            // Normal assist level display
-            R_IOPORT_PinWrite(&g_ioport_ctrl, LED_ASSIST_L,
-                (assist_level == 0) ? BSP_IO_LEVEL_LOW : BSP_IO_LEVEL_HIGH);
-            R_IOPORT_PinWrite(&g_ioport_ctrl, LED_ASSIST_M,
-                (assist_level == 1) ? BSP_IO_LEVEL_LOW : BSP_IO_LEVEL_HIGH);
-            R_IOPORT_PinWrite(&g_ioport_ctrl, LED_ASSIST_H,
-                (assist_level == 2) ? BSP_IO_LEVEL_LOW : BSP_IO_LEVEL_HIGH);
-        }
+        // Write all 6 LEDs from led_state bits (1=ON → LOW, 0=OFF → HIGH)
+        R_IOPORT_PinWrite(&g_ioport_ctrl, LED_POWER_GREEN, (ls & 0x01) ? BSP_IO_LEVEL_LOW : BSP_IO_LEVEL_HIGH);
+        R_IOPORT_PinWrite(&g_ioport_ctrl, LED_POWER_RED,   (ls & 0x02) ? BSP_IO_LEVEL_LOW : BSP_IO_LEVEL_HIGH);
+        R_IOPORT_PinWrite(&g_ioport_ctrl, LED_TURBO,       (ls & 0x04) ? BSP_IO_LEVEL_LOW : BSP_IO_LEVEL_HIGH);
+        R_IOPORT_PinWrite(&g_ioport_ctrl, LED_ASSIST_H,    (ls & 0x08) ? BSP_IO_LEVEL_LOW : BSP_IO_LEVEL_HIGH);
+        R_IOPORT_PinWrite(&g_ioport_ctrl, LED_ASSIST_M,    (ls & 0x10) ? BSP_IO_LEVEL_LOW : BSP_IO_LEVEL_HIGH);
+        R_IOPORT_PinWrite(&g_ioport_ctrl, LED_ASSIST_L,    (ls & 0x20) ? BSP_IO_LEVEL_LOW : BSP_IO_LEVEL_HIGH);
     }
 
     // IMU read request every 10ms (100Hz)
@@ -1693,15 +2181,6 @@ void One_ms_Int(timer_callback_args_t *p_args)
 // Receives one byte at a time via UART_EVENT_RX_CHAR.
 // Assembles bytes into uart_rx_buf until CR or LF is received.
 // ============================================================
-// ============================================================
-// Assist app placeholder (replace with Embedded Coder output)
-// ============================================================
-void assist_app_step(void)
-{
-    /* Simulink generated code will go here */
-    (void)assist_U;  /* suppress unused warning */
-}
-
 // ============================================================
 // SPI1 callback (ICM-42605)
 // ============================================================
@@ -1726,14 +2205,16 @@ void sci3_uart_callback(uart_callback_args_t *p_args) {
             if (dbg_rx_raw_idx < 64) {
                 dbg_rx_raw[dbg_rx_raw_idx++] = ch;
             }
-            // Buffer line (CR or LF = end of line)
-            // If previous line not yet processed, drop new bytes
-            if (uart_rx_complete) break;  // busy, drop
+            // Buffer line into rx_cmd_ring (CR or LF = end of line)
             if (ch == '\r' || ch == '\n') {
-                if (uart_rx_idx > 0) {
-                    uart_rx_buf[uart_rx_idx] = '\0';
-                    uart_rx_complete = 1;
+                if (uart_rx_idx > 0 && rx_cmd_count < RX_CMD_SLOTS) {
+                    uint16_t copy_len = uart_rx_idx < RX_CMD_SIZE - 1 ? uart_rx_idx : RX_CMD_SIZE - 1;
+                    memcpy(rx_cmd_ring[rx_cmd_head], uart_rx_buf, copy_len);
+                    rx_cmd_ring[rx_cmd_head][copy_len] = '\0';
+                    rx_cmd_head = (rx_cmd_head + 1) % RX_CMD_SLOTS;
+                    rx_cmd_count++;
                 }
+                uart_rx_idx = 0;
             } else if (uart_rx_idx < UART_RX_BUF_SIZE - 1) {
                 uart_rx_buf[uart_rx_idx++] = ch;
                 uart_rx_idle_ms = 0;  // reset timeout
