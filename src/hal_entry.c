@@ -1136,6 +1136,7 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
             debug_Ibeta  = Ibeta;
 
             static float Id_integral = 0.0f, Iq_integral = 0.0f;
+            static float Vq_ff_lpf = 0.0f;
             static uint8_t foc_was_enabled = 0;
 
             if (Enable && EnCl_smooth) {
@@ -1148,7 +1149,6 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
 
                 // Back-EMF feedforward (LPF smoothed, enabled from start)
                 float speed_pu = SpeedFb_RPM / pmsm.N_base;
-                static float Vq_ff_lpf = 0.0f;
                 // FF gain = 0.52 (BEMF at N_base is 0.52 PU, not 1.0 PU)
                 // N_base=1559 is PU speed normalization, not voltage base
                 // Voltage base speed = 3004 RPM (where BEMF = 1.0 PU)
@@ -1173,13 +1173,13 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
                 // Only update when Ki > 0
                 if (PI_params.Ki_id > 0.0f) {
                     Id_integral += PI_params.Ki_id * 0.0001f * Id_error;
-                    if (Id_integral >  0.20f) Id_integral =  0.20f;
-                    if (Id_integral < -0.20f) Id_integral = -0.20f;
+                    if (Id_integral >  0.10f) Id_integral =  0.10f;
+                    if (Id_integral < -0.10f) Id_integral = -0.10f;
                 }
                 if (PI_params.Ki_iq > 0.0f) {
                     Iq_integral += PI_params.Ki_iq * 0.0001f * Iq_error;
-                    if (Iq_integral >  0.20f) Iq_integral =  0.20f;
-                    if (Iq_integral < -0.20f) Iq_integral = -0.20f;
+                    if (Iq_integral >  0.10f) Iq_integral =  0.10f;
+                    if (Iq_integral < -0.10f) Iq_integral = -0.10f;
                 }
                 debug_Iq_integral = Iq_integral;
 
