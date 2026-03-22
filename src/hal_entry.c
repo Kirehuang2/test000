@@ -104,6 +104,7 @@ volatile uint32_t debug_fifo2_raw[8] = {0};
 volatile float debug_speed_error = 0.0f;      // SpeedRef - SpeedFb (should be positive if below target)
 volatile float debug_Ialpha = 0.0f;           // Clarke transform output
 volatile float debug_Ibeta = 0.0f;            // Clarke transform output
+volatile float debug_Iq_integral = 0.0f;      // For streaming diagnostic
 volatile uint8_t debug_encl_smooth = 0;       // 0=Open-loop, 1=Closed-loop enabled
 volatile float debug_abs_speed_error = 0.0f;  // Absolute speed error for transition check
 volatile uint8_t debug_foc_state = 0;         // 0=disabled, 1=active, 2=idq_zero_brake, 3=enable_off
@@ -1141,13 +1142,19 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
                 if (!foc_was_enabled) {
                     Id_integral = 0.0f;
                     Iq_integral = 0.0f;
+                    Vq_ff_lpf = 0.0f;
                     foc_was_enabled = 1;
                 }
+
+                // Back-EMF feedforward (LPF smoothed, enabled from start)
+                float speed_pu = SpeedFb_RPM / pmsm.N_base;
+                static float Vq_ff_lpf = 0.0f;
+                Vq_ff_lpf += 0.005f * (speed_pu - Vq_ff_lpf);  // α=0.005, τ=20ms
 
                 float Id_error = IdqRef[0] - Id_fb;
                 float Iq_error = IdqRef[1] - Iq_fb_val;
                 float Vd = PI_params.Kp_id * Id_error + Id_integral;
-                float Vq = PI_params.Kp_iq * Iq_error + Iq_integral;
+                float Vq = PI_params.Kp_iq * Iq_error + Iq_integral + Vq_ff_lpf;
 
                 // Circle limiter
                 float Vd_unsat = Vd, Vq_unsat = Vq;
@@ -1170,6 +1177,7 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
                     if (Iq_integral >  0.20f) Iq_integral =  0.20f;
                     if (Iq_integral < -0.20f) Iq_integral = -0.20f;
                 }
+                debug_Iq_integral = Iq_integral;
 
                 float Valpha = Vd * cos_theta - Vq * sin_theta;
                 float Vbeta  = Vq * cos_theta + Vd * sin_theta;
@@ -1695,7 +1703,7 @@ static void ble_uart_tick(void) {
                     }
                     // Compact: iq(int*100), vbat, IMU(milli-g, deci-dps) — no tinv/treg
                     pos += snprintf(resp + pos, sizeof(resp) - (size_t)pos,
-                             ",%d,%u,%d,%d,%d,%d,%d,%d,%d",
+                             ",%d,%u,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
                              (int)(IqFb * 100),
                              (int)(battery_voltage * 10 + 0.5f),
                              (int)(imu_accel_g[0] * 1000),
@@ -1704,7 +1712,11 @@ static void ble_uart_tick(void) {
                              (int)(imu_gyro_dps[0] * 10),
                              (int)(imu_gyro_dps[1] * 10),
                              (int)(imu_gyro_dps[2] * 10),
-                             (int)(IdFb * 100));
+                             (int)(IdFb * 100),
+                             (int)Enable,
+                             (int)protection_state,
+                             (int)(i2t_ratio * 100),
+                             (int)(debug_Iq_integral * 1000));
                     // XOR checksum of payload (B...data), append *XX\r\n
                     {
                         uint8_t csum = 0;
