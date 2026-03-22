@@ -1259,7 +1259,7 @@ FSP Configuration
       Baud: Baud Rate: 921600
       Baud: Baud Rate Modulation: Disabled
       Baud: Max Error (%): 5
-      Flow Control: CTS/RTS Selection: Hardware CTS
+      Flow Control: CTS/RTS Selection: Hardware RTS
       Flow Control: Software RTS Port: Disabled
       Flow Control: Software RTS Pin: Disabled
       Extra: Clock Source: Internal Clock
