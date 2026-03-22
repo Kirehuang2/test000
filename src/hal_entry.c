@@ -153,9 +153,14 @@ volatile float debug_vabc[3] = {0.0f, 0.0f, 0.0f};
 volatile uint8_t drv8302_fault = 0;       // 0=Normal, 1=Fault detected
 volatile uint8_t drv8302_fault_latched = 0; // Latched fault (requires power cycle to clear)
 
-// Hall sensor angle offset (adjustable via debugger)
-// Note: Optimal value may vary depending on startup position
-volatile float hall_angle_offset = 0.0f;  // Start with 0, adjust via debugger
+// Hall sensor angle offset (adjustable via debugger or BLE P43=<value>)
+volatile float hall_angle_offset = 0.0f;
+
+// Auto-sweep for offset calibration (set cal_sweep_en=1 via debugger or BLE)
+volatile uint8_t cal_sweep_en = 0;        // 1=sweeping, 0=idle
+volatile uint8_t cal_sweep_idx = 0;       // current sweep index
+volatile float cal_sweep_id_min = 99.0f;  // minimum |Id| found
+volatile float cal_sweep_best_offset = 0.0f; // offset with minimum Id
 
 // Power switch control variables
 static uint32_t power_switch_high_counter = 0;  // Counter for PE14 high duration (in ms)
@@ -590,6 +595,10 @@ static const var_entry_t var_registry[] = {
     {"as_voltage",          (void*)&as_voltage,          VAR_FLOAT,  0},
     {"makita_bat_state",    (void*)&makita_battery_state, VAR_UINT8, 0},
     {"i2t_ratio",           (void*)&i2t_ratio,           VAR_FLOAT,  0},
+    {"hall_offset",         (void*)&hall_angle_offset,   VAR_FLOAT,  1},
+    {"IdFb",                (void*)&IdFb,                VAR_FLOAT,  0},
+    {"cal_sweep",           (void*)&cal_sweep_en,        VAR_UINT8,  1},
+    {"cal_best_ofs",        (void*)&cal_sweep_best_offset, VAR_FLOAT, 0},
 };
 #define VAR_REGISTRY_SIZE (sizeof(var_registry)/sizeof(var_registry[0]))
 
@@ -1770,6 +1779,52 @@ static void ble_uart_tick(void) {
 void One_ms_Int(timer_callback_args_t *p_args)
 {
     timer_callback_count++;  // Debug counter
+
+    // Hall angle offset auto-sweep calibration
+    // Sweeps -0.3 to +0.3 in 0.05 steps (13 values), 2 seconds each
+    if (cal_sweep_en && Enable) {
+        static uint16_t cal_timer = 0;
+        static float cal_id_sum = 0;
+        static uint32_t cal_id_count = 0;
+        static const float cal_offsets[] = {
+            0.0f, 0.05f, 0.10f, 0.15f, 0.20f, 0.25f, 0.30f,
+            -0.05f, -0.10f, -0.15f, -0.20f, -0.25f, -0.30f
+        };
+        #define CAL_NUM_OFFSETS 13
+        #define CAL_DWELL_MS 2000  // 2 seconds per offset
+
+        cal_timer++;
+        // Accumulate |Id| during dwell (skip first 500ms for settling)
+        if (cal_timer > 500) {
+            float id_abs = IdFb > 0 ? IdFb : -IdFb;
+            cal_id_sum += id_abs;
+            cal_id_count++;
+        }
+
+        if (cal_timer >= CAL_DWELL_MS) {
+            // Evaluate this offset
+            float id_avg = (cal_id_count > 0) ? cal_id_sum / (float)cal_id_count : 99.0f;
+            if (id_avg < cal_sweep_id_min) {
+                cal_sweep_id_min = id_avg;
+                cal_sweep_best_offset = cal_offsets[cal_sweep_idx];
+            }
+
+            // Next offset
+            cal_sweep_idx++;
+            cal_timer = 0;
+            cal_id_sum = 0;
+            cal_id_count = 0;
+
+            if (cal_sweep_idx >= CAL_NUM_OFFSETS) {
+                // Sweep complete: apply best offset
+                hall_angle_offset = cal_sweep_best_offset;
+                cal_sweep_en = 0;
+                cal_sweep_idx = 0;
+            } else {
+                hall_angle_offset = cal_offsets[cal_sweep_idx];
+            }
+        }
+    }
 
     // Measure ADC callback rate: diff between 1s and 2s = exact 1-second count
     if (timer_callback_count == 1000) {
