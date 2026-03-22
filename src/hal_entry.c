@@ -154,7 +154,7 @@ volatile uint8_t drv8302_fault = 0;       // 0=Normal, 1=Fault detected
 volatile uint8_t drv8302_fault_latched = 0; // Latched fault (requires power cycle to clear)
 
 // Hall sensor angle offset (adjustable via debugger or BLE P43=<value>)
-volatile float hall_angle_offset = 0.0f;
+volatile float hall_angle_offset = -0.15f;  // Calibrated: minimizes Id
 
 // Auto-sweep for offset calibration (set cal_sweep_en=1 via debugger or BLE)
 volatile uint8_t cal_sweep_en = 0;        // 1=sweeping, 0=idle
