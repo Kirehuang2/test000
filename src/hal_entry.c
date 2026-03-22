@@ -1149,7 +1149,11 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
                 // Back-EMF feedforward (LPF smoothed, enabled from start)
                 float speed_pu = SpeedFb_RPM / pmsm.N_base;
                 static float Vq_ff_lpf = 0.0f;
-                Vq_ff_lpf += 0.005f * (speed_pu - Vq_ff_lpf);  // α=0.005, τ=20ms
+                // FF gain = 0.52 (BEMF at N_base is 0.52 PU, not 1.0 PU)
+                // N_base=1559 is PU speed normalization, not voltage base
+                // Voltage base speed = 3004 RPM (where BEMF = 1.0 PU)
+                float Vq_ff_target = speed_pu * 0.52f;
+                Vq_ff_lpf += 0.005f * (Vq_ff_target - Vq_ff_lpf);  // α=0.005, τ=20ms
 
                 float Id_error = IdqRef[0] - Id_fb;
                 float Iq_error = IdqRef[1] - Iq_fb_val;
