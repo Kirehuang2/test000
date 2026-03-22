@@ -1135,19 +1135,43 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
             debug_Ibeta  = Ibeta;
 
             static float Id_integral = 0.0f, Iq_integral = 0.0f;
+            static float Vq_ff = 0.0f;
             static uint8_t foc_was_enabled = 0;
 
             if (Enable && EnCl_smooth) {
+                static uint16_t soft_start_count = 0;
                 if (!foc_was_enabled) {
                     Id_integral = 0.0f;
                     Iq_integral = 0.0f;
+                    Vq_ff = 0.0f;
+                    soft_start_count = 0;
                     foc_was_enabled = 1;
+                }
+                // Soft start: ramp voltage limit over 500ms (5000 counts at 10kHz)
+                float soft_start_gain = 1.0f;
+                if (soft_start_count < 5000) {
+                    soft_start_gain = (float)soft_start_count / 5000.0f;
+                    soft_start_count++;
+                }
+
+                // Back-EMF feedforward with rate limiter (prevents startup voltage spikes)
+                // Rate: max 0.0005 PU/cycle = 5 PU/s → 0→0.1 PU takes 200ms (smooth ramp)
+                {
+                    float Vq_ff_target = SpeedFb_RPM / pmsm.N_base;
+                    float step = 0.0005f;
+                    if (Vq_ff_target > Vq_ff + step) Vq_ff += step;
+                    else if (Vq_ff_target < Vq_ff - step) Vq_ff -= step;
+                    else Vq_ff = Vq_ff_target;
                 }
 
                 float Id_error = IdqRef[0] - Id_fb;
                 float Iq_error = IdqRef[1] - Iq_fb_val;
                 float Vd = PI_params.Kp_id * Id_error + Id_integral;
-                float Vq = PI_params.Kp_iq * Iq_error + Iq_integral;
+                float Vq = PI_params.Kp_iq * Iq_error + Iq_integral + Vq_ff;
+
+                // Apply soft start
+                Vd *= soft_start_gain;
+                Vq *= soft_start_gain;
 
                 // Circle limiter
                 float Vmag2 = Vd * Vd + Vq * Vq;
