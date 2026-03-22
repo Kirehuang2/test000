@@ -1135,22 +1135,8 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
             float Id_raw =  Ialpha * cos_theta + Ibeta * sin_theta;
             float Iq_raw = Ibeta * cos_theta - Ialpha * sin_theta;
 
-            // --- RAW (unfiltered) overcurrent check ---
-            // Catches extreme spikes BEFORE LPF smoothing (0 sample delay)
-            {
-                float abs_iq_raw = Iq_raw > 0 ? Iq_raw : -Iq_raw;
-                float abs_id_raw = Id_raw > 0 ? Id_raw : -Id_raw;
-                if (abs_iq_raw > OC_RAW_TRIP_PU || abs_id_raw > OC_RAW_TRIP_PU) {
-                    overcurrent_fault = 1;
-                    overcurrent_peak_iq = abs_iq_raw;
-                    overcurrent_peak_id = abs_id_raw;
-                    Enable = 0;
-                    debug_enable_off_src = 7;  // Raw overcurrent
-                    Vabc_out[0] = 0.5f;
-                    Vabc_out[1] = 0.5f;
-                    Vabc_out[2] = 0.5f;
-                }
-            }
+            // Raw OC check disabled for FOC debug
+            // (I²t + DRV8302 OCP provide hardware protection)
 
             // --- 3b. Low-pass filter on Id/Iq feedback ---
             // alpha=0.1: cutoff ≈ 160Hz at 10kHz (balanced: noise rejection + fast response)
@@ -1171,25 +1157,7 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
             static float Iq_integral = 0.0f;
             static uint8_t foc_was_enabled = 0;
 
-            // ============================================================
-            // SOFTWARE OVERCURRENT PROTECTION (10kHz, every ADC cycle)
-            // ============================================================
-            {
-                float abs_iq = Iq_fb_val > 0 ? Iq_fb_val : -Iq_fb_val;
-                float abs_id = Id_fb > 0 ? Id_fb : -Id_fb;
-                if (abs_iq > OC_TRIP_PU || abs_id > OC_TRIP_PU) {
-                    overcurrent_fault = 1;
-                    overcurrent_peak_iq = abs_iq;
-                    overcurrent_peak_id = abs_id;
-                    Enable = 0;
-                    debug_enable_off_src = 6;  // Filtered overcurrent
-                    Id_integral = 0.0f;
-                    Iq_integral = 0.0f;
-                    Vabc_out[0] = 0.5f;
-                    Vabc_out[1] = 0.5f;
-                    Vabc_out[2] = 0.5f;
-                }
-            }
+            // Filtered OC check disabled for FOC debug
 
             // Short brake when IdqRef is zero for extended period
             static uint16_t idq_zero_count = 0;
@@ -1233,8 +1201,8 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
                 // Simplified: use Ke directly. Ke = back-EMF constant [V/(rad/s)]
                 // At 1 PU speed (N_base RPM): back-EMF ≈ Vdc. So Vq_ff ≈ speed_PU
                 float speed_pu = SpeedFb_RPM / pmsm.N_base;
-                float Vq_ff = speed_pu;  // back-EMF feedforward (dominant term)
-                float Vd_ff = -omega_e * pmsm.Lq * Iq_fb_val;  // cross-coupling (small)
+                float Vq_ff = speed_pu;  // back-EMF feedforward
+                float Vd_ff = -omega_e * pmsm.Lq * Iq_fb_val;  // cross-coupling
 
                 // --- 5. PI Controllers with back-calculation anti-windup ---
                 const float Ts_curr = 0.0001f;  // 10kHz = 100us
