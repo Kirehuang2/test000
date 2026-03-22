@@ -1138,6 +1138,7 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
             static uint8_t foc_was_enabled = 0;
             static uint16_t ff_delay_count = 0;
             static uint8_t ff_active = 0;
+            static float Vq_ff_lpf = 0.0f;
 
             if (Enable && EnCl_smooth) {
                 if (!foc_was_enabled) {
@@ -1145,6 +1146,7 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
                     Iq_integral = 0.0f;
                     ff_delay_count = 0;
                     ff_active = 0;
+                    Vq_ff_lpf = 0.0f;
                     foc_was_enabled = 1;
                 }
 
@@ -1161,9 +1163,13 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
                     ff_active = 1;
                     Id_integral = 0.0f;
                     Iq_integral = 0.0f;
-                    Vq_ff = speed_pu;  // Start FF at current speed
+                    Vq_ff_lpf = speed_pu;  // Initialize LPF at current speed
+                    Vq_ff = Vq_ff_lpf;
                 } else {
-                    Vq_ff = speed_pu;  // Direct tracking (no LPF needed after smooth handoff)
+                    // LPF on FF: smooths Hall sensor speed estimation noise
+                    // α=0.02: τ=50 samples (5ms) — fast enough to track, smooth enough for noise
+                    Vq_ff_lpf += 0.02f * (speed_pu - Vq_ff_lpf);
+                    Vq_ff = Vq_ff_lpf;
                 }
 
                 float Id_error = IdqRef[0] - Id_fb;
