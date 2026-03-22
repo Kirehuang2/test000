@@ -581,16 +581,14 @@ static const var_entry_t var_registry[] = {
     {"stop_idqref",         (void*)&debug_stop_idqref,   VAR_FLOAT,  0},
     {"stop_rpm",            (void*)&debug_stop_rpm,      VAR_UINT8,  0},
     {"enable_off_src",      (void*)&debug_enable_off_src, VAR_UINT8, 0},
-    // TEMPORARILY DISABLED for UART debug
-    // {"oc_fault",            (void*)&overcurrent_fault,   VAR_UINT8,  0},
-    // {"oc_peak_iq",          (void*)&overcurrent_peak_iq, VAR_FLOAT,  0},
-    // {"oc_peak_id",          (void*)&overcurrent_peak_id, VAR_FLOAT,  0},
+    {"oc_fault",            (void*)&overcurrent_fault,   VAR_UINT8,  0},
+    {"oc_peak_iq",          (void*)&overcurrent_peak_iq, VAR_FLOAT,  0},
+    {"oc_peak_id",          (void*)&overcurrent_peak_id, VAR_FLOAT,  0},
     {"makita_bat_en",       (void*)&makita_battery_en,   VAR_UINT8,  1},
     // Makita battery (read-only)
     {"as_voltage",          (void*)&as_voltage,          VAR_FLOAT,  0},
     {"makita_bat_state",    (void*)&makita_battery_state, VAR_UINT8, 0},
-    // TEMPORARILY DISABLED for UART debug
-    // {"i2t_ratio",           (void*)&i2t_ratio,           VAR_FLOAT,  0},
+    {"i2t_ratio",           (void*)&i2t_ratio,           VAR_FLOAT,  0},
 };
 #define VAR_REGISTRY_SIZE (sizeof(var_registry)/sizeof(var_registry[0]))
 
@@ -1138,8 +1136,7 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
             float Iq_raw = Ibeta * cos_theta - Ialpha * sin_theta;
 
             // --- RAW (unfiltered) overcurrent check ---
-            // TEMPORARILY DISABLED for UART debug
-            #if 0
+            // Catches extreme spikes BEFORE LPF smoothing (0 sample delay)
             {
                 float abs_iq_raw = Iq_raw > 0 ? Iq_raw : -Iq_raw;
                 float abs_id_raw = Id_raw > 0 ? Id_raw : -Id_raw;
@@ -1148,13 +1145,12 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
                     overcurrent_peak_iq = abs_iq_raw;
                     overcurrent_peak_id = abs_id_raw;
                     Enable = 0;
-                    debug_enable_off_src = 7;
+                    debug_enable_off_src = 7;  // Raw overcurrent
                     Vabc_out[0] = 0.5f;
                     Vabc_out[1] = 0.5f;
                     Vabc_out[2] = 0.5f;
                 }
             }
-            #endif
 
             // --- 3b. Low-pass filter on Id/Iq feedback ---
             // alpha=0.1: cutoff ≈ 160Hz at 10kHz (balanced: noise rejection + fast response)
@@ -1177,9 +1173,7 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
 
             // ============================================================
             // SOFTWARE OVERCURRENT PROTECTION (10kHz, every ADC cycle)
-            // TEMPORARILY DISABLED for UART debug
             // ============================================================
-            #if 0
             {
                 float abs_iq = Iq_fb_val > 0 ? Iq_fb_val : -Iq_fb_val;
                 float abs_id = Id_fb > 0 ? Id_fb : -Id_fb;
@@ -1188,7 +1182,7 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
                     overcurrent_peak_iq = abs_iq;
                     overcurrent_peak_id = abs_id;
                     Enable = 0;
-                    debug_enable_off_src = 6;
+                    debug_enable_off_src = 6;  // Filtered overcurrent
                     Id_integral = 0.0f;
                     Iq_integral = 0.0f;
                     Vabc_out[0] = 0.5f;
@@ -1196,7 +1190,6 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
                     Vabc_out[2] = 0.5f;
                 }
             }
-            #endif
 
             // Short brake when IdqRef is zero for extended period
             static uint16_t idq_zero_count = 0;
@@ -1278,10 +1271,10 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
                 // Worst case (stopped motor): I = (Kp*error + integral + ff) * Vbase / Rs
                 // At integral=0.05: V=0.5*0.2+0.05=0.15 → I=0.15*9/0.29=4.7A (0.28PU, below 0.35 raw trip)
                 // At integral=0.10: V=0.5*0.2+0.10=0.20 → I=0.20*9/0.29=6.3A (0.38PU, exceeds raw trip!)
-                if (Id_integral >  0.5f) Id_integral =  0.5f;
-                if (Id_integral < -0.5f) Id_integral = -0.5f;
-                if (Iq_integral >  0.5f) Iq_integral =  0.5f;
-                if (Iq_integral < -0.5f) Iq_integral = -0.5f;
+                if (Id_integral >  0.05f) Id_integral =  0.05f;
+                if (Id_integral < -0.05f) Id_integral = -0.05f;
+                if (Iq_integral >  0.05f) Iq_integral =  0.05f;
+                if (Iq_integral < -0.05f) Iq_integral = -0.05f;
 
                 // Use saturated voltage for output
                 Vd = Vd_sat;
@@ -1362,9 +1355,14 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
         //   compensated = 0.5 + (duty - 0.5) * V_DC_NOMINAL / V_battery
         if (vdc_compensation_en && battery_voltage > 10.0f) {
             float vdc_scale = V_DC_NOMINAL / battery_voltage;
+            if (vdc_scale > 1.5f) vdc_scale = 1.5f;
             Vabc_out[0] = 0.5f + (Vabc_out[0] - 0.5f) * vdc_scale;
             Vabc_out[1] = 0.5f + (Vabc_out[1] - 0.5f) * vdc_scale;
             Vabc_out[2] = 0.5f + (Vabc_out[2] - 0.5f) * vdc_scale;
+            for (int i = 0; i < 3; i++) {
+                if (Vabc_out[i] < 0.02f) Vabc_out[i] = 0.02f;
+                if (Vabc_out[i] > 0.98f) Vabc_out[i] = 0.98f;
+            }
         }
 
         // Update inverter.V_dc for reference (not used by Simulink FOC at runtime)
@@ -1568,6 +1566,7 @@ do_getall:
     } else if (cmd[0] == 'W' && (cmd[1] >= '0' && cmd[1] <= '9')) {
         // Short max speed set: "W500" = torque_max_speed_rpm = 500 (BLE-safe)
         torque_max_speed_rpm = (float)atoi(cmd + 1);
+        if (torque_max_speed_rpm > 4500.0f) torque_max_speed_rpm = 4500.0f;
 
     } else if (cmd[0] == 'G' && cmd[1] >= '0' && cmd[1] <= '9') {
         // GET by index: "G26" → "#26=0.5000\r\n" (short, BLE-safe)
@@ -1596,6 +1595,17 @@ do_getall:
                 char resp[32];
                 if (v->type == VAR_FLOAT) {
                     float val = (float)atof(eq + 1);
+                    // Safety limits for critical parameters
+                    if (v->ptr == (void*)&torque_ref_iq_max) {
+                        if (val > OC_TRIP_PU) val = OC_TRIP_PU;
+                        if (val < 0.0f) val = 0.0f;
+                    } else if (v->ptr == (void*)&torque_ref_iq) {
+                        if (val > OC_TRIP_PU) val = OC_TRIP_PU;
+                        if (val < -OC_TRIP_PU) val = -OC_TRIP_PU;
+                    } else if (v->ptr == (void*)&PI_params.Ki_id || v->ptr == (void*)&PI_params.Ki_iq) {
+                        if (val > 50.0f) val = 50.0f;
+                        if (val < 0.0f) val = 0.0f;
+                    }
                     *(volatile float*)v->ptr = val;
                     char vbuf[12];
                     fmt_float(vbuf, sizeof(vbuf), val, 4);
@@ -1645,9 +1655,19 @@ do_getall:
     } else if (cmd[0] == 'E' && (cmd[1] == '0' || cmd[1] == '1')) {
         // Short enable: "E1" = enable, "E0" = disable (2 bytes, BLE-safe)
         if (cmd[1] == '1') {
-            Enable = 1;
+            if (overcurrent_fault) {
+                // Don't enable while overcurrent fault is latched
+                // Send "E0" first to clear the fault, then "E1" to enable
+            } else {
+                Enable = 1;
+            }
         } else {
             Enable = 0;
+            overcurrent_fault = 0;  // E0 clears the overcurrent fault
+            // Reset I²t to 50% — motor is still warm after trip
+            if (i2t_accumulator > I2T_THRESHOLD * 0.5f) {
+                i2t_accumulator = I2T_THRESHOLD * 0.5f;
+            }
             debug_enable_off_src = 5;
         }
 
@@ -1872,7 +1892,7 @@ void One_ms_Int(timer_callback_args_t *p_args)
         // Mode 0: Speed control (existing behavior)
         SpeedControl_step(Enable, SpeedRefIn_PU, SpeedFb_Hall_PU, IqFb, Mode, IdqRef, &SpeedRefFinal_PU, &EnCl);
         // Apply thermal derating to speed controller Iq output
-        // IdqRef[1] *= output_derating;  // TEMPORARILY DISABLED for UART debug
+        IdqRef[1] *= output_derating;
     } else {
         // Mode 1: Torque control (direct Iq command, bypass speed PI loop)
         float iq_cmd = torque_ref_iq;
@@ -1895,7 +1915,7 @@ void One_ms_Int(timer_callback_args_t *p_args)
         }
 
         // Apply thermal derating to torque command
-        // iq_cmd *= output_derating;  // TEMPORARILY DISABLED for UART debug
+        iq_cmd *= output_derating;
 
         IdqRef[0] = 0.0f;     // Id = 0 (no field weakening)
         IdqRef[1] = iq_cmd;   // Iq = direct torque command
@@ -1994,23 +2014,26 @@ void One_ms_Int(timer_callback_args_t *p_args)
         }
 
         // I²t motor winding thermal protection
-        // TEMPORARILY DISABLED for UART debug
-        #if 0
+        // First-order model: dE/dt = I² - E/τ  (natural cooling when I<I_rated)
         {
             float iq = IqFb;
             float id = IdFb;
-            float I2 = iq * iq + id * id;
-            const float dt = 0.001f;
+            float I2 = iq * iq + id * id;  // |I|² in PU²
+            const float dt = 0.001f;        // 1ms
+
+            // Accumulate heat, subtract natural cooling (exponential decay)
             i2t_accumulator += (I2 - i2t_accumulator / I2T_TAU_W) * dt;
             if (i2t_accumulator < 0.0f) i2t_accumulator = 0.0f;
+
             i2t_ratio = i2t_accumulator / I2T_THRESHOLD;
+
             if (i2t_ratio >= I2T_TRIP_PCT) {
                 new_protection = 3;
                 new_derating = 0.0f;
                 overcurrent_fault = 1;
                 overcurrent_peak_iq = iq > 0 ? iq : -iq;
                 overcurrent_peak_id = id > 0 ? id : -id;
-                debug_enable_off_src = 8;
+                debug_enable_off_src = 8;  // I²t thermal trip
             } else if (i2t_ratio >= I2T_DERATING_PCT) {
                 if (new_protection < 2) new_protection = 2;
                 float derate = 0.5f * (1.0f - (i2t_ratio - I2T_DERATING_PCT) / (I2T_TRIP_PCT - I2T_DERATING_PCT));
@@ -2021,7 +2044,6 @@ void One_ms_Int(timer_callback_args_t *p_args)
                 if (new_derating > derate) new_derating = derate;
             }
         }
-        #endif
 
         // Inverter temperature check
         if(temp_inverter >= TEMP_SHUTDOWN) {
