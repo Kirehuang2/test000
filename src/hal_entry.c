@@ -118,8 +118,8 @@ volatile uint8_t debug_enable_off_src = 0;    // Who set Enable=0: 1=drv_fault, 
 // Monitors actual Id/Iq feedback current every 10kHz cycle
 // Trips immediately if current exceeds limit
 // ============================================================
-#define OC_RAW_TRIP_PU    0.35f   // Raw (unfiltered) instant trip: 0.35 PU = 5.8A (absolute max, no LPF delay)
-#define OC_TRIP_PU        0.25f   // Filtered trip: 0.25 PU = 4.1A (125% of rated 3.29A)
+#define OC_RAW_TRIP_PU    0.45f   // Raw (unfiltered) instant trip: 0.45 PU = 7.4A
+#define OC_TRIP_PU        0.35f   // Filtered trip: 0.35 PU = 5.8A
 #define OC_SUSTAIN_PU     0.20f   // Sustained limit: 0.20 PU = 3.3A (rated)
 #define OC_SUSTAIN_MS     500     // Sustained overcurrent time limit [ms] (500 counts at 1kHz)
 volatile uint8_t overcurrent_fault = 0;       // 0=OK, 1=tripped (latched, requires power cycle or BLE reset)
