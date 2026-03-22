@@ -1135,26 +1135,35 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
             debug_Ibeta  = Ibeta;
 
             static float Id_integral = 0.0f, Iq_integral = 0.0f;
-            static float Vq_ff = 0.0f;
-            static uint16_t ff_enable_count = 0;
             static uint8_t foc_was_enabled = 0;
+            static uint16_t ff_delay_count = 0;
+            static uint8_t ff_active = 0;
 
             if (Enable && EnCl_smooth) {
                 if (!foc_was_enabled) {
                     Id_integral = 0.0f;
                     Iq_integral = 0.0f;
-                    Vq_ff = 0.0f;
-                    ff_enable_count = 0;
+                    ff_delay_count = 0;
+                    ff_active = 0;
                     foc_was_enabled = 1;
                 }
 
-                // Back-EMF feedforward (LPF smoothed, enable after 1s startup)
+                // Back-EMF feedforward with startup delay
+                // Phase 1 (t<1s): FF=0, PI builds integral to start motor
+                // Phase 2 (t=1s): FF enables, integral resets (prevent double BEMF compensation)
+                // Phase 3 (t>1s): FF tracks BEMF via LPF, PI handles current only
                 float speed_pu = SpeedFb_RPM / pmsm.N_base;
-                if (ff_enable_count < 10000) {
-                    ff_enable_count++;  // 1s delay before FF enables
-                    Vq_ff = 0.0f;
+                float Vq_ff = 0.0f;
+                if (ff_delay_count < 10000) {
+                    ff_delay_count++;
+                } else if (!ff_active) {
+                    // FF activation: reset integral (was compensating BEMF, FF takes over)
+                    ff_active = 1;
+                    Id_integral = 0.0f;
+                    Iq_integral = 0.0f;
+                    Vq_ff = speed_pu;  // Start FF at current speed
                 } else {
-                    Vq_ff += 0.01f * (speed_pu - Vq_ff);  // LPF α=0.01
+                    Vq_ff = speed_pu;  // Direct tracking (no LPF needed after smooth handoff)
                 }
 
                 float Id_error = IdqRef[0] - Id_fb;
@@ -1717,7 +1726,10 @@ static void ble_uart_tick(void) {
                              (int)(imu_gyro_dps[0] * 10),
                              (int)(imu_gyro_dps[1] * 10),
                              (int)(imu_gyro_dps[2] * 10),
-                             (int)(IdFb * 100));
+                             (int)(IdFb * 100),
+                             (int)Enable,
+                             (int)protection_state,
+                             (int)(i2t_ratio * 100));
                     // XOR checksum of payload (B...data), append *XX\r\n
                     {
                         uint8_t csum = 0;
@@ -1784,11 +1796,6 @@ void One_ms_Int(timer_callback_args_t *p_args)
         SpeedControl_step(Enable, SpeedRefIn_PU, SpeedFb_Hall_PU, IqFb, Mode, IdqRef, &SpeedRefFinal_PU, &EnCl);
         // Apply thermal derating to speed controller Iq output
         IdqRef[1] *= output_derating;
-        // Force zero on OC fault or I²t trip
-        if (overcurrent_fault) {
-            IdqRef[0] = 0.0f;
-            IdqRef[1] = 0.0f;
-        }
     } else {
         // Mode 1: Torque control (direct Iq command, bypass speed PI loop)
         float iq_cmd = torque_ref_iq;
@@ -1815,11 +1822,6 @@ void One_ms_Int(timer_callback_args_t *p_args)
 
         IdqRef[0] = 0.0f;     // Id = 0 (no field weakening)
         IdqRef[1] = iq_cmd;   // Iq = direct torque command
-        // Force zero on OC fault or I²t trip (prevents race with ADC callback)
-        if (overcurrent_fault) {
-            IdqRef[0] = 0.0f;
-            IdqRef[1] = 0.0f;
-        }
         SpeedRefFinal_PU = 0.0f;
         EnCl = Enable;         // Enable current control when motor is enabled
     }
