@@ -22,9 +22,9 @@
 /* Definition for custom storage class: ExportToFile */
 struct_DWWWf6N21VtITTqdrqSn0 PI_params = {
   0.3F,       // Kp_id - moderate gain
-  0.0F,       // Ki_id - disabled (causes windup)
+  0.5F,       // Ki_id
   0.5F,       // Kp_iq
-  0.0F,       // Ki_iq - disabled (causes windup)
+  0.5F,       // Ki_iq (safe: integral clamp ±0.05, max I=2.76A < rated 3.29A)
   1.0F,       // Kp_speed - startup torque > 0.07 threshold, noise < 2.0 (was 0.5)
   0.1F,       // Ki_speed - integral for steady-state torque (was 0.0)
   2,
