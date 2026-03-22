@@ -76,7 +76,7 @@ volatile uint32_t adc_rate_result = 0;       // callbacks per second (10000=10kH
 
 // V_dc voltage compensation
 #define V_DC_NOMINAL  18.0f              // Nominal voltage the PU system is calibrated for
-volatile uint8_t vdc_compensation_en = 1;  // 0=disabled, 1=enabled (debugger toggle)
+volatile uint8_t vdc_compensation_en = 0;  // default OFF
 
 // Debug: Group 1 FIFO status
 volatile fsp_err_t debug_err_fifo2 = 0;   // 0=OK, 12=UNDERFLOW(FIFO empty)
@@ -1136,46 +1136,18 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
 
             static float Id_integral = 0.0f, Iq_integral = 0.0f;
             static uint8_t foc_was_enabled = 0;
-            static uint16_t ff_delay_count = 0;
-            static uint8_t ff_active = 0;
-            static float Vq_ff_lpf = 0.0f;
 
             if (Enable && EnCl_smooth) {
                 if (!foc_was_enabled) {
                     Id_integral = 0.0f;
                     Iq_integral = 0.0f;
-                    ff_delay_count = 0;
-                    ff_active = 0;
-                    Vq_ff_lpf = 0.0f;
                     foc_was_enabled = 1;
-                }
-
-                // Back-EMF feedforward with startup delay
-                // Phase 1 (t<1s): FF=0, PI builds integral to start motor
-                // Phase 2 (t=1s): FF enables, integral resets (prevent double BEMF compensation)
-                // Phase 3 (t>1s): FF tracks BEMF via LPF, PI handles current only
-                float speed_pu = SpeedFb_RPM / pmsm.N_base;
-                float Vq_ff = 0.0f;
-                if (ff_delay_count < 10000) {
-                    ff_delay_count++;
-                } else if (!ff_active) {
-                    // FF activation: reset integral (was compensating BEMF, FF takes over)
-                    ff_active = 1;
-                    Id_integral = 0.0f;
-                    Iq_integral = 0.0f;
-                    Vq_ff_lpf = speed_pu;  // Initialize LPF at current speed
-                    Vq_ff = Vq_ff_lpf;
-                } else {
-                    // LPF on FF: smooths Hall sensor speed estimation noise
-                    // α=0.02: τ=50 samples (5ms) — fast enough to track, smooth enough for noise
-                    Vq_ff_lpf += 0.02f * (speed_pu - Vq_ff_lpf);
-                    Vq_ff = Vq_ff_lpf;
                 }
 
                 float Id_error = IdqRef[0] - Id_fb;
                 float Iq_error = IdqRef[1] - Iq_fb_val;
                 float Vd = PI_params.Kp_id * Id_error + Id_integral;
-                float Vq = PI_params.Kp_iq * Iq_error + Iq_integral + Vq_ff;
+                float Vq = PI_params.Kp_iq * Iq_error + Iq_integral;
 
                 // Circle limiter
                 float Vd_unsat = Vd, Vq_unsat = Vq;
@@ -1190,13 +1162,13 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
                 // Only update when Ki > 0
                 if (PI_params.Ki_id > 0.0f) {
                     Id_integral += PI_params.Ki_id * 0.0001f * Id_error;
-                    if (Id_integral >  0.05f) Id_integral =  0.05f;
-                    if (Id_integral < -0.05f) Id_integral = -0.05f;
+                    if (Id_integral >  0.20f) Id_integral =  0.20f;
+                    if (Id_integral < -0.20f) Id_integral = -0.20f;
                 }
                 if (PI_params.Ki_iq > 0.0f) {
                     Iq_integral += PI_params.Ki_iq * 0.0001f * Iq_error;
-                    if (Iq_integral >  0.05f) Iq_integral =  0.05f;
-                    if (Iq_integral < -0.05f) Iq_integral = -0.05f;
+                    if (Iq_integral >  0.20f) Iq_integral =  0.20f;
+                    if (Iq_integral < -0.20f) Iq_integral = -0.20f;
                 }
 
                 float Valpha = Vd * cos_theta - Vq * sin_theta;
@@ -1732,10 +1704,7 @@ static void ble_uart_tick(void) {
                              (int)(imu_gyro_dps[0] * 10),
                              (int)(imu_gyro_dps[1] * 10),
                              (int)(imu_gyro_dps[2] * 10),
-                             (int)(IdFb * 100),
-                             (int)Enable,
-                             (int)protection_state,
-                             (int)(i2t_ratio * 100));
+                             (int)(IdFb * 100));
                     // XOR checksum of payload (B...data), append *XX\r\n
                     {
                         uint8_t csum = 0;
