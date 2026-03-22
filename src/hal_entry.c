@@ -1099,10 +1099,10 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
         IdqRef[1] = 0.0f;
         #else
         // Normal closed-loop operation
-        // Let SpeedControl manage IdqRef directly (no override)
-        EnCl_smooth = 1;
-        // IdqRef is set by SpeedControl_step in One_ms_Int callback
-        // DO NOT override IdqRef here - speed controller needs full control
+        // Use EnCl from speed controller (provides 1ms startup delay)
+        // First 1ms after Enable: EnCl=0 → FOC outputs 50% (zero voltage)
+        // After 1ms: SpeedControl sets EnCl=1 → PI starts gently
+        EnCl_smooth = EnCl;
         #endif
 
         // Update debug variables for closed-loop transition monitoring
