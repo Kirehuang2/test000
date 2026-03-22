@@ -1899,6 +1899,11 @@ void One_ms_Int(timer_callback_args_t *p_args)
         SpeedControl_step(Enable, SpeedRefIn_PU, SpeedFb_Hall_PU, IqFb, Mode, IdqRef, &SpeedRefFinal_PU, &EnCl);
         // Apply thermal derating to speed controller Iq output
         IdqRef[1] *= output_derating;
+        // OC fault: force IdqRef to zero
+        if (overcurrent_fault) {
+            IdqRef[0] = 0.0f;
+            IdqRef[1] = 0.0f;
+        }
     } else {
         // Mode 1: Torque control (direct Iq command, bypass speed PI loop)
         float iq_cmd = torque_ref_iq;
@@ -1925,6 +1930,11 @@ void One_ms_Int(timer_callback_args_t *p_args)
 
         IdqRef[0] = 0.0f;     // Id = 0 (no field weakening)
         IdqRef[1] = iq_cmd;   // Iq = direct torque command
+        // OC fault: force IdqRef to zero (prevents race with ADC callback)
+        if (overcurrent_fault) {
+            IdqRef[0] = 0.0f;
+            IdqRef[1] = 0.0f;
+        }
         SpeedRefFinal_PU = 0.0f;
         EnCl = Enable;         // Enable current control when motor is enabled
     }
