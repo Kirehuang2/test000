@@ -1219,13 +1219,32 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
             }
 
             if (Enable && EnCl_smooth && !idq_is_zero) {
-                // Reset integrators on rising edge of enable
+                // --- Open-loop startup sequence ---
+                // Phase 1 (0-200ms): Apply small d-axis voltage to align rotor
+                // Phase 2 (200ms+): Closed-loop FOC
+                // This prevents position-dependent current spikes at startup
+                static uint16_t startup_phase_count = 0;
+                #define STARTUP_ALIGN_CYCLES 2000  // 200ms at 10kHz
+
                 if (!foc_was_enabled) {
                     Id_integral = 0.0f;
                     Iq_integral = 0.0f;
                     Vq_ff_filtered = 0.0f;
+                    startup_phase_count = 0;
                     foc_was_enabled = 1;
                 }
+
+                if (startup_phase_count < STARTUP_ALIGN_CYCLES) {
+                    // Phase 1: Rotor alignment (open-loop, small voltage)
+                    // Same as Simulink FOC Mode 1: Vabc = 0.55/0.525/0.525
+                    // Creates ~0.9V line-line → 1.5A alignment current (within PC adapter)
+                    Vabc_out[0] = 0.55f;
+                    Vabc_out[1] = 0.525f;
+                    Vabc_out[2] = 0.525f;
+                    startup_phase_count++;
+                    // Skip rest of FOC (don't apply PI output)
+                } else {
+                // Phase 2: Normal closed-loop FOC
 
                 // --- 4. Back-EMF feedforward compensation ---
                 // Reduces PI workload: PI only handles transients, not steady-state back-EMF
@@ -1313,6 +1332,7 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
                 Vabc_out[0] = 0.5f * Va + 0.5f;
                 Vabc_out[1] = 0.5f * Vb + 0.5f;
                 Vabc_out[2] = 0.5f * Vc + 0.5f;
+                } // End of Phase 2 (closed-loop FOC)
             } else {
                 // Disabled: zero voltage, mark for integrator reset
                 Vabc_out[0] = 0.5f;
