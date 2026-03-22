@@ -79,8 +79,7 @@ src/hal_entry.o: ../src/hal_entry.c \
  ../src/FOCCurrentControl_types.h ../src/rt_defines.h \
  ../src/rt_nonfinite.h ../src/zero_crossing_types.h \
  ../src/ConfigParameters.h ../src/ConfigParams_types.h \
- ../src/FOCSpeedControl.h ../src/FOCSpeedControl_types.h \
- ../src/assist_app_interface.h
+ ../src/FOCSpeedControl.h ../src/FOCSpeedControl_types.h
 C:/Users/ikeha/e2_studio/workspace/000/ra_gen/hal_data.h:
 C:/Users/ikeha/e2_studio/workspace/000/ra/fsp/inc/api/bsp_api.h:
 C:/Users/ikeha/e2_studio/workspace/000/ra/fsp/inc/api/fsp_common_api.h:
@@ -167,4 +166,3 @@ C:/Users/ikeha/e2_studio/workspace/000/ra/fsp/inc/api/rm_motor_angle_api.h:
 ../src/ConfigParams_types.h:
 ../src/FOCSpeedControl.h:
 ../src/FOCSpeedControl_types.h:
-../src/assist_app_interface.h:

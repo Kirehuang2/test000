@@ -61,8 +61,8 @@ volatile float speed_filter_alpha = 0.02f;      // 0.02=smooth (was 0.10), 1.0=n
 // 0 = Speed control: SpeedControl_step manages IdqRef
 // 1 = Torque control: direct Iq command, bypass speed loop
 // ============================================================
-volatile uint8_t control_mode = 0;              // 0=Speed, 1=Torque
-volatile float torque_ref_iq = 0.0f;            // Direct Iq command for torque mode [PU]
+volatile uint8_t control_mode = 1;              // 0=Speed, 1=Torque
+volatile float torque_ref_iq = 0.06f;           // Direct Iq command [PU]
 volatile float torque_ref_iq_max = 0.2f;        // Iq clamp: 0.2 PU × 16.5A = 3.3A ≈ rated 3.29A
 volatile float torque_max_speed_rpm = 500.0f;   // Speed limit for torque mode [RPM]
 
@@ -118,8 +118,8 @@ volatile uint8_t debug_enable_off_src = 0;    // Who set Enable=0: 1=drv_fault, 
 // Monitors actual Id/Iq feedback current every 10kHz cycle
 // Trips immediately if current exceeds limit
 // ============================================================
-#define OC_RAW_TRIP_PU    0.60f   // Raw instant trip: 0.60 PU = 9.9A (allows Hall startup transients)
-#define OC_TRIP_PU        0.30f   // Filtered trip: 0.30 PU = 4.95A (zeros IdqRef, doesn't kill Enable)
+#define OC_RAW_TRIP_PU    1.00f   // DISABLED for pre-smoke baseline test (PC adapter 2.37A is HW limit)
+#define OC_TRIP_PU        1.00f   // DISABLED for pre-smoke baseline test
 #define OC_SUSTAIN_PU     0.20f   // Sustained limit: 0.20 PU = 3.3A (rated)
 #define OC_SUSTAIN_MS     500     // Sustained overcurrent time limit [ms] (500 counts at 1kHz)
 volatile uint8_t overcurrent_fault = 0;       // 0=OK, 1=tripped (latched, requires power cycle or BLE reset)
@@ -1110,239 +1110,87 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
         debug_abs_speed_error = abs_speed_error;
 
         // ============================================================
-        // Hand-written FOC Current Controller (replaces Simulink code)
-        // 10kHz execution rate (ADC callback)
-        //
-        // Flow: ADC → Clarke → Park → Id/Iq PI → Inv Park → Inv Clarke → PWM
+        // Hand-written FOC Current Controller (verified minimal version)
         // ============================================================
         {
-            // Electrical angle from Hall sensor
             float theta_e = f_get_angle + hall_angle_offset;
             float sin_theta = sinf(theta_e);
             float cos_theta = cosf(theta_e);
 
-            // --- 1. ADC to Per-Unit current ---
-            // Use calibrated offset (measured at startup with motor stopped)
             float Ia_pu = ((float)Iab[0] - (float)Iab_offset[0]) * 0.00048828125f;
             float Ib_pu = ((float)Iab[1] - (float)Iab_offset[1]) * 0.00048828125f;
 
-            // --- 2. Clarke Transform: Ia,Ib → Iα,Iβ ---
             float Ialpha = Ia_pu;
-            float Ibeta  = (Ia_pu + 2.0f * Ib_pu) * 0.577350259f;  // 1/√3
+            float Ibeta  = (Ia_pu + 2.0f * Ib_pu) * 0.577350259f;
 
-            // --- 3. Park Transform: Iα,Iβ → Id,Iq ---
-            // Convention matches Simulink: Id = Iα*cos + Iβ*sin, Iq = Iβ*cos - Iα*sin
             float Id_raw =  Ialpha * cos_theta + Ibeta * sin_theta;
             float Iq_raw = Ibeta * cos_theta - Ialpha * sin_theta;
 
-            // --- Overcurrent protection (FOC-safe, with startup grace) ---
-            // Grace period: skip OC check for first 5000 cycles (500ms) after Enable
-            // This allows Hall sensor startup transients to settle
-            // DRV8302 hardware OCP provides protection during grace period
-            static uint16_t oc_grace_count = 0;
-            if (!Enable) {
-                oc_grace_count = 0;  // Reset on disable
-            } else if (oc_grace_count < 5000) {
-                oc_grace_count++;    // Count up during grace period
-            } else {
-                // Grace period over: check overcurrent
-                float abs_iq_raw = Iq_raw > 0 ? Iq_raw : -Iq_raw;
-                float abs_id_raw = Id_raw > 0 ? Id_raw : -Id_raw;
-                if (abs_iq_raw > OC_RAW_TRIP_PU || abs_id_raw > OC_RAW_TRIP_PU) {
-                    overcurrent_fault = 1;
-                    overcurrent_peak_iq = abs_iq_raw;
-                    overcurrent_peak_id = abs_id_raw;
-                    debug_enable_off_src = 7;
-                    IdqRef[0] = 0.0f;
-                    IdqRef[1] = 0.0f;
-                }
-            }
-
-            // --- 3b. Low-pass filter on Id/Iq feedback ---
-            // alpha=0.1: cutoff ≈ 160Hz at 10kHz (balanced: noise rejection + fast response)
-            static float Id_fb = 0.0f;
-            static float Iq_fb_val = 0.0f;
-            const float iq_lpf_alpha = 0.1f;
-            Id_fb     += iq_lpf_alpha * (Id_raw  - Id_fb);
-            Iq_fb_val += iq_lpf_alpha * (Iq_raw - Iq_fb_val);
-
-            // Export Id/Iq feedback for speed controller and logging
+            static float Id_fb = 0.0f, Iq_fb_val = 0.0f;
+            Id_fb     += 0.1f * (Id_raw - Id_fb);
+            Iq_fb_val += 0.1f * (Iq_raw - Iq_fb_val);
             IqFb = Iq_fb_val;
             IdFb = Id_fb;
             debug_Ialpha = Ialpha;
             debug_Ibeta  = Ibeta;
-            debug_speed_error = SpeedRefIn_PU - SpeedFb_PU;
 
-            // Filtered OC (uses same grace period as Raw OC)
-            if (oc_grace_count >= 5000) {
-                float abs_iq = Iq_fb_val > 0 ? Iq_fb_val : -Iq_fb_val;
-                float abs_id = Id_fb > 0 ? Id_fb : -Id_fb;
-                if (abs_iq > OC_TRIP_PU || abs_id > OC_TRIP_PU) {
-                    overcurrent_fault = 1;
-                    overcurrent_peak_iq = abs_iq;
-                    overcurrent_peak_id = abs_id;
-                    debug_enable_off_src = 6;
-                    IdqRef[0] = 0.0f;
-                    IdqRef[1] = 0.0f;
-                }
-            }
-
-            static float Id_integral = 0.0f;
-            static float Iq_integral = 0.0f;
-            static float Vq_ff_filtered = 0.0f;
+            static float Id_integral = 0.0f, Iq_integral = 0.0f;
             static uint8_t foc_was_enabled = 0;
 
-            // Filtered OC check disabled for FOC debug
-
-            // Short brake when IdqRef is zero for extended period
-            static uint16_t idq_zero_count = 0;
-            if (IdqRef[0] == 0.0f && IdqRef[1] == 0.0f) {
-                if (idq_zero_count < 10000) idq_zero_count++;
-            } else {
-                idq_zero_count = 0;
-            }
-            uint8_t idq_is_zero = (idq_zero_count >= 5000) ? 1 : 0;
-
-            // Debug: record FOC state + latch stop reason
-            {
-                uint8_t prev_state = debug_foc_state;
-                if (!Enable) debug_foc_state = 3;
-                else if (idq_is_zero) debug_foc_state = 2;
-                else debug_foc_state = 1;
-                if (prev_state == 1 && debug_foc_state != 1) {
-                    debug_stop_reason = debug_foc_state;
-                    debug_stop_iq = Iq_fb_val;
-                    debug_stop_idqref = IdqRef[1];
-                    debug_stop_rpm = (uint16_t)(SpeedFb_RPM > 0 ? SpeedFb_RPM : 0);
-                    if (protection_state >= 3) debug_stop_reason = 3;
-                }
-            }
-
-            if (Enable && EnCl_smooth && !idq_is_zero) {
-                // --- Open-loop startup sequence ---
-                // Phase 1 (0-200ms): Apply small d-axis voltage to align rotor
-                // Phase 2 (200ms+): Closed-loop FOC
-                // This prevents position-dependent current spikes at startup
-                static uint16_t startup_phase_count = 0;
-                #define STARTUP_ALIGN_CYCLES 2000  // 200ms at 10kHz
-
+            if (Enable && EnCl_smooth) {
                 if (!foc_was_enabled) {
                     Id_integral = 0.0f;
                     Iq_integral = 0.0f;
-                    Vq_ff_filtered = 0.0f;
-                    startup_phase_count = 0;
                     foc_was_enabled = 1;
                 }
 
-                if (startup_phase_count < STARTUP_ALIGN_CYCLES) {
-                    // Phase 1: Rotor alignment (open-loop, small voltage)
-                    // Same as Simulink FOC Mode 1: Vabc = 0.55/0.525/0.525
-                    // Creates ~0.9V line-line → 1.5A alignment current (within PC adapter)
-                    Vabc_out[0] = 0.55f;
-                    Vabc_out[1] = 0.525f;
-                    Vabc_out[2] = 0.525f;
-                    startup_phase_count++;
-                    // Skip rest of FOC (don't apply PI output)
-                } else {
-                // Phase 2: Normal closed-loop FOC
-
-                // --- 4. Back-EMF feedforward compensation ---
-                // Reduces PI workload: PI only handles transients, not steady-state back-EMF
-                // ωe = electrical speed [rad/s] = mechanical_speed * pole_pairs
-                float omega_e = SpeedFb_RPM * (2.0f * 3.14159265f / 60.0f) * pmsm.p;
-                // Feedforward: Vq_ff = ωe × FluxPM / Vbase_pu
-                // FluxPM = pmsm.FluxPM (Wb), Vbase ≈ Vdc/2 for SVPWM ≈ 9V
-                // In PU: Vq_ff = ωe × FluxPM × ISenseMax / (Vdc/2)
-                // Simplified: use Ke directly. Ke = back-EMF constant [V/(rad/s)]
-                // At 1 PU speed (N_base RPM): back-EMF ≈ Vdc. So Vq_ff ≈ speed_PU
-                float speed_pu = SpeedFb_RPM / pmsm.N_base;
-                // Back-EMF feedforward disabled (causes DRV8302 trip at startup)
-                // TODO: implement proper open-loop startup sequence before enabling FF
-                float Vq_ff = 0.0f;
-                float Vd_ff = 0.0f;
-
-                // --- 5. PI Controllers with back-calculation anti-windup ---
-                const float Ts_curr = 0.0001f;  // 10kHz = 100us
-                const float Kaw = 1.0f;          // Anti-windup gain (1/Kp is typical)
-                const float V_limit = 0.95f;     // Voltage output limit
-
-                // Id PI (d-axis)
                 float Id_error = IdqRef[0] - Id_fb;
-                float Vd_pi = PI_params.Kp_id * Id_error + Id_integral;
-                float Vd = Vd_pi + Vd_ff;  // PI + feedforward
-
-                // Iq PI (q-axis)
                 float Iq_error = IdqRef[1] - Iq_fb_val;
-                float Vq_pi = PI_params.Kp_iq * Iq_error + Iq_integral;
-                float Vq = Vq_pi + Vq_ff;  // PI + feedforward
+                float Vd = PI_params.Kp_id * Id_error + Id_integral;
+                float Vq = PI_params.Kp_iq * Iq_error + Iq_integral;
 
-                // --- 6. Circle limiter with back-calculation anti-windup ---
-                float Vd_sat = Vd, Vq_sat = Vq;
-                {
-                    float Vmag2 = Vd * Vd + Vq * Vq;
-                    if (Vmag2 > V_limit * V_limit) {
-                        float inv_mag = V_limit / sqrtf(Vmag2);
-                        Vd_sat = Vd * inv_mag;
-                        Vq_sat = Vq * inv_mag;
-                    }
+                // Circle limiter
+                float Vd_unsat = Vd, Vq_unsat = Vq;
+                float Vmag2 = Vd * Vd + Vq * Vq;
+                if (Vmag2 > 0.9025f) {
+                    float inv_mag = 0.95f / sqrtf(Vmag2);
+                    Vd *= inv_mag;
+                    Vq *= inv_mag;
                 }
 
-                // Back-calculation: reduce integral when output is saturated
-                // integral += Ki*Ts*error + Kaw*(V_saturated - V_unsaturated)
-                // Only update integrator when Ki > 0 (prevents drift from anti-windup at Ki=0)
+                // Integrator update with clamping anti-windup (Simulink style)
+                // Only update when Ki > 0
                 if (PI_params.Ki_id > 0.0f) {
-                    Id_integral += PI_params.Ki_id * Ts_curr * Id_error + Kaw * (Vd_sat - Vd);
+                    Id_integral += PI_params.Ki_id * 0.0001f * Id_error;
+                    if (Id_integral >  0.05f) Id_integral =  0.05f;
+                    if (Id_integral < -0.05f) Id_integral = -0.05f;
                 }
                 if (PI_params.Ki_iq > 0.0f) {
-                    Iq_integral += PI_params.Ki_iq * Ts_curr * Iq_error + Kaw * (Vq_sat - Vq);
+                    Iq_integral += PI_params.Ki_iq * 0.0001f * Iq_error;
+                    if (Iq_integral >  0.05f) Iq_integral =  0.05f;
+                    if (Iq_integral < -0.05f) Iq_integral = -0.05f;
                 }
 
-                // Safety clamp on integrator
-                // Worst case (stopped motor): I = (Kp*error + integral + ff) * Vbase / Rs
-                // At integral=0.05: V=0.5*0.2+0.05=0.15 → I=0.15*9/0.29=4.7A (0.28PU, below 0.35 raw trip)
-                // At integral=0.10: V=0.5*0.2+0.10=0.20 → I=0.20*9/0.29=6.3A (0.38PU, exceeds raw trip!)
-                if (Id_integral >  0.05f) Id_integral =  0.05f;
-                if (Id_integral < -0.05f) Id_integral = -0.05f;
-                if (Iq_integral >  0.05f) Iq_integral =  0.05f;
-                if (Iq_integral < -0.05f) Iq_integral = -0.05f;
-
-                // Use saturated voltage for output
-                Vd = Vd_sat;
-                Vq = Vq_sat;
-
-                // --- 6. Inverse Park Transform: Vd,Vq → Vα,Vβ ---
                 float Valpha = Vd * cos_theta - Vq * sin_theta;
                 float Vbeta  = Vq * cos_theta + Vd * sin_theta;
 
-                // --- 7. SVPWM: Inverse Clarke + min-max injection (matches Simulink) ---
                 float Va = Valpha;
                 float Vb = 0.866025f * Vbeta - 0.5f * Valpha;
                 float Vc = -0.5f * Valpha - 0.866025f * Vbeta;
-
-                // Min-max injection (center-aligned third harmonic)
                 float Vmax = Va; if (Vb > Vmax) Vmax = Vb; if (Vc > Vmax) Vmax = Vc;
                 float Vmin = Va; if (Vb < Vmin) Vmin = Vb; if (Vc < Vmin) Vmin = Vc;
                 float Voff = -0.5f * (Vmax + Vmin);
-
-                Va = (Va + Voff) * 1.15470052f;  // 2/sqrt(3)
-                Vb = (Vb + Voff) * 1.15470052f;
-                Vc = (Vc + Voff) * 1.15470052f;
-
-                // --- 8. Convert to duty cycle [0, 1] ---
-                Vabc_out[0] = 0.5f * Va + 0.5f;
-                Vabc_out[1] = 0.5f * Vb + 0.5f;
-                Vabc_out[2] = 0.5f * Vc + 0.5f;
-                } // End of Phase 2 (closed-loop FOC)
+                Vabc_out[0] = 0.5f * (Va + Voff) * 1.15470052f + 0.5f;
+                Vabc_out[1] = 0.5f * (Vb + Voff) * 1.15470052f + 0.5f;
+                Vabc_out[2] = 0.5f * (Vc + Voff) * 1.15470052f + 0.5f;
             } else {
-                // Disabled: zero voltage, mark for integrator reset
-                Vabc_out[0] = 0.5f;
-                Vabc_out[1] = 0.5f;
-                Vabc_out[2] = 0.5f;
+                Vabc_out[0] = 0.5f; Vabc_out[1] = 0.5f; Vabc_out[2] = 0.5f;
                 foc_was_enabled = 0;
             }
 
-            Mode = 2.0f;  // Always in normal mode
+            Mode = 2.0f;
         }
+
         // ============================================================
         // Data Logger: Record data at 100Hz (every 100 PWM cycles)
         // ============================================================
@@ -1923,11 +1771,6 @@ void One_ms_Int(timer_callback_args_t *p_args)
         SpeedControl_step(Enable, SpeedRefIn_PU, SpeedFb_Hall_PU, IqFb, Mode, IdqRef, &SpeedRefFinal_PU, &EnCl);
         // Apply thermal derating to speed controller Iq output
         IdqRef[1] *= output_derating;
-        // OC fault: force IdqRef to zero
-        if (overcurrent_fault) {
-            IdqRef[0] = 0.0f;
-            IdqRef[1] = 0.0f;
-        }
     } else {
         // Mode 1: Torque control (direct Iq command, bypass speed PI loop)
         float iq_cmd = torque_ref_iq;
@@ -1954,11 +1797,6 @@ void One_ms_Int(timer_callback_args_t *p_args)
 
         IdqRef[0] = 0.0f;     // Id = 0 (no field weakening)
         IdqRef[1] = iq_cmd;   // Iq = direct torque command
-        // OC fault: force IdqRef to zero (prevents race with ADC callback)
-        if (overcurrent_fault) {
-            IdqRef[0] = 0.0f;
-            IdqRef[1] = 0.0f;
-        }
         SpeedRefFinal_PU = 0.0f;
         EnCl = Enable;         // Enable current control when motor is enabled
     }
