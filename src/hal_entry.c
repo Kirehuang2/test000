@@ -118,8 +118,8 @@ volatile uint8_t debug_enable_off_src = 0;    // Who set Enable=0: 1=drv_fault, 
 // Monitors actual Id/Iq feedback current every 10kHz cycle
 // Trips immediately if current exceeds limit
 // ============================================================
-#define OC_RAW_TRIP_PU    1.00f   // DISABLED for pre-smoke baseline test (PC adapter 2.37A is HW limit)
-#define OC_TRIP_PU        1.00f   // DISABLED for pre-smoke baseline test
+#define OC_RAW_TRIP_PU    0.45f   // Raw instant trip: 0.45 PU = 7.4A (zeros IdqRef, doesn't kill Enable)
+#define OC_TRIP_PU        0.30f   // Filtered trip: 0.30 PU = 4.95A (zeros IdqRef, doesn't kill Enable)
 #define OC_SUSTAIN_PU     0.20f   // Sustained limit: 0.20 PU = 3.3A (rated)
 #define OC_SUSTAIN_MS     500     // Sustained overcurrent time limit [ms] (500 counts at 1kHz)
 volatile uint8_t overcurrent_fault = 0;       // 0=OK, 1=tripped (latched, requires power cycle or BLE reset)
@@ -1135,8 +1135,22 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
             float Id_raw =  Ialpha * cos_theta + Ibeta * sin_theta;
             float Iq_raw = Ibeta * cos_theta - Ialpha * sin_theta;
 
-            // Raw OC check disabled for FOC debug
-            // (I²t + DRV8302 OCP provide hardware protection)
+            // --- Overcurrent protection (FOC-safe) ---
+            // Don't set Enable=0 or Vabc_out in ADC callback (breaks FOC)
+            // Instead: set fault flag + zero IdqRef → FOC ramps down gracefully
+            {
+                float abs_iq_raw = Iq_raw > 0 ? Iq_raw : -Iq_raw;
+                float abs_id_raw = Id_raw > 0 ? Id_raw : -Id_raw;
+                if (abs_iq_raw > OC_RAW_TRIP_PU || abs_id_raw > OC_RAW_TRIP_PU) {
+                    overcurrent_fault = 1;
+                    overcurrent_peak_iq = abs_iq_raw;
+                    overcurrent_peak_id = abs_id_raw;
+                    debug_enable_off_src = 7;
+                    // Zero torque command → FOC outputs near-zero voltage next cycle
+                    IdqRef[0] = 0.0f;
+                    IdqRef[1] = 0.0f;
+                }
+            }
 
             // --- 3b. Low-pass filter on Id/Iq feedback ---
             // alpha=0.1: cutoff ≈ 160Hz at 10kHz (balanced: noise rejection + fast response)
@@ -1152,6 +1166,20 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
             debug_Ialpha = Ialpha;
             debug_Ibeta  = Ibeta;
             debug_speed_error = SpeedRefIn_PU - SpeedFb_PU;
+
+            // Filtered OC (FOC-safe: zero IdqRef, don't kill Enable)
+            {
+                float abs_iq = Iq_fb_val > 0 ? Iq_fb_val : -Iq_fb_val;
+                float abs_id = Id_fb > 0 ? Id_fb : -Id_fb;
+                if (abs_iq > OC_TRIP_PU || abs_id > OC_TRIP_PU) {
+                    overcurrent_fault = 1;
+                    overcurrent_peak_iq = abs_iq;
+                    overcurrent_peak_id = abs_id;
+                    debug_enable_off_src = 6;
+                    IdqRef[0] = 0.0f;
+                    IdqRef[1] = 0.0f;
+                }
+            }
 
             static float Id_integral = 0.0f;
             static float Iq_integral = 0.0f;
@@ -1188,6 +1216,7 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
                 if (!foc_was_enabled) {
                     Id_integral = 0.0f;
                     Iq_integral = 0.0f;
+                    Vq_ff_filtered = 0.0f;
                     foc_was_enabled = 1;
                 }
 
@@ -1201,8 +1230,13 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
                 // Simplified: use Ke directly. Ke = back-EMF constant [V/(rad/s)]
                 // At 1 PU speed (N_base RPM): back-EMF ≈ Vdc. So Vq_ff ≈ speed_PU
                 float speed_pu = SpeedFb_RPM / pmsm.N_base;
-                float Vq_ff = speed_pu;  // back-EMF feedforward
-                float Vd_ff = -omega_e * pmsm.Lq * Iq_fb_val;  // cross-coupling
+                // LPF-smoothed back-EMF feedforward
+                // α=0.01: τ=10 samples (1ms) → tracking error < 0.002 PU at 2000RPM/s accel
+                // Prevents startup voltage spikes while tracking speed changes
+                static float Vq_ff_filtered = 0.0f;
+                Vq_ff_filtered += 0.01f * (speed_pu - Vq_ff_filtered);
+                float Vq_ff = Vq_ff_filtered;
+                float Vd_ff = 0.0f;
 
                 // --- 5. PI Controllers with back-calculation anti-windup ---
                 const float Ts_curr = 0.0001f;  // 10kHz = 100us
