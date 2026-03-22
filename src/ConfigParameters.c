@@ -23,7 +23,7 @@
 struct_DWWWf6N21VtITTqdrqSn0 PI_params = {
   0.3F,       // Kp_id - moderate gain
   0.0F,       // Ki_id - disabled (causes windup)
-  0.3F,       // Kp_iq - moderate gain
+  0.5F,       // Kp_iq
   0.0F,       // Ki_iq - disabled (causes windup)
   1.0F,       // Kp_speed - startup torque > 0.07 threshold, noise < 2.0 (was 0.5)
   0.1F,       // Ki_speed - integral for steady-state torque (was 0.0)
@@ -52,7 +52,7 @@ real_T Ts_speed = 0.001;               /* Referenced by: '<S1>/Gain1' */
 /* Ts_speed - Speed controller sample time [sec] */
 struct_I5k2n9mWimERhc2OS6k9dF inverter = {
   18.0F,
-  8.25F,
+  16.5F,
   0.0033F
 } ;                                    /* Referenced by: '<S1>/Gain4' */
 
