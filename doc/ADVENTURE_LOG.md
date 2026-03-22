@@ -1090,5 +1090,47 @@ if (|IqFb| > OC_TRIP_PU || |IdFb| > OC_TRIP_PU) {
 - EEPROM パラメータ永続化
 - BLE 品質向上
 
+### 2026-03-22〜23 手書きFOC完成・保護システム・UART修復
+
+#### UART修復
+- hal_data.c の flow_control が FSP Generate で CTS に戻る問題（3回再発）
+- 原因: FSP Configurator の CTS/RTS Selection 設定
+- 対策: Hardware RTS に変更して Generate → 恒久修正
+- TXI3 割り込みが発火しない問題の真因: flow_control=CTS で SCI ハードウェアが CTS ピン待ち
+
+#### モーター健全性確認
+- Simulink FOC で 130-150RPM 安定動作確認 → モーター損傷なし
+- トルクモード Iq=0.013PU（Simulink FOC）→ 巻線短絡なし
+- 手で回して異音なし → 機械的正常
+
+#### 手書きFOC 根本原因特定・修正
+1. **OC保護がFOCを破壊**: ADC callback内でEnable=0 + Vabc_out=50%設定 → FOC制御不能
+   - 対策: IdqRef をゼロにする方式（Enable は触らない）+ 起動グレース期間
+2. **Anti-windup 積分器ドリフト (Ki=0)**: back-calculation の Kaw×(Vsat-V) が Ki=0 でも積分器を負に蓄積
+   - 対策: Ki=0 では積分器更新をスキップ（クランピング方式に変更）
+3. **FF ゲイン 1.93倍間違い**: N_base=1559 は PU 速度正規化用、電圧ベース速度は 3004RPM
+   - BEMF at N_base = 0.52 PU（1.0 ではない）
+   - 対策: FF ゲイン = 0.52
+4. **EnCl_smooth=1 即座設定**: Simulink FOC は 1ms 遅延（速度コントローラ経由）
+   - 対策: EnCl_smooth = EnCl（速度コントローラ出力）
+
+#### 動作確認結果
+- T30 トルク制御: 485RPM 安定回転 33秒（PC adapter で手動停止）
+- T60 トルク制御: 467RPM 安定回転 10秒（PC adapter 電流不足で停止）
+- FF ゲイン 0.52 で速度安定（振動なし）
+- I²t 保護正常動作（37%で安全圏）
+- Hall angle offset スイープキャリブレーション実装
+
+#### 未解決課題
+- PC adapter (2.37A) では高速・高トルク運転不可 → マキタバッテリ必要
+- Hall angle offset 最適値未確定（-0.15 付近の可能性、要再キャリブレーション）
+- VDC 補償: 起動時の問題で無効化中
+- OC 保護: FOC ブロック内では無効化中（I²t + DRV8302 OCP のみ）
+- Simulink FOC が 1000RPM 回れた理由の PU 系統分析が不完全
+
+#### git 履歴
+- 初回コミット: 87cd005 (Working baseline)
+- 最新コミット: a3c8722 (Hall angle calibration)
+
 ## 最終更新
-2026-03-22 - 過電流事故(基板②損傷)、ソフトウェア過電流保護実装
+2026-03-23 - 手書きFOC完成（4つの根本原因特定・修正）、UART恒久修正
