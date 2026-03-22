@@ -1135,19 +1135,32 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
             debug_Ibeta  = Ibeta;
 
             static float Id_integral = 0.0f, Iq_integral = 0.0f;
+            static float Vq_ff = 0.0f;
+            static uint16_t ff_enable_count = 0;
             static uint8_t foc_was_enabled = 0;
 
             if (Enable && EnCl_smooth) {
                 if (!foc_was_enabled) {
                     Id_integral = 0.0f;
                     Iq_integral = 0.0f;
+                    Vq_ff = 0.0f;
+                    ff_enable_count = 0;
                     foc_was_enabled = 1;
+                }
+
+                // Back-EMF feedforward (LPF smoothed, enable after 1s startup)
+                float speed_pu = SpeedFb_RPM / pmsm.N_base;
+                if (ff_enable_count < 10000) {
+                    ff_enable_count++;  // 1s delay before FF enables
+                    Vq_ff = 0.0f;
+                } else {
+                    Vq_ff += 0.01f * (speed_pu - Vq_ff);  // LPF α=0.01
                 }
 
                 float Id_error = IdqRef[0] - Id_fb;
                 float Iq_error = IdqRef[1] - Iq_fb_val;
                 float Vd = PI_params.Kp_id * Id_error + Id_integral;
-                float Vq = PI_params.Kp_iq * Iq_error + Iq_integral;
+                float Vq = PI_params.Kp_iq * Iq_error + Iq_integral + Vq_ff;
 
                 // Circle limiter
                 float Vd_unsat = Vd, Vq_unsat = Vq;
@@ -1771,6 +1784,11 @@ void One_ms_Int(timer_callback_args_t *p_args)
         SpeedControl_step(Enable, SpeedRefIn_PU, SpeedFb_Hall_PU, IqFb, Mode, IdqRef, &SpeedRefFinal_PU, &EnCl);
         // Apply thermal derating to speed controller Iq output
         IdqRef[1] *= output_derating;
+        // Force zero on OC fault or I²t trip
+        if (overcurrent_fault) {
+            IdqRef[0] = 0.0f;
+            IdqRef[1] = 0.0f;
+        }
     } else {
         // Mode 1: Torque control (direct Iq command, bypass speed PI loop)
         float iq_cmd = torque_ref_iq;
@@ -1797,6 +1815,11 @@ void One_ms_Int(timer_callback_args_t *p_args)
 
         IdqRef[0] = 0.0f;     // Id = 0 (no field weakening)
         IdqRef[1] = iq_cmd;   // Iq = direct torque command
+        // Force zero on OC fault or I²t trip (prevents race with ADC callback)
+        if (overcurrent_fault) {
+            IdqRef[0] = 0.0f;
+            IdqRef[1] = 0.0f;
+        }
         SpeedRefFinal_PU = 0.0f;
         EnCl = Enable;         // Enable current control when motor is enabled
     }
