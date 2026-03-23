@@ -2010,18 +2010,29 @@ void One_ms_Int(timer_callback_args_t *p_args)
             // Accumulate heat, subtract natural cooling (exponential decay)
             // Debug: track peak and average I² for diagnosis
             if (I2 > debug_i2_max) debug_i2_max = I2;
-            debug_i2_avg += 0.001f * (I2 - debug_i2_avg);  // LPF α=0.001
+            debug_i2_avg += 0.001f * (I2 - debug_i2_avg);
 
-            // I²t uses AVERAGED I² (thermal load, not instantaneous spikes)
-            // Hall transition spikes last ~1ms, motor thermal τ=43.1s → spikes are thermally irrelevant
-            // debug_i2_avg: LPF α=0.001 (τ=1s) provides thermal-relevant average
-            // DRV8302 OCP handles instantaneous overcurrent protection
+            // I²t: compute I² from 100Hz-decimated IqFb/IdFb
+            // Hall spikes at ~456Hz are aliased away at 100Hz → thermally correct
+            static uint8_t i2t_decim_count = 0;
+            static float i2t_iq_sum = 0, i2t_id_sum = 0;
+            float I2_for_i2t = 0.0f;
+            static float I2_100hz = 0.0f;
+            i2t_iq_sum += IqFb;
+            i2t_id_sum += IdFb;
+            i2t_decim_count++;
+            if (i2t_decim_count >= 10) {  // Every 10ms (100Hz)
+                float iq_avg10 = i2t_iq_sum / 10.0f;
+                float id_avg10 = i2t_id_sum / 10.0f;
+                I2_100hz = iq_avg10 * iq_avg10 + id_avg10 * id_avg10;
+                i2t_iq_sum = 0; i2t_id_sum = 0; i2t_decim_count = 0;
+            }
 
             // Pause I²t during calibration sweep
             if (cal_sweep_en) {
                 i2t_accumulator = 0.0f;
             } else {
-                i2t_accumulator += (debug_i2_avg - i2t_accumulator / I2T_TAU_W) * dt;
+                i2t_accumulator += (I2_100hz - i2t_accumulator / I2T_TAU_W) * dt;
                 if (i2t_accumulator < 0.0f) i2t_accumulator = 0.0f;
             }
 
