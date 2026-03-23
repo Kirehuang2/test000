@@ -61,7 +61,7 @@ volatile float speed_filter_alpha = 0.02f;      // 0.02=smooth (was 0.10), 1.0=n
 // 0 = Speed control: SpeedControl_step manages IdqRef
 // 1 = Torque control: direct Iq command, bypass speed loop
 // ============================================================
-volatile uint8_t control_mode = 1;              // 0=Speed, 1=Torque
+volatile uint8_t control_mode = 0;              // 0=Speed (for calibration), 1=Torque
 volatile float torque_ref_iq = 0.06f;           // Direct Iq command [PU]
 volatile float torque_ref_iq_max = 0.2f;        // Iq clamp: 0.2 PU × 16.5A = 3.3A ≈ rated 3.29A
 volatile float torque_max_speed_rpm = 500.0f;   // Speed limit for torque mode [RPM]
@@ -227,7 +227,7 @@ volatile uint8_t protection_state = 0;       // 0=Normal, 1=Warning, 2=Derating,
 volatile float output_derating = 1.0f;       // Output limit factor (0.0~1.0)
 
 // JOG speed reference (settable via debugger or BLE)
-volatile float speed_ref_rpm = 0.0f;         // Target speed [RPM] (0=stopped)
+volatile float speed_ref_rpm = 300.0f;       // Target speed [RPM] (300 for calibration)
 
 // Assist level and turbo mode
 volatile uint8_t assist_level = 0;           // 0=Low, 1=Mid, 2=High
