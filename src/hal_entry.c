@@ -162,7 +162,7 @@ volatile uint8_t drv8302_fault = 0;       // 0=Normal, 1=Fault detected
 volatile uint8_t drv8302_fault_latched = 0; // Latched fault (requires power cycle to clear)
 
 // Hall sensor angle offset (adjustable via debugger or BLE P43=<value>)
-volatile float hall_angle_offset = -0.35f;  // Calibrated via auto-sweep (V46=-0.35)
+volatile float hall_angle_offset = 0.0f;    // Default (calibration inconclusive)
 
 // Auto-sweep for offset calibration (set cal_sweep_en=1 via debugger or BLE)
 volatile uint8_t cal_sweep_en = 0;        // 1=sweeping, 0=idle
@@ -2012,16 +2012,16 @@ void One_ms_Int(timer_callback_args_t *p_args)
             if (I2 > debug_i2_max) debug_i2_max = I2;
             debug_i2_avg += 0.001f * (I2 - debug_i2_avg);  // LPF α=0.001
 
-            // Clamp I² for I²t: ignore Hall transition spikes (> rated² × 4 = 0.16 PU²)
-            // Real overcurrent is caught by DRV8302 OCP. I²t should track thermal load only.
-            float I2_clamped = I2;
-            if (I2_clamped > 0.16f) I2_clamped = 0.16f;  // 0.16 = (2×I_rated)² = (0.40PU)² = 6.6A
+            // I²t uses AVERAGED I² (thermal load, not instantaneous spikes)
+            // Hall transition spikes last ~1ms, motor thermal τ=43.1s → spikes are thermally irrelevant
+            // debug_i2_avg: LPF α=0.001 (τ=1s) provides thermal-relevant average
+            // DRV8302 OCP handles instantaneous overcurrent protection
 
             // Pause I²t during calibration sweep
             if (cal_sweep_en) {
                 i2t_accumulator = 0.0f;
             } else {
-                i2t_accumulator += (I2_clamped - i2t_accumulator / I2T_TAU_W) * dt;
+                i2t_accumulator += (debug_i2_avg - i2t_accumulator / I2T_TAU_W) * dt;
                 if (i2t_accumulator < 0.0f) i2t_accumulator = 0.0f;
             }
 

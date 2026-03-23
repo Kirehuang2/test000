@@ -2131,7 +2131,7 @@ END GROUP
  .fsp_dtc_vector_table
                 0x20000000       0x34 ./ra/fsp/src/r_dtc/r_dtc.o
 
-.data           0x20000038      0x2a0 load address 0x0000a544
+.data           0x20000038      0x29c load address 0x0000a544
                 0x20000038                        __data_start__ = .
                 0x20000038                        . = ALIGN (0x4)
                 0x20000038                        __Code_In_RAM_Start = .
@@ -2192,86 +2192,83 @@ END GROUP
  .data.cal_sweep_id_min
                 0x200000c8        0x4 ./src/hal_entry.o
                 0x200000c8                cal_sweep_id_min
- .data.hall_angle_offset
-                0x200000cc        0x4 ./src/hal_entry.o
-                0x200000cc                hall_angle_offset
  .data.log_running
-                0x200000d0        0x1 ./src/hal_entry.o
-                0x200000d0                log_running
- *fill*         0x200000d1        0x3 
+                0x200000cc        0x1 ./src/hal_entry.o
+                0x200000cc                log_running
+ *fill*         0x200000cd        0x3 
  .data.torque_max_speed_rpm
-                0x200000d4        0x4 ./src/hal_entry.o
-                0x200000d4                torque_max_speed_rpm
+                0x200000d0        0x4 ./src/hal_entry.o
+                0x200000d0                torque_max_speed_rpm
  .data.torque_ref_iq_max
-                0x200000d8        0x4 ./src/hal_entry.o
-                0x200000d8                torque_ref_iq_max
+                0x200000d4        0x4 ./src/hal_entry.o
+                0x200000d4                torque_ref_iq_max
  .data.torque_ref_iq
-                0x200000dc        0x4 ./src/hal_entry.o
-                0x200000dc                torque_ref_iq
+                0x200000d8        0x4 ./src/hal_entry.o
+                0x200000d8                torque_ref_iq
  .data.control_mode
-                0x200000e0        0x1 ./src/hal_entry.o
-                0x200000e0                control_mode
- *fill*         0x200000e1        0x3 
+                0x200000dc        0x1 ./src/hal_entry.o
+                0x200000dc                control_mode
+ *fill*         0x200000dd        0x3 
  .data.speed_filter_alpha
-                0x200000e4        0x4 ./src/hal_entry.o
-                0x200000e4                speed_filter_alpha
- .data.Mode     0x200000e8        0x4 ./src/hal_entry.o
-                0x200000e8                Mode
+                0x200000e0        0x4 ./src/hal_entry.o
+                0x200000e0                speed_filter_alpha
+ .data.Mode     0x200000e4        0x4 ./src/hal_entry.o
+                0x200000e4                Mode
  .data.Iab_offset
-                0x200000ec        0x4 ./src/hal_entry.o
-                0x200000ec                Iab_offset
+                0x200000e8        0x4 ./src/hal_entry.o
+                0x200000e8                Iab_offset
  .data.g_uart3_baud_setting
-                0x200000f0        0x4 ./ra_gen/hal_data.o
-                0x200000f0                g_uart3_baud_setting
+                0x200000ec        0x4 ./ra_gen/hal_data.o
+                0x200000ec                g_uart3_baud_setting
  .data.g_transfer1_info
-                0x200000f4       0x10 ./ra_gen/hal_data.o
-                0x200000f4                g_transfer1_info
+                0x200000f0       0x10 ./ra_gen/hal_data.o
+                0x200000f0                g_transfer1_info
  .data.g_transfer0_info
-                0x20000104       0x10 ./ra_gen/hal_data.o
-                0x20000104                g_transfer0_info
+                0x20000100       0x10 ./ra_gen/hal_data.o
+                0x20000100                g_transfer0_info
  .data.__global_locale
-                0x20000114      0x16c C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-locale.o)
-                0x20000114                __global_locale
+                0x20000110      0x16c C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-locale.o)
+                0x20000110                __global_locale
  .data._impure_ptr
-                0x20000280        0x4 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-impure.o)
-                0x20000280                _impure_ptr
+                0x2000027c        0x4 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-impure.o)
+                0x2000027c                _impure_ptr
  .data._impure_data
-                0x20000284       0x4c C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-impure.o)
-                0x20000284                _impure_data
+                0x20000280       0x4c C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-impure.o)
+                0x20000280                _impure_data
  *(.data)
-                0x200002d0                        . = ALIGN (0x4)
-                0x200002d0                        PROVIDE (__preinit_array_start = .)
+                0x200002cc                        . = ALIGN (0x4)
+                0x200002cc                        PROVIDE (__preinit_array_start = .)
  *(.preinit_array)
-                0x200002d0                        PROVIDE (__preinit_array_end = .)
-                0x200002d0                        . = ALIGN (0x4)
-                0x200002d0                        PROVIDE (__init_array_start = .)
+                0x200002cc                        PROVIDE (__preinit_array_end = .)
+                0x200002cc                        . = ALIGN (0x4)
+                0x200002cc                        PROVIDE (__init_array_start = .)
  *(SORT_BY_NAME(.init_array.*))
  *(.init_array)
- .init_array    0x200002d0        0x4 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard/crtbegin.o
-                0x200002d4                        PROVIDE (__init_array_end = .)
-                0x200002d4                        . = ALIGN (0x4)
+ .init_array    0x200002cc        0x4 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard/crtbegin.o
+                0x200002d0                        PROVIDE (__init_array_end = .)
+                0x200002d0                        . = ALIGN (0x4)
                 [!provide]                        PROVIDE (__fini_array_start = .)
  *(SORT_BY_NAME(.fini_array.*))
  *(.fini_array)
- .fini_array    0x200002d4        0x4 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard/crtbegin.o
+ .fini_array    0x200002d0        0x4 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard/crtbegin.o
                 [!provide]                        PROVIDE (__fini_array_end = .)
  *(.jcr*)
-                0x200002d8                        . = ALIGN (0x4)
-                0x200002d8                        __data_end__ = .
+                0x200002d4                        . = ALIGN (0x4)
+                0x200002d4                        __data_end__ = .
 
 .tm_clone_table
-                0x200002d8        0x0 load address 0x0000a7e4
+                0x200002d4        0x0 load address 0x0000a7e0
  .tm_clone_table
-                0x200002d8        0x0 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard/crtbegin.o
+                0x200002d4        0x0 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard/crtbegin.o
  .tm_clone_table
-                0x200002d8        0x0 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard/crtend.o
+                0x200002d4        0x0 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard/crtend.o
 
-.igot.plt       0x200002d8        0x0 load address 0x0000a7e4
- .igot.plt      0x200002d8        0x0 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard/crtbegin.o
-                0x200002d8                        . = .
-                0x0000a7e4                        __dtcm_data_pre_location = (LOADADDR (.data) + SIZEOF (.data))
+.igot.plt       0x200002d4        0x0 load address 0x0000a7e0
+ .igot.plt      0x200002d4        0x0 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard/crtbegin.o
+                0x200002d4                        . = .
+                0x0000a7e0                        __dtcm_data_pre_location = (LOADADDR (.data) + SIZEOF (.data))
 
-.dtcm_data      0x00000000        0x0 load address 0x0000a7f0
+.dtcm_data      0x00000000        0x0 load address 0x0000a7e0
                 0x00000000                        __tz_DTCM_S = ABSOLUTE (DTCM_START)
                 0x00000000                        __dtcm_data_start = .
  *(.dtcm_data*)
@@ -2285,8 +2282,8 @@ END GROUP
                 0x00000000                        . = ALIGN (0x8)
                 0x00000000                        __dtcm_bss_end = .
                 0x00000000                        __tz_DTCM_N = DEFINED (DTCM_NS_START)?ABSOLUTE (DTCM_NS_START):ALIGN (__dtcm_bss_end, 0x2000)
-                0x0000a7f0                        __dtcm_data_init_start = LOADADDR (.dtcm_data)
-                0x0000a7f0                        __dtcm_data_init_end = (LOADADDR (.dtcm_data) + SIZEOF (.dtcm_data))
+                0x0000a7e0                        __dtcm_data_init_start = LOADADDR (.dtcm_data)
+                0x0000a7e0                        __dtcm_data_init_end = (LOADADDR (.dtcm_data) + SIZEOF (.dtcm_data))
                 0x00000001                        ASSERT (((ORIGIN (DTCM) % 0x8) == 0x0), DTCM memory region origin must be aligned to 8 bytes.)
                 0x00000001                        ASSERT (((LENGTH (DTCM) % 0x8) == 0x0), DTCM memory region length must be a multiple of 8 bytes.)
                 0x00000001                        ASSERT ((LOADADDR (.dtcm_bss) == ADDR (.dtcm_bss)), .dtcm_bss has (VMA != LMA) but should be NOLOAD (VMA == LMA).)
@@ -2295,8 +2292,8 @@ END GROUP
                 0x00000001                        ASSERT (((LOADADDR (.dtcm_bss) % 0x8) == 0x0), .dtcm_bss section must be aligned to 8 bytes.)
                 0x00000001                        ASSERT (((SIZEOF (.dtcm_bss) % 0x8) == 0x0), .dtcm_bss section size must be a multiple of 8 bytes.)
                 0x00000001                        ASSERT ((__dtcm_bss_start == __dtcm_data_end), .dtcm_bss section is not adjacent to .dtcm_data section.)
-                0x0000a7e4                        . = (SIZEOF (.dtcm_data) > 0x0)?__dtcm_data_init_end:__dtcm_data_pre_location
-                0x0000a7e4                        sgstubs_pre_location = .
+                0x0000a7e0                        . = (SIZEOF (.dtcm_data) > 0x0)?__dtcm_data_init_end:__dtcm_data_pre_location
+                0x0000a7e0                        sgstubs_pre_location = .
                 0x0000a800                        SGSTUBS_LOC = (DEFINED (PROJECT_SECURE) && DEFINED (FLASH_NSC_START))?ABSOLUTE (FLASH_NSC_START):ALIGN (0x400)
 
 .gnu.sgstubs    0x0000a800        0x0
@@ -2315,10 +2312,10 @@ END GROUP
  *(.code_in_qspi*)
                 0x60000000                        __qspi_flash_end__ = .
                 0x00000000                        __qspi_flash_code_size__ = (__qspi_flash_end__ - __qspi_flash_start__)
-                0x0000a7e4                        __qspi_flash_code_addr__ = sgstubs_pre_location
+                0x0000a7e0                        __qspi_flash_code_addr__ = sgstubs_pre_location
 
 .qspi_non_retentive
-                0x60000000        0x0 load address 0x0000a7e4
+                0x60000000        0x0 load address 0x0000a7e0
                 0x60000000                        __qspi_non_retentive_start__ = .
  *(.qspi_non_retentive*)
                 0x60000000                        __qspi_non_retentive_end__ = .
@@ -2351,10 +2348,10 @@ END GROUP
  *(.code_in_ospi_device_0*)
                 0x80020000                        __ospi_device_0_end__ = .
                 0x00000000                        __ospi_device_0_code_size__ = (__ospi_device_0_end__ - __ospi_device_0_start__)
-                0x0000a7e4                        __ospi_device_0_code_addr__ = (sgstubs_pre_location + SIZEOF (.qspi_non_retentive))
+                0x0000a7e0                        __ospi_device_0_code_addr__ = (sgstubs_pre_location + SIZEOF (.qspi_non_retentive))
 
 .ospi_device_0_non_retentive
-                0x80020000        0x0 load address 0x0000a7e4
+                0x80020000        0x0 load address 0x0000a7e0
                 0x80020000                        __ospi_device_0_non_retentive_start__ = .
  *(.ospi_device_0_non_retentive*)
                 0x80020000                        __ospi_device_0_non_retentive_end__ = .
@@ -2371,10 +2368,10 @@ END GROUP
  *(.code_in_ospi_device_1*)
                 0x80030000                        __ospi_device_1_end__ = .
                 0x00000000                        __ospi_device_1_code_size__ = (__ospi_device_1_end__ - __ospi_device_1_start__)
-                0x0000a7e4                        __ospi_device_1_code_addr__ = (sgstubs_pre_location + (SIZEOF (.qspi_non_retentive) + SIZEOF (.ospi_device_0_non_retentive)))
+                0x0000a7e0                        __ospi_device_1_code_addr__ = (sgstubs_pre_location + (SIZEOF (.qspi_non_retentive) + SIZEOF (.ospi_device_0_non_retentive)))
 
 .ospi_device_1_non_retentive
-                0x80030000        0x0 load address 0x0000a7e4
+                0x80030000        0x0 load address 0x0000a7e0
                 0x80030000                        __ospi_device_1_non_retentive_start__ = .
  *(.ospi_device_1_non_retentive*)
                 0x80030000                        __ospi_device_1_non_retentive_end__ = .
@@ -2384,314 +2381,318 @@ END GROUP
                 0x90030000                        __ospi_device_1_region_end_address__ = (__ospi_device_1_start__ + __ospi_device_1_region_max_size__)
                 0x80030000                        __tz_OSPI_DEVICE_1_N = __ospi_device_1_non_retentive_end__
 
-.noinit         0x200002d8       0x20
-                0x200002d8                        . = ALIGN (0x4)
-                0x200002d8                        __noinit_start = .
+.noinit         0x200002d4       0x1c
+                0x200002d4                        . = ALIGN (0x4)
+                0x200002d4                        __noinit_start = .
  *(.noinit*)
- .noinit        0x200002d8       0x1c ./ra/fsp/src/bsp/mcu/all/bsp_clocks.o
-                0x200002f8                        . = ALIGN (0x8)
- *fill*         0x200002f4        0x4 
+ .noinit        0x200002d4       0x1c ./ra/fsp/src/bsp/mcu/all/bsp_clocks.o
+                0x200002f0                        . = ALIGN (0x8)
  *(.heap.*)
-                0x200002f8                        __noinit_end = .
+                0x200002f0                        __noinit_end = .
 
-.bss            0x200002f8     0x3b70
-                0x200002f8                        . = ALIGN (0x4)
-                0x200002f8                        __bss_start__ = .
+.bss            0x200002f0     0x3b78
+                0x200002f0                        . = ALIGN (0x4)
+                0x200002f0                        __bss_start__ = .
  *(.bss*)
  .bss.completed.1
-                0x200002f8        0x1 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard/crtbegin.o
- *fill*         0x200002f9        0x3 
- .bss.object.0  0x200002fc       0x18 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard/crtbegin.o
+                0x200002f0        0x1 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard/crtbegin.o
+ *fill*         0x200002f1        0x3 
+ .bss.object.0  0x200002f4       0x18 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard/crtbegin.o
  .bss.FOCCurrentControl_PrevZCX
-                0x20000314       0x10 ./src/FOCCurrentControl.o
-                0x20000314                FOCCurrentControl_PrevZCX
+                0x2000030c       0x10 ./src/FOCCurrentControl.o
+                0x2000030c                FOCCurrentControl_PrevZCX
  .bss.FOCCurrentControl_DW
-                0x20000324       0x78 ./src/FOCCurrentControl.o
-                0x20000324                FOCCurrentControl_DW
+                0x2000031c       0x78 ./src/FOCCurrentControl.o
+                0x2000031c                FOCCurrentControl_DW
  .bss.FOCSpeedControl_DW
-                0x2000039c       0x14 ./src/FOCSpeedControl.o
-                0x2000039c                FOCSpeedControl_DW
- .bss.resp.0    0x200003b0      0x100 ./src/hal_entry.o
+                0x20000394       0x14 ./src/FOCSpeedControl.o
+                0x20000394                FOCSpeedControl_DW
+ .bss.resp.0    0x200003a8      0x100 ./src/hal_entry.o
  .bss.auto_send_counter.1
-                0x200004b0        0x2 ./src/hal_entry.o
+                0x200004a8        0x2 ./src/hal_entry.o
  .bss.dump_tick2.2
-                0x200004b2        0x1 ./src/hal_entry.o
- *fill*         0x200004b3        0x1 
+                0x200004aa        0x1 ./src/hal_entry.o
+ *fill*         0x200004ab        0x1 
  .bss.imu_div.3
-                0x200004b4        0x2 ./src/hal_entry.o
+                0x200004ac        0x2 ./src/hal_entry.o
  .bss.vbat_low_count.4
-                0x200004b6        0x2 ./src/hal_entry.o
+                0x200004ae        0x2 ./src/hal_entry.o
  .bss.cal_id_count.6
-                0x200004b8        0x4 ./src/hal_entry.o
+                0x200004b0        0x4 ./src/hal_entry.o
  .bss.cal_id_sum.7
-                0x200004bc        0x4 ./src/hal_entry.o
+                0x200004b4        0x4 ./src/hal_entry.o
  .bss.cal_timer.8
-                0x200004c0        0x2 ./src/hal_entry.o
- *fill*         0x200004c2        0x2 
+                0x200004b8        0x2 ./src/hal_entry.o
+ *fill*         0x200004ba        0x2 
  .bss.Vq_ff_lpf.9
-                0x200004c4        0x4 ./src/hal_entry.o
+                0x200004bc        0x4 ./src/hal_entry.o
  .bss.Iq_integral.10
-                0x200004c8        0x4 ./src/hal_entry.o
+                0x200004c0        0x4 ./src/hal_entry.o
  .bss.Id_integral.11
-                0x200004cc        0x4 ./src/hal_entry.o
+                0x200004c4        0x4 ./src/hal_entry.o
  .bss.foc_was_enabled.12
-                0x200004d0        0x1 ./src/hal_entry.o
- *fill*         0x200004d1        0x3 
+                0x200004c8        0x1 ./src/hal_entry.o
+ *fill*         0x200004c9        0x3 
  .bss.Iq_fb_val.13
-                0x200004d4        0x4 ./src/hal_entry.o
- .bss.Id_fb.14  0x200004d8        0x4 ./src/hal_entry.o
- .bss.ADC_data  0x200004dc       0x24 ./src/hal_entry.o
-                0x200004dc                ADC_data
- .bss.pack_idx  0x20000500        0x1 ./src/hal_entry.o
- *fill*         0x20000501        0x3 
- .bss.pack_rpm  0x20000504        0xa ./src/hal_entry.o
- *fill*         0x2000050e        0x2 
+                0x200004cc        0x4 ./src/hal_entry.o
+ .bss.Id_fb.14  0x200004d0        0x4 ./src/hal_entry.o
+ .bss.ADC_data  0x200004d4       0x24 ./src/hal_entry.o
+                0x200004d4                ADC_data
+ .bss.pack_idx  0x200004f8        0x1 ./src/hal_entry.o
+ *fill*         0x200004f9        0x3 
+ .bss.pack_rpm  0x200004fc        0xa ./src/hal_entry.o
+ *fill*         0x20000506        0x2 
  .bss.spi1_rx_buf
-                0x20000510       0x10 ./src/hal_entry.o
+                0x20000508       0x10 ./src/hal_entry.o
  .bss.spi1_tx_buf
-                0x20000520       0x10 ./src/hal_entry.o
+                0x20000518       0x10 ./src/hal_entry.o
  .bss.imu_read_request
-                0x20000530        0x1 ./src/hal_entry.o
- *fill*         0x20000531        0x3 
+                0x20000528        0x1 ./src/hal_entry.o
+ *fill*         0x20000529        0x3 
  .bss.imu_gyro_dps
-                0x20000534        0xc ./src/hal_entry.o
-                0x20000534                imu_gyro_dps
+                0x2000052c        0xc ./src/hal_entry.o
+                0x2000052c                imu_gyro_dps
  .bss.imu_accel_g
-                0x20000540        0xc ./src/hal_entry.o
-                0x20000540                imu_accel_g
+                0x20000538        0xc ./src/hal_entry.o
+                0x20000538                imu_accel_g
  .bss.imu_gyro_raw
-                0x2000054c        0x6 ./src/hal_entry.o
-                0x2000054c                imu_gyro_raw
- *fill*         0x20000552        0x2 
+                0x20000544        0x6 ./src/hal_entry.o
+                0x20000544                imu_gyro_raw
+ *fill*         0x2000054a        0x2 
  .bss.imu_accel_raw
-                0x20000554        0x6 ./src/hal_entry.o
-                0x20000554                imu_accel_raw
+                0x2000054c        0x6 ./src/hal_entry.o
+                0x2000054c                imu_accel_raw
  .bss.imu_spi_timeout_cnt
-                0x2000055a        0x1 ./src/hal_entry.o
-                0x2000055a                imu_spi_timeout_cnt
+                0x20000552        0x1 ./src/hal_entry.o
+                0x20000552                imu_spi_timeout_cnt
  .bss.imu_spi_wr_err
-                0x2000055b        0x1 ./src/hal_entry.o
-                0x2000055b                imu_spi_wr_err
+                0x20000553        0x1 ./src/hal_entry.o
+                0x20000553                imu_spi_wr_err
  .bss.imu_spi_timeout
-                0x2000055c        0x1 ./src/hal_entry.o
-                0x2000055c                imu_spi_timeout
+                0x20000554        0x1 ./src/hal_entry.o
+                0x20000554                imu_spi_timeout
  .bss.imu_rx_byte1
-                0x2000055d        0x1 ./src/hal_entry.o
-                0x2000055d                imu_rx_byte1
+                0x20000555        0x1 ./src/hal_entry.o
+                0x20000555                imu_rx_byte1
  .bss.imu_rx_byte0
-                0x2000055e        0x1 ./src/hal_entry.o
-                0x2000055e                imu_rx_byte0
+                0x20000556        0x1 ./src/hal_entry.o
+                0x20000556                imu_rx_byte0
  .bss.imu_spi_cb_count
-                0x2000055f        0x1 ./src/hal_entry.o
-                0x2000055f                imu_spi_cb_count
+                0x20000557        0x1 ./src/hal_entry.o
+                0x20000557                imu_spi_cb_count
  .bss.imu_init_stage
-                0x20000560        0x1 ./src/hal_entry.o
-                0x20000560                imu_init_stage
+                0x20000558        0x1 ./src/hal_entry.o
+                0x20000558                imu_init_stage
  .bss.imu_int_status
-                0x20000561        0x1 ./src/hal_entry.o
-                0x20000561                imu_int_status
+                0x20000559        0x1 ./src/hal_entry.o
+                0x20000559                imu_int_status
  .bss.imu_accel_cfg
-                0x20000562        0x1 ./src/hal_entry.o
-                0x20000562                imu_accel_cfg
+                0x2000055a        0x1 ./src/hal_entry.o
+                0x2000055a                imu_accel_cfg
  .bss.imu_pwr_mgmt0
-                0x20000563        0x1 ./src/hal_entry.o
-                0x20000563                imu_pwr_mgmt0
+                0x2000055b        0x1 ./src/hal_entry.o
+                0x2000055b                imu_pwr_mgmt0
  .bss.imu_init_ok
-                0x20000564        0x1 ./src/hal_entry.o
-                0x20000564                imu_init_ok
+                0x2000055c        0x1 ./src/hal_entry.o
+                0x2000055c                imu_init_ok
  .bss.imu_who_am_i
-                0x20000565        0x1 ./src/hal_entry.o
-                0x20000565                imu_who_am_i
+                0x2000055d        0x1 ./src/hal_entry.o
+                0x2000055d                imu_who_am_i
  .bss.spi1_tx_done
-                0x20000566        0x1 ./src/hal_entry.o
- *fill*         0x20000567        0x1 
+                0x2000055e        0x1 ./src/hal_entry.o
+ *fill*         0x2000055f        0x1 
  .bss.dbg_log_bursts
-                0x20000568        0x2 ./src/hal_entry.o
-                0x20000568                dbg_log_bursts
+                0x20000560        0x2 ./src/hal_entry.o
+                0x20000560                dbg_log_bursts
  .bss.dbg_log_lines_total
-                0x2000056a        0x2 ./src/hal_entry.o
-                0x2000056a                dbg_log_lines_total
+                0x20000562        0x2 ./src/hal_entry.o
+                0x20000562                dbg_log_lines_total
  .bss.log_burst_sent
-                0x2000056c        0x1 ./src/hal_entry.o
+                0x20000564        0x1 ./src/hal_entry.o
  .bss.log_burst_max
-                0x2000056d        0x1 ./src/hal_entry.o
-                0x2000056d                log_burst_max
+                0x20000565        0x1 ./src/hal_entry.o
+                0x20000565                log_burst_max
  .bss.ble_log_counter
-                0x2000056e        0x2 ./src/hal_entry.o
+                0x20000566        0x2 ./src/hal_entry.o
  .bss.ble_log_streaming
-                0x20000570        0x1 ./src/hal_entry.o
- *fill*         0x20000571        0x1 
+                0x20000568        0x1 ./src/hal_entry.o
+ *fill*         0x20000569        0x1 
  .bss.dbg_tx_write_count
-                0x20000572        0x2 ./src/hal_entry.o
-                0x20000572                dbg_tx_write_count
+                0x2000056a        0x2 ./src/hal_entry.o
+                0x2000056a                dbg_tx_write_count
  .bss.dbg_tx_last_len
-                0x20000574        0x2 ./src/hal_entry.o
-                0x20000574                dbg_tx_last_len
+                0x2000056c        0x2 ./src/hal_entry.o
+                0x2000056c                dbg_tx_last_len
  .bss.tx_spacing_timer
-                0x20000576        0x1 ./src/hal_entry.o
- *fill*         0x20000577        0x1 
+                0x2000056e        0x1 ./src/hal_entry.o
+ *fill*         0x2000056f        0x1 
  .bss.dbg_cmd_timeout_count
-                0x20000578        0x2 ./src/hal_entry.o
-                0x20000578                dbg_cmd_timeout_count
+                0x20000570        0x2 ./src/hal_entry.o
+                0x20000570                dbg_cmd_timeout_count
  .bss.dbg_cmd_get_count
-                0x2000057a        0x2 ./src/hal_entry.o
-                0x2000057a                dbg_cmd_get_count
+                0x20000572        0x2 ./src/hal_entry.o
+                0x20000572                dbg_cmd_get_count
  .bss.dbg_cmd_rx_count
-                0x2000057c        0x2 ./src/hal_entry.o
-                0x2000057c                dbg_cmd_rx_count
+                0x20000574        0x2 ./src/hal_entry.o
+                0x20000574                dbg_cmd_rx_count
  .bss.dbg_auto_send
-                0x2000057e        0x1 ./src/hal_entry.o
-                0x2000057e                dbg_auto_send
- *fill*         0x2000057f        0x1 
+                0x20000576        0x1 ./src/hal_entry.o
+                0x20000576                dbg_auto_send
+ *fill*         0x20000577        0x1 
  .bss.dbg_baud_cyccnt
-                0x20000580        0x4 ./src/hal_entry.o
-                0x20000580                dbg_baud_cyccnt
+                0x20000578        0x4 ./src/hal_entry.o
+                0x20000578                dbg_baud_cyccnt
  .bss.dbg_baud_cycles
-                0x20000584        0x4 ./src/hal_entry.o
-                0x20000584                dbg_baud_cycles
+                0x2000057c        0x4 ./src/hal_entry.o
+                0x2000057c                dbg_baud_cycles
  .bss.dbg_actual_brr
-                0x20000588        0x1 ./src/hal_entry.o
-                0x20000588                dbg_actual_brr
- *fill*         0x20000589        0x1 
+                0x20000580        0x1 ./src/hal_entry.o
+                0x20000580                dbg_actual_brr
+ *fill*         0x20000581        0x1 
  .bss.dbg_ping_count
-                0x2000058a        0x2 ./src/hal_entry.o
-                0x2000058a                dbg_ping_count
+                0x20000582        0x2 ./src/hal_entry.o
+                0x20000582                dbg_ping_count
  .bss.dbg_ccr2_value
-                0x2000058c        0x4 ./src/hal_entry.o
-                0x2000058c                dbg_ccr2_value
+                0x20000584        0x4 ./src/hal_entry.o
+                0x20000584                dbg_ccr2_value
  .bss.dbg_rx_raw_idx
-                0x20000590        0x1 ./src/hal_entry.o
- *fill*         0x20000591        0x3 
+                0x20000588        0x1 ./src/hal_entry.o
+ *fill*         0x20000589        0x3 
  .bss.dbg_rx_raw
-                0x20000594       0x40 ./src/hal_entry.o
+                0x2000058c       0x40 ./src/hal_entry.o
  .bss.dbg_poll_count
-                0x200005d4        0x2 ./src/hal_entry.o
+                0x200005cc        0x2 ./src/hal_entry.o
  .bss.uart_err_count
-                0x200005d6        0x2 ./src/hal_entry.o
+                0x200005ce        0x2 ./src/hal_entry.o
  .bss.uart_rx_byte_count
-                0x200005d8        0x2 ./src/hal_entry.o
+                0x200005d0        0x2 ./src/hal_entry.o
  .bss.ble_debug_state
+                0x200005d2        0x1 ./src/hal_entry.o
+ *fill*         0x200005d3        0x1 
+ .bss.uart_rx_idle_ms
+                0x200005d4        0x2 ./src/hal_entry.o
+ .bss.tx_drop_count
+                0x200005d6        0x2 ./src/hal_entry.o
+                0x200005d6                tx_drop_count
+ .bss.tx_ring_count
+                0x200005d8        0x1 ./src/hal_entry.o
+ .bss.tx_ring_tail
+                0x200005d9        0x1 ./src/hal_entry.o
+ .bss.tx_ring_head
                 0x200005da        0x1 ./src/hal_entry.o
  *fill*         0x200005db        0x1 
- .bss.uart_rx_idle_ms
-                0x200005dc        0x2 ./src/hal_entry.o
- .bss.tx_drop_count
-                0x200005de        0x2 ./src/hal_entry.o
-                0x200005de                tx_drop_count
- .bss.tx_ring_count
-                0x200005e0        0x1 ./src/hal_entry.o
- .bss.tx_ring_tail
-                0x200005e1        0x1 ./src/hal_entry.o
- .bss.tx_ring_head
-                0x200005e2        0x1 ./src/hal_entry.o
- *fill*         0x200005e3        0x1 
- .bss.tx_ring   0x200005e4      0x800 ./src/hal_entry.o
+ .bss.tx_ring   0x200005dc      0x800 ./src/hal_entry.o
  .bss.uart_tx_busy
-                0x20000de4        0x1 ./src/hal_entry.o
+                0x20000ddc        0x1 ./src/hal_entry.o
  .bss.rx_cmd_count
-                0x20000de5        0x1 ./src/hal_entry.o
+                0x20000ddd        0x1 ./src/hal_entry.o
  .bss.rx_cmd_tail
-                0x20000de6        0x1 ./src/hal_entry.o
+                0x20000dde        0x1 ./src/hal_entry.o
  .bss.rx_cmd_head
-                0x20000de7        0x1 ./src/hal_entry.o
+                0x20000ddf        0x1 ./src/hal_entry.o
  .bss.rx_cmd_ring
-                0x20000de8      0x100 ./src/hal_entry.o
+                0x20000de0      0x100 ./src/hal_entry.o
  .bss.uart_rx_idx
-                0x20000ee8        0x2 ./src/hal_entry.o
- *fill*         0x20000eea        0x2 
+                0x20000ee0        0x2 ./src/hal_entry.o
+ *fill*         0x20000ee2        0x2 
  .bss.uart_rx_buf
-                0x20000eec       0x80 ./src/hal_entry.o
+                0x20000ee4       0x80 ./src/hal_entry.o
  .bss.i2t_ratio
-                0x20000f6c        0x4 ./src/hal_entry.o
-                0x20000f6c                i2t_ratio
+                0x20000f64        0x4 ./src/hal_entry.o
+                0x20000f64                i2t_ratio
  .bss.i2t_accumulator
-                0x20000f70        0x4 ./src/hal_entry.o
-                0x20000f70                i2t_accumulator
+                0x20000f68        0x4 ./src/hal_entry.o
+                0x20000f68                i2t_accumulator
  .bss.sw_in2_debounce
-                0x20000f74        0x2 ./src/hal_entry.o
+                0x20000f6c        0x2 ./src/hal_entry.o
  .bss.sw_in1_debounce
-                0x20000f76        0x2 ./src/hal_entry.o
+                0x20000f6e        0x2 ./src/hal_entry.o
  .bss.turbo_mode
-                0x20000f78        0x1 ./src/hal_entry.o
-                0x20000f78                turbo_mode
+                0x20000f70        0x1 ./src/hal_entry.o
+                0x20000f70                turbo_mode
  .bss.assist_level
-                0x20000f79        0x1 ./src/hal_entry.o
-                0x20000f79                assist_level
- *fill*         0x20000f7a        0x2 
+                0x20000f71        0x1 ./src/hal_entry.o
+                0x20000f71                assist_level
+ *fill*         0x20000f72        0x2 
  .bss.speed_ref_rpm
-                0x20000f7c        0x4 ./src/hal_entry.o
-                0x20000f7c                speed_ref_rpm
+                0x20000f74        0x4 ./src/hal_entry.o
+                0x20000f74                speed_ref_rpm
  .bss.protection_state
-                0x20000f80        0x1 ./src/hal_entry.o
-                0x20000f80                protection_state
- *fill*         0x20000f81        0x1 
+                0x20000f78        0x1 ./src/hal_entry.o
+                0x20000f78                protection_state
+ *fill*         0x20000f79        0x1 
  .bss.temp_regen_adc_raw
-                0x20000f82        0x2 ./src/hal_entry.o
-                0x20000f82                temp_regen_adc_raw
+                0x20000f7a        0x2 ./src/hal_entry.o
+                0x20000f7a                temp_regen_adc_raw
  .bss.temp_inv_adc_raw
-                0x20000f84        0x2 ./src/hal_entry.o
-                0x20000f84                temp_inv_adc_raw
+                0x20000f7c        0x2 ./src/hal_entry.o
+                0x20000f7c                temp_inv_adc_raw
  .bss.battery_adc_raw
-                0x20000f86        0x2 ./src/hal_entry.o
-                0x20000f86                battery_adc_raw
+                0x20000f7e        0x2 ./src/hal_entry.o
+                0x20000f7e                battery_adc_raw
  .bss.battery_voltage
-                0x20000f88        0x4 ./src/hal_entry.o
-                0x20000f88                battery_voltage
+                0x20000f80        0x4 ./src/hal_entry.o
+                0x20000f80                battery_voltage
  .bss.led_state
-                0x20000f8c        0x1 ./src/hal_entry.o
-                0x20000f8c                led_state
- .bss.led_mode  0x20000f8d        0x1 ./src/hal_entry.o
-                0x20000f8d                led_mode
+                0x20000f84        0x1 ./src/hal_entry.o
+                0x20000f84                led_state
+ .bss.led_mode  0x20000f85        0x1 ./src/hal_entry.o
+                0x20000f85                led_mode
  .bss.as_low_counter
-                0x20000f8e        0x2 ./src/hal_entry.o
+                0x20000f86        0x2 ./src/hal_entry.o
  .bss.as_adc_raw
-                0x20000f90        0x2 ./src/hal_entry.o
-                0x20000f90                as_adc_raw
- *fill*         0x20000f92        0x2 
+                0x20000f88        0x2 ./src/hal_entry.o
+                0x20000f88                as_adc_raw
+ *fill*         0x20000f8a        0x2 
  .bss.as_voltage
-                0x20000f94        0x4 ./src/hal_entry.o
-                0x20000f94                as_voltage
+                0x20000f8c        0x4 ./src/hal_entry.o
+                0x20000f8c                as_voltage
  .bss.makita_battery_state
-                0x20000f98        0x1 ./src/hal_entry.o
-                0x20000f98                makita_battery_state
+                0x20000f90        0x1 ./src/hal_entry.o
+                0x20000f90                makita_battery_state
  .bss.makita_battery_en
-                0x20000f99        0x1 ./src/hal_entry.o
-                0x20000f99                makita_battery_en
+                0x20000f91        0x1 ./src/hal_entry.o
+                0x20000f91                makita_battery_en
  .bss.debug_shutdown_requested
-                0x20000f9a        0x1 ./src/hal_entry.o
-                0x20000f9a                debug_shutdown_requested
- *fill*         0x20000f9b        0x1 
+                0x20000f92        0x1 ./src/hal_entry.o
+                0x20000f92                debug_shutdown_requested
+ *fill*         0x20000f93        0x1 
  .bss.debug_pe14_counter
-                0x20000f9c        0x4 ./src/hal_entry.o
-                0x20000f9c                debug_pe14_counter
+                0x20000f94        0x4 ./src/hal_entry.o
+                0x20000f94                debug_pe14_counter
  .bss.debug_pe14_state
-                0x20000fa0        0x1 ./src/hal_entry.o
-                0x20000fa0                debug_pe14_state
+                0x20000f98        0x1 ./src/hal_entry.o
+                0x20000f98                debug_pe14_state
  .bss.debug_pe04_state
-                0x20000fa1        0x1 ./src/hal_entry.o
-                0x20000fa1                debug_pe04_state
+                0x20000f99        0x1 ./src/hal_entry.o
+                0x20000f99                debug_pe04_state
  .bss.debug_pe03_state
-                0x20000fa2        0x1 ./src/hal_entry.o
-                0x20000fa2                debug_pe03_state
+                0x20000f9a        0x1 ./src/hal_entry.o
+                0x20000f9a                debug_pe03_state
  .bss.shutdown_requested
-                0x20000fa3        0x1 ./src/hal_entry.o
+                0x20000f9b        0x1 ./src/hal_entry.o
  .bss.power_switch_high_counter
-                0x20000fa4        0x4 ./src/hal_entry.o
+                0x20000f9c        0x4 ./src/hal_entry.o
  .bss.cal_sweep_best_offset
-                0x20000fa8        0x4 ./src/hal_entry.o
-                0x20000fa8                cal_sweep_best_offset
+                0x20000fa0        0x4 ./src/hal_entry.o
+                0x20000fa0                cal_sweep_best_offset
  .bss.cal_sweep_idx
-                0x20000fac        0x1 ./src/hal_entry.o
-                0x20000fac                cal_sweep_idx
+                0x20000fa4        0x1 ./src/hal_entry.o
+                0x20000fa4                cal_sweep_idx
  .bss.cal_sweep_en
-                0x20000fad        0x1 ./src/hal_entry.o
-                0x20000fad                cal_sweep_en
+                0x20000fa5        0x1 ./src/hal_entry.o
+                0x20000fa5                cal_sweep_en
+ *fill*         0x20000fa6        0x2 
+ .bss.hall_angle_offset
+                0x20000fa8        0x4 ./src/hal_entry.o
+                0x20000fa8                hall_angle_offset
  .bss.drv8302_fault_latched
-                0x20000fae        0x1 ./src/hal_entry.o
-                0x20000fae                drv8302_fault_latched
+                0x20000fac        0x1 ./src/hal_entry.o
+                0x20000fac                drv8302_fault_latched
  .bss.drv8302_fault
-                0x20000faf        0x1 ./src/hal_entry.o
-                0x20000faf                drv8302_fault
+                0x20000fad        0x1 ./src/hal_entry.o
+                0x20000fad                drv8302_fault
+ *fill*         0x20000fae        0x2 
  .bss.debug_vabc
                 0x20000fb0        0xc ./src/hal_entry.o
                 0x20000fb0                debug_vabc
