@@ -1143,53 +1143,14 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
         // Hand-written FOC Current Controller (verified minimal version)
         // ============================================================
         {
-            // ============================================================
-            // Hall PLL: smooth angle estimation
-            // Eliminates Hall transition current spikes (12.5A → ~0)
-            // Type-II PLL: tracks Hall angle, never jumps
-            // Bandwidth 20Hz, damping 0.707 (critically damped)
-            // ============================================================
+            // Use Hall angle directly (PLL/smoother attempts were unstable)
+            // Hall transition spikes handled by I²t 100Hz decimation
             float hall_angle = f_get_angle + hall_angle_offset;
-
-            static float pll_theta = 0.0f;   // PLL estimated angle [rad]
-            static float pll_omega = 0.0f;   // PLL estimated speed [rad/s elec]
-            static uint8_t pll_initialized = 0;
-
-            if (!pll_initialized) {
-                pll_theta = hall_angle;
-                pll_omega = 0.0f;
-                pll_initialized = 1;
-            } else {
-                // Phase error (wrapped to ±π)
-                float error = hall_angle - pll_theta;
-                if (error > 3.14159265f) error -= 6.28318530f;
-                if (error < -3.14159265f) error += 6.28318530f;
-
-                // PLL PI: ωn=√500=22.4 rad/s (3.6Hz), ζ=0.67
-                // Low Kp: doesn't snap to Hall jumps → smooth output
-                // Ki tracks speed accurately → zero steady-state error
-                // Hall jump 0.37rad → spread over 30ms as ramp (300× spike reduction)
-                const float Kp_pll = 30.0f;
-                const float Ki_pll = 500.0f;
-                const float dt_pll = 0.0001f;
-
-                pll_omega += Ki_pll * error * dt_pll;
-                pll_theta += (pll_omega + Kp_pll * error) * dt_pll;
-
-                // Wrap to [0, 2π]
-                if (pll_theta > 6.28318530f) pll_theta -= 6.28318530f;
-                if (pll_theta < 0.0f) pll_theta += 6.28318530f;
-
-                // Debug: track PLL performance
-                float err_abs = error > 0 ? error : -error;
-                if (err_abs > debug_pll_error_max) debug_pll_error_max = err_abs;
-            }
-
-            debug_pll_theta = pll_theta;
+            debug_pll_theta = hall_angle;
             debug_hall_angle = hall_angle;
 
-            float sin_theta = sinf(pll_theta);
-            float cos_theta = cosf(pll_theta);
+            float sin_theta = sinf(hall_angle);
+            float cos_theta = cosf(hall_angle);
 
             float Ia_pu = ((float)Iab[0] - (float)Iab_offset[0]) * 0.00048828125f;
             float Ib_pu = ((float)Iab[1] - (float)Iab_offset[1]) * 0.00048828125f;
