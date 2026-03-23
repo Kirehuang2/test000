@@ -107,6 +107,9 @@ volatile float debug_Ibeta = 0.0f;            // Clarke transform output
 volatile float debug_Iq_integral = 0.0f;      // For streaming diagnostic
 volatile float debug_i2_max = 0.0f;           // Peak I² seen by I²t (LPF後)
 volatile float debug_i2_avg = 0.0f;           // Running average I²
+volatile float debug_pll_theta = 0.0f;        // PLL output angle [rad]
+volatile float debug_hall_angle = 0.0f;       // Raw Hall angle [rad]
+volatile float debug_pll_error_max = 0.0f;    // Peak |PLL phase error| [rad]
 volatile float debug_iq_raw_max = 0.0f;       // Peak |Iq_raw| (LPF前)
 volatile float debug_id_raw_max = 0.0f;       // Peak |Id_raw| (LPF前)
 volatile float debug_ia_pu_at_spike = 0.0f;   // Ia_pu when I²_raw spike detected
@@ -613,6 +616,9 @@ static const var_entry_t var_registry[] = {
     {"id_raw_max",          (void*)&debug_id_raw_max,    VAR_FLOAT,  0},
     {"ia_at_spike",         (void*)&debug_ia_pu_at_spike, VAR_FLOAT, 0},
     {"ib_at_spike",         (void*)&debug_ib_pu_at_spike, VAR_FLOAT, 0},
+    {"pll_theta",           (void*)&debug_pll_theta,     VAR_FLOAT,  0},
+    {"hall_angle",          (void*)&debug_hall_angle,     VAR_FLOAT,  0},
+    {"pll_err_max",         (void*)&debug_pll_error_max, VAR_FLOAT,  0},
 };
 #define VAR_REGISTRY_SIZE (sizeof(var_registry)/sizeof(var_registry[0]))
 
@@ -1149,9 +1155,7 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
             static float pll_omega = 0.0f;   // PLL estimated speed [rad/s elec]
             static uint8_t pll_initialized = 0;
 
-            if (!Enable) {
-                pll_initialized = 0;
-            } else if (!pll_initialized) {
+            if (!pll_initialized) {
                 pll_theta = hall_angle;
                 pll_omega = 0.0f;
                 pll_initialized = 1;
@@ -1161,9 +1165,12 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
                 if (error > 3.14159265f) error -= 6.28318530f;
                 if (error < -3.14159265f) error += 6.28318530f;
 
-                // PLL PI: ωn=2π×20=125.7, ζ=0.707
-                const float Kp_pll = 178.0f;
-                const float Ki_pll = 15800.0f;
+                // PLL PI: ωn=√500=22.4 rad/s (3.6Hz), ζ=0.67
+                // Low Kp: doesn't snap to Hall jumps → smooth output
+                // Ki tracks speed accurately → zero steady-state error
+                // Hall jump 0.37rad → spread over 30ms as ramp (300× spike reduction)
+                const float Kp_pll = 30.0f;
+                const float Ki_pll = 500.0f;
                 const float dt_pll = 0.0001f;
 
                 pll_omega += Ki_pll * error * dt_pll;
@@ -1172,7 +1179,14 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
                 // Wrap to [0, 2π]
                 if (pll_theta > 6.28318530f) pll_theta -= 6.28318530f;
                 if (pll_theta < 0.0f) pll_theta += 6.28318530f;
+
+                // Debug: track PLL performance
+                float err_abs = error > 0 ? error : -error;
+                if (err_abs > debug_pll_error_max) debug_pll_error_max = err_abs;
             }
+
+            debug_pll_theta = pll_theta;
+            debug_hall_angle = hall_angle;
 
             float sin_theta = sinf(pll_theta);
             float cos_theta = cosf(pll_theta);
@@ -1222,6 +1236,7 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
                     debug_i2_avg = 0.0f;
                     debug_iq_raw_max = 0.0f;
                     debug_id_raw_max = 0.0f;
+                    debug_pll_error_max = 0.0f;
                     foc_was_enabled = 1;
                 }
 
