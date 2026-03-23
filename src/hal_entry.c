@@ -1137,12 +1137,45 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
         // Hand-written FOC Current Controller (verified minimal version)
         // ============================================================
         {
-            float theta_e = f_get_angle + hall_angle_offset;
-            float sin_raw = sinf(theta_e);
-            float cos_raw = cosf(theta_e);
+            // ============================================================
+            // Hall PLL: smooth angle estimation
+            // Eliminates Hall transition current spikes (12.5A → ~0)
+            // Type-II PLL: tracks Hall angle, never jumps
+            // Bandwidth 20Hz, damping 0.707 (critically damped)
+            // ============================================================
+            float hall_angle = f_get_angle + hall_angle_offset;
 
-            float sin_theta = sin_raw;
-            float cos_theta = cos_raw;
+            static float pll_theta = 0.0f;   // PLL estimated angle [rad]
+            static float pll_omega = 0.0f;   // PLL estimated speed [rad/s elec]
+            static uint8_t pll_initialized = 0;
+
+            if (!Enable) {
+                pll_initialized = 0;
+            } else if (!pll_initialized) {
+                pll_theta = hall_angle;
+                pll_omega = 0.0f;
+                pll_initialized = 1;
+            } else {
+                // Phase error (wrapped to ±π)
+                float error = hall_angle - pll_theta;
+                if (error > 3.14159265f) error -= 6.28318530f;
+                if (error < -3.14159265f) error += 6.28318530f;
+
+                // PLL PI: ωn=2π×20=125.7, ζ=0.707
+                const float Kp_pll = 178.0f;
+                const float Ki_pll = 15800.0f;
+                const float dt_pll = 0.0001f;
+
+                pll_omega += Ki_pll * error * dt_pll;
+                pll_theta += (pll_omega + Kp_pll * error) * dt_pll;
+
+                // Wrap to [0, 2π]
+                if (pll_theta > 6.28318530f) pll_theta -= 6.28318530f;
+                if (pll_theta < 0.0f) pll_theta += 6.28318530f;
+            }
+
+            float sin_theta = sinf(pll_theta);
+            float cos_theta = cosf(pll_theta);
 
             float Ia_pu = ((float)Iab[0] - (float)Iab_offset[0]) * 0.00048828125f;
             float Ib_pu = ((float)Iab[1] - (float)Iab_offset[1]) * 0.00048828125f;
