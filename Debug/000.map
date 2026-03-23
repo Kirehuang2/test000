@@ -2180,38 +2180,37 @@ END GROUP
  .data.sw_in1_last
                 0x200000ba        0x1 ./src/hal_entry.o
  *fill*         0x200000bb        0x1 
- .data.output_derating
+ .data.speed_ref_rpm
                 0x200000bc        0x4 ./src/hal_entry.o
-                0x200000bc                output_derating
- .data.temp_regen
+                0x200000bc                speed_ref_rpm
+ .data.output_derating
                 0x200000c0        0x4 ./src/hal_entry.o
-                0x200000c0                temp_regen
- .data.temp_inverter
+                0x200000c0                output_derating
+ .data.temp_regen
                 0x200000c4        0x4 ./src/hal_entry.o
-                0x200000c4                temp_inverter
- .data.cal_sweep_id_min
+                0x200000c4                temp_regen
+ .data.temp_inverter
                 0x200000c8        0x4 ./src/hal_entry.o
-                0x200000c8                cal_sweep_id_min
- .data.hall_angle_offset
+                0x200000c8                temp_inverter
+ .data.cal_sweep_id_min
                 0x200000cc        0x4 ./src/hal_entry.o
-                0x200000cc                hall_angle_offset
+                0x200000cc                cal_sweep_id_min
+ .data.hall_angle_offset
+                0x200000d0        0x4 ./src/hal_entry.o
+                0x200000d0                hall_angle_offset
  .data.log_running
-                0x200000d0        0x1 ./src/hal_entry.o
-                0x200000d0                log_running
- *fill*         0x200000d1        0x3 
+                0x200000d4        0x1 ./src/hal_entry.o
+                0x200000d4                log_running
+ *fill*         0x200000d5        0x3 
  .data.torque_max_speed_rpm
-                0x200000d4        0x4 ./src/hal_entry.o
-                0x200000d4                torque_max_speed_rpm
- .data.torque_ref_iq_max
                 0x200000d8        0x4 ./src/hal_entry.o
-                0x200000d8                torque_ref_iq_max
- .data.torque_ref_iq
+                0x200000d8                torque_max_speed_rpm
+ .data.torque_ref_iq_max
                 0x200000dc        0x4 ./src/hal_entry.o
-                0x200000dc                torque_ref_iq
- .data.control_mode
-                0x200000e0        0x1 ./src/hal_entry.o
-                0x200000e0                control_mode
- *fill*         0x200000e1        0x3 
+                0x200000dc                torque_ref_iq_max
+ .data.torque_ref_iq
+                0x200000e0        0x4 ./src/hal_entry.o
+                0x200000e0                torque_ref_iq
  .data.speed_filter_alpha
                 0x200000e4        0x4 ./src/hal_entry.o
                 0x200000e4                speed_filter_alpha
@@ -2617,173 +2616,174 @@ END GROUP
  .bss.assist_level
                 0x20000f79        0x1 ./src/hal_entry.o
                 0x20000f79                assist_level
- *fill*         0x20000f7a        0x2 
- .bss.speed_ref_rpm
-                0x20000f7c        0x4 ./src/hal_entry.o
-                0x20000f7c                speed_ref_rpm
  .bss.protection_state
-                0x20000f80        0x1 ./src/hal_entry.o
-                0x20000f80                protection_state
- *fill*         0x20000f81        0x1 
+                0x20000f7a        0x1 ./src/hal_entry.o
+                0x20000f7a                protection_state
+ *fill*         0x20000f7b        0x1 
  .bss.temp_regen_adc_raw
-                0x20000f82        0x2 ./src/hal_entry.o
-                0x20000f82                temp_regen_adc_raw
+                0x20000f7c        0x2 ./src/hal_entry.o
+                0x20000f7c                temp_regen_adc_raw
  .bss.temp_inv_adc_raw
-                0x20000f84        0x2 ./src/hal_entry.o
-                0x20000f84                temp_inv_adc_raw
+                0x20000f7e        0x2 ./src/hal_entry.o
+                0x20000f7e                temp_inv_adc_raw
  .bss.battery_adc_raw
-                0x20000f86        0x2 ./src/hal_entry.o
-                0x20000f86                battery_adc_raw
+                0x20000f80        0x2 ./src/hal_entry.o
+                0x20000f80                battery_adc_raw
+ *fill*         0x20000f82        0x2 
  .bss.battery_voltage
-                0x20000f88        0x4 ./src/hal_entry.o
-                0x20000f88                battery_voltage
+                0x20000f84        0x4 ./src/hal_entry.o
+                0x20000f84                battery_voltage
  .bss.led_state
-                0x20000f8c        0x1 ./src/hal_entry.o
-                0x20000f8c                led_state
- .bss.led_mode  0x20000f8d        0x1 ./src/hal_entry.o
-                0x20000f8d                led_mode
+                0x20000f88        0x1 ./src/hal_entry.o
+                0x20000f88                led_state
+ .bss.led_mode  0x20000f89        0x1 ./src/hal_entry.o
+                0x20000f89                led_mode
  .bss.as_low_counter
-                0x20000f8e        0x2 ./src/hal_entry.o
+                0x20000f8a        0x2 ./src/hal_entry.o
  .bss.as_adc_raw
-                0x20000f90        0x2 ./src/hal_entry.o
-                0x20000f90                as_adc_raw
- *fill*         0x20000f92        0x2 
+                0x20000f8c        0x2 ./src/hal_entry.o
+                0x20000f8c                as_adc_raw
+ *fill*         0x20000f8e        0x2 
  .bss.as_voltage
-                0x20000f94        0x4 ./src/hal_entry.o
-                0x20000f94                as_voltage
+                0x20000f90        0x4 ./src/hal_entry.o
+                0x20000f90                as_voltage
  .bss.makita_battery_state
-                0x20000f98        0x1 ./src/hal_entry.o
-                0x20000f98                makita_battery_state
+                0x20000f94        0x1 ./src/hal_entry.o
+                0x20000f94                makita_battery_state
  .bss.makita_battery_en
-                0x20000f99        0x1 ./src/hal_entry.o
-                0x20000f99                makita_battery_en
+                0x20000f95        0x1 ./src/hal_entry.o
+                0x20000f95                makita_battery_en
  .bss.debug_shutdown_requested
-                0x20000f9a        0x1 ./src/hal_entry.o
-                0x20000f9a                debug_shutdown_requested
- *fill*         0x20000f9b        0x1 
+                0x20000f96        0x1 ./src/hal_entry.o
+                0x20000f96                debug_shutdown_requested
+ *fill*         0x20000f97        0x1 
  .bss.debug_pe14_counter
-                0x20000f9c        0x4 ./src/hal_entry.o
-                0x20000f9c                debug_pe14_counter
+                0x20000f98        0x4 ./src/hal_entry.o
+                0x20000f98                debug_pe14_counter
  .bss.debug_pe14_state
-                0x20000fa0        0x1 ./src/hal_entry.o
-                0x20000fa0                debug_pe14_state
+                0x20000f9c        0x1 ./src/hal_entry.o
+                0x20000f9c                debug_pe14_state
  .bss.debug_pe04_state
-                0x20000fa1        0x1 ./src/hal_entry.o
-                0x20000fa1                debug_pe04_state
+                0x20000f9d        0x1 ./src/hal_entry.o
+                0x20000f9d                debug_pe04_state
  .bss.debug_pe03_state
-                0x20000fa2        0x1 ./src/hal_entry.o
-                0x20000fa2                debug_pe03_state
+                0x20000f9e        0x1 ./src/hal_entry.o
+                0x20000f9e                debug_pe03_state
  .bss.shutdown_requested
-                0x20000fa3        0x1 ./src/hal_entry.o
+                0x20000f9f        0x1 ./src/hal_entry.o
  .bss.power_switch_high_counter
-                0x20000fa4        0x4 ./src/hal_entry.o
+                0x20000fa0        0x4 ./src/hal_entry.o
  .bss.cal_sweep_best_offset
-                0x20000fa8        0x4 ./src/hal_entry.o
-                0x20000fa8                cal_sweep_best_offset
+                0x20000fa4        0x4 ./src/hal_entry.o
+                0x20000fa4                cal_sweep_best_offset
  .bss.cal_sweep_idx
-                0x20000fac        0x1 ./src/hal_entry.o
-                0x20000fac                cal_sweep_idx
+                0x20000fa8        0x1 ./src/hal_entry.o
+                0x20000fa8                cal_sweep_idx
  .bss.cal_sweep_en
-                0x20000fad        0x1 ./src/hal_entry.o
-                0x20000fad                cal_sweep_en
+                0x20000fa9        0x1 ./src/hal_entry.o
+                0x20000fa9                cal_sweep_en
  .bss.drv8302_fault_latched
-                0x20000fae        0x1 ./src/hal_entry.o
-                0x20000fae                drv8302_fault_latched
+                0x20000faa        0x1 ./src/hal_entry.o
+                0x20000faa                drv8302_fault_latched
  .bss.drv8302_fault
-                0x20000faf        0x1 ./src/hal_entry.o
-                0x20000faf                drv8302_fault
+                0x20000fab        0x1 ./src/hal_entry.o
+                0x20000fab                drv8302_fault
  .bss.debug_vabc
-                0x20000fb0        0xc ./src/hal_entry.o
-                0x20000fb0                debug_vabc
+                0x20000fac        0xc ./src/hal_entry.o
+                0x20000fac                debug_vabc
  .bss.debug_duty
-                0x20000fbc        0xc ./src/hal_entry.o
-                0x20000fbc                debug_duty
+                0x20000fb8        0xc ./src/hal_entry.o
+                0x20000fb8                debug_duty
  .bss.log_counter
-                0x20000fc8        0x2 ./src/hal_entry.o
-                0x20000fc8                log_counter
+                0x20000fc4        0x2 ./src/hal_entry.o
+                0x20000fc4                log_counter
  .bss.log_index
-                0x20000fca        0x2 ./src/hal_entry.o
-                0x20000fca                log_index
+                0x20000fc6        0x2 ./src/hal_entry.o
+                0x20000fc6                log_index
  .bss.log_buffer
-                0x20000fcc     0x2710 ./src/hal_entry.o
-                0x20000fcc                log_buffer
+                0x20000fc8     0x2710 ./src/hal_entry.o
+                0x20000fc8                log_buffer
  .bss.overcurrent_peak_id
-                0x200036dc        0x4 ./src/hal_entry.o
-                0x200036dc                overcurrent_peak_id
+                0x200036d8        0x4 ./src/hal_entry.o
+                0x200036d8                overcurrent_peak_id
  .bss.overcurrent_peak_iq
-                0x200036e0        0x4 ./src/hal_entry.o
-                0x200036e0                overcurrent_peak_iq
+                0x200036dc        0x4 ./src/hal_entry.o
+                0x200036dc                overcurrent_peak_iq
  .bss.overcurrent_fault
-                0x200036e4        0x1 ./src/hal_entry.o
-                0x200036e4                overcurrent_fault
+                0x200036e0        0x1 ./src/hal_entry.o
+                0x200036e0                overcurrent_fault
  .bss.debug_enable_off_src
-                0x200036e5        0x1 ./src/hal_entry.o
-                0x200036e5                debug_enable_off_src
+                0x200036e1        0x1 ./src/hal_entry.o
+                0x200036e1                debug_enable_off_src
  .bss.debug_stop_rpm
-                0x200036e6        0x2 ./src/hal_entry.o
-                0x200036e6                debug_stop_rpm
+                0x200036e2        0x2 ./src/hal_entry.o
+                0x200036e2                debug_stop_rpm
  .bss.debug_stop_idqref
-                0x200036e8        0x4 ./src/hal_entry.o
-                0x200036e8                debug_stop_idqref
+                0x200036e4        0x4 ./src/hal_entry.o
+                0x200036e4                debug_stop_idqref
  .bss.debug_stop_iq
-                0x200036ec        0x4 ./src/hal_entry.o
-                0x200036ec                debug_stop_iq
+                0x200036e8        0x4 ./src/hal_entry.o
+                0x200036e8                debug_stop_iq
  .bss.debug_stop_reason
-                0x200036f0        0x1 ./src/hal_entry.o
-                0x200036f0                debug_stop_reason
+                0x200036ec        0x1 ./src/hal_entry.o
+                0x200036ec                debug_stop_reason
  .bss.debug_foc_state
-                0x200036f1        0x1 ./src/hal_entry.o
-                0x200036f1                debug_foc_state
- *fill*         0x200036f2        0x2 
+                0x200036ed        0x1 ./src/hal_entry.o
+                0x200036ed                debug_foc_state
+ *fill*         0x200036ee        0x2 
  .bss.debug_abs_speed_error
-                0x200036f4        0x4 ./src/hal_entry.o
-                0x200036f4                debug_abs_speed_error
+                0x200036f0        0x4 ./src/hal_entry.o
+                0x200036f0                debug_abs_speed_error
  .bss.debug_encl_smooth
-                0x200036f8        0x1 ./src/hal_entry.o
-                0x200036f8                debug_encl_smooth
- *fill*         0x200036f9        0x3 
+                0x200036f4        0x1 ./src/hal_entry.o
+                0x200036f4                debug_encl_smooth
+ *fill*         0x200036f5        0x3 
  .bss.debug_Iq_integral
-                0x200036fc        0x4 ./src/hal_entry.o
-                0x200036fc                debug_Iq_integral
+                0x200036f8        0x4 ./src/hal_entry.o
+                0x200036f8                debug_Iq_integral
  .bss.debug_Ibeta
-                0x20003700        0x4 ./src/hal_entry.o
-                0x20003700                debug_Ibeta
+                0x200036fc        0x4 ./src/hal_entry.o
+                0x200036fc                debug_Ibeta
  .bss.debug_Ialpha
-                0x20003704        0x4 ./src/hal_entry.o
-                0x20003704                debug_Ialpha
+                0x20003700        0x4 ./src/hal_entry.o
+                0x20003700                debug_Ialpha
  .bss.debug_fifo0_ch
-                0x20003708        0x4 ./src/hal_entry.o
-                0x20003708                debug_fifo0_ch
+                0x20003704        0x4 ./src/hal_entry.o
+                0x20003704                debug_fifo0_ch
  .bss.debug_fifo0_data
-                0x2000370c        0x8 ./src/hal_entry.o
-                0x2000370c                debug_fifo0_data
+                0x20003708        0x8 ./src/hal_entry.o
+                0x20003708                debug_fifo0_data
  .bss.debug_fifo2_err
-                0x20003714        0x8 ./src/hal_entry.o
-                0x20003714                debug_fifo2_err
+                0x20003710        0x8 ./src/hal_entry.o
+                0x20003710                debug_fifo2_err
  .bss.debug_fifo2_ch
-                0x2000371c        0x8 ./src/hal_entry.o
-                0x2000371c                debug_fifo2_ch
+                0x20003718        0x8 ./src/hal_entry.o
+                0x20003718                debug_fifo2_ch
  .bss.debug_fifo2_data
-                0x20003724       0x10 ./src/hal_entry.o
-                0x20003724                debug_fifo2_data
+                0x20003720       0x10 ./src/hal_entry.o
+                0x20003720                debug_fifo2_data
  .bss.debug_fifo2_count
-                0x20003734        0x1 ./src/hal_entry.o
-                0x20003734                debug_fifo2_count
+                0x20003730        0x1 ./src/hal_entry.o
+                0x20003730                debug_fifo2_count
  .bss.vdc_compensation_en
-                0x20003735        0x1 ./src/hal_entry.o
-                0x20003735                vdc_compensation_en
- *fill*         0x20003736        0x2 
+                0x20003731        0x1 ./src/hal_entry.o
+                0x20003731                vdc_compensation_en
+ *fill*         0x20003732        0x2 
  .bss.adc_rate_result
-                0x20003738        0x4 ./src/hal_entry.o
-                0x20003738                adc_rate_result
+                0x20003734        0x4 ./src/hal_entry.o
+                0x20003734                adc_rate_result
  .bss.adc_count_at_1s
-                0x2000373c        0x4 ./src/hal_entry.o
+                0x20003738        0x4 ./src/hal_entry.o
  .bss.timer_callback_count
-                0x20003740        0x4 ./src/hal_entry.o
-                0x20003740                timer_callback_count
+                0x2000373c        0x4 ./src/hal_entry.o
+                0x2000373c                timer_callback_count
  .bss.adc_callback_count
-                0x20003744        0x4 ./src/hal_entry.o
-                0x20003744                adc_callback_count
+                0x20003740        0x4 ./src/hal_entry.o
+                0x20003740                adc_callback_count
+ .bss.control_mode
+                0x20003744        0x1 ./src/hal_entry.o
+                0x20003744                control_mode
+ *fill*         0x20003745        0x3 
  .bss.debug_f_get_speed_raw
                 0x20003748        0x4 ./src/hal_entry.o
                 0x20003748                debug_f_get_speed_raw

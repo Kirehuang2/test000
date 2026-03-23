@@ -227,7 +227,7 @@ volatile uint8_t protection_state = 0;       // 0=Normal, 1=Warning, 2=Derating,
 volatile float output_derating = 1.0f;       // Output limit factor (0.0~1.0)
 
 // JOG speed reference (settable via debugger or BLE)
-volatile float speed_ref_rpm = 300.0f;       // Target speed [RPM] (300 for calibration)
+volatile float speed_ref_rpm = 200.0f;       // Target speed [RPM] (200 for calibration, lower current)
 
 // Assist level and turbo mode
 volatile uint8_t assist_level = 0;           // 0=Low, 1=Mid, 2=High
@@ -1786,12 +1786,13 @@ void One_ms_Int(timer_callback_args_t *p_args)
         static uint16_t cal_timer = 0;
         static float cal_id_sum = 0;
         static uint32_t cal_id_count = 0;
+        // Start near suspected optimal (-0.15), fine sweep ±0.20
         static const float cal_offsets[] = {
-            0.0f, 0.05f, 0.10f, 0.15f, 0.20f, 0.25f, 0.30f,
-            -0.05f, -0.10f, -0.15f, -0.20f, -0.25f, -0.30f
+            -0.15f, -0.10f, -0.05f, 0.0f, 0.05f, 0.10f, 0.15f,
+            -0.20f, -0.25f, -0.30f, -0.35f, 0.20f, 0.25f
         };
         #define CAL_NUM_OFFSETS 13
-        #define CAL_DWELL_MS 2000  // 2 seconds per offset
+        #define CAL_DWELL_MS 1500  // 1.5 seconds per offset (total 19.5s)
 
         cal_timer++;
         // Accumulate |Id| during dwell (skip first 500ms for settling)
@@ -1971,8 +1972,11 @@ void One_ms_Int(timer_callback_args_t *p_args)
             const float dt = 0.001f;        // 1ms
 
             // Accumulate heat, subtract natural cooling (exponential decay)
-            i2t_accumulator += (I2 - i2t_accumulator / I2T_TAU_W) * dt;
-            if (i2t_accumulator < 0.0f) i2t_accumulator = 0.0f;
+            // Pause I²t during calibration sweep (PC adapter limits current)
+            if (!cal_sweep_en) {
+                i2t_accumulator += (I2 - i2t_accumulator / I2T_TAU_W) * dt;
+                if (i2t_accumulator < 0.0f) i2t_accumulator = 0.0f;
+            }
 
             i2t_ratio = i2t_accumulator / I2T_THRESHOLD;
 
