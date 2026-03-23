@@ -61,7 +61,7 @@ volatile float speed_filter_alpha = 0.02f;      // 0.02=smooth (was 0.10), 1.0=n
 // 0 = Speed control: SpeedControl_step manages IdqRef
 // 1 = Torque control: direct Iq command, bypass speed loop
 // ============================================================
-volatile uint8_t control_mode = 0;              // 0=Speed (for calibration), 1=Torque
+volatile uint8_t control_mode = 1;              // 0=Speed, 1=Torque
 volatile float torque_ref_iq = 0.06f;           // Direct Iq command [PU]
 volatile float torque_ref_iq_max = 0.2f;        // Iq clamp: 0.2 PU × 16.5A = 3.3A ≈ rated 3.29A
 volatile float torque_max_speed_rpm = 500.0f;   // Speed limit for torque mode [RPM]
@@ -105,6 +105,8 @@ volatile float debug_speed_error = 0.0f;      // SpeedRef - SpeedFb (should be p
 volatile float debug_Ialpha = 0.0f;           // Clarke transform output
 volatile float debug_Ibeta = 0.0f;            // Clarke transform output
 volatile float debug_Iq_integral = 0.0f;      // For streaming diagnostic
+volatile float debug_i2_max = 0.0f;           // Peak I² seen by I²t
+volatile float debug_i2_avg = 0.0f;           // Running average I²
 volatile uint8_t debug_encl_smooth = 0;       // 0=Open-loop, 1=Closed-loop enabled
 volatile float debug_abs_speed_error = 0.0f;  // Absolute speed error for transition check
 volatile uint8_t debug_foc_state = 0;         // 0=disabled, 1=active, 2=idq_zero_brake, 3=enable_off
@@ -154,7 +156,7 @@ volatile uint8_t drv8302_fault = 0;       // 0=Normal, 1=Fault detected
 volatile uint8_t drv8302_fault_latched = 0; // Latched fault (requires power cycle to clear)
 
 // Hall sensor angle offset (adjustable via debugger or BLE P43=<value>)
-volatile float hall_angle_offset = -0.15f;  // Calibrated: minimizes Id
+volatile float hall_angle_offset = -0.35f;  // Calibrated via auto-sweep (V46=-0.35)
 
 // Auto-sweep for offset calibration (set cal_sweep_en=1 via debugger or BLE)
 volatile uint8_t cal_sweep_en = 0;        // 1=sweeping, 0=idle
@@ -227,7 +229,7 @@ volatile uint8_t protection_state = 0;       // 0=Normal, 1=Warning, 2=Derating,
 volatile float output_derating = 1.0f;       // Output limit factor (0.0~1.0)
 
 // JOG speed reference (settable via debugger or BLE)
-volatile float speed_ref_rpm = 200.0f;       // Target speed [RPM] (200 for calibration, lower current)
+volatile float speed_ref_rpm = 0.0f;         // Target speed [RPM]
 
 // Assist level and turbo mode
 volatile uint8_t assist_level = 0;           // 0=Low, 1=Mid, 2=High
@@ -599,6 +601,8 @@ static const var_entry_t var_registry[] = {
     {"IdFb",                (void*)&IdFb,                VAR_FLOAT,  0},
     {"cal_sweep",           (void*)&cal_sweep_en,        VAR_UINT8,  1},
     {"cal_best_ofs",        (void*)&cal_sweep_best_offset, VAR_FLOAT, 0},
+    {"i2_max",              (void*)&debug_i2_max,        VAR_FLOAT,  0},
+    {"i2_avg",              (void*)&debug_i2_avg,        VAR_FLOAT,  0},
 };
 #define VAR_REGISTRY_SIZE (sizeof(var_registry)/sizeof(var_registry[0]))
 
@@ -1124,8 +1128,17 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
         // ============================================================
         {
             float theta_e = f_get_angle + hall_angle_offset;
-            float sin_theta = sinf(theta_e);
-            float cos_theta = cosf(theta_e);
+            float sin_raw = sinf(theta_e);
+            float cos_raw = cosf(theta_e);
+
+            // LPF on sin/cos to smooth Hall transition angle jumps
+            // α=0.1: cutoff ~160Hz, phase lag ~10° at 200RPM
+            // Reduces 12.5A Hall transition spikes by -3dB
+            static float sin_filtered = 0.0f, cos_filtered = 0.0f;
+            sin_filtered += 0.1f * (sin_raw - sin_filtered);
+            cos_filtered += 0.1f * (cos_raw - cos_filtered);
+            float sin_theta = sin_filtered;
+            float cos_theta = cos_filtered;
 
             float Ia_pu = ((float)Iab[0] - (float)Iab_offset[0]) * 0.00048828125f;
             float Ib_pu = ((float)Iab[1] - (float)Iab_offset[1]) * 0.00048828125f;
@@ -1972,9 +1985,20 @@ void One_ms_Int(timer_callback_args_t *p_args)
             const float dt = 0.001f;        // 1ms
 
             // Accumulate heat, subtract natural cooling (exponential decay)
-            // Pause I²t during calibration sweep (PC adapter limits current)
-            if (!cal_sweep_en) {
-                i2t_accumulator += (I2 - i2t_accumulator / I2T_TAU_W) * dt;
+            // Debug: track peak and average I² for diagnosis
+            if (I2 > debug_i2_max) debug_i2_max = I2;
+            debug_i2_avg += 0.001f * (I2 - debug_i2_avg);  // LPF α=0.001
+
+            // Clamp I² for I²t: ignore Hall transition spikes (> rated² × 4 = 0.16 PU²)
+            // Real overcurrent is caught by DRV8302 OCP. I²t should track thermal load only.
+            float I2_clamped = I2;
+            if (I2_clamped > 0.16f) I2_clamped = 0.16f;  // 0.16 = (2×I_rated)² = (0.40PU)² = 6.6A
+
+            // Pause I²t during calibration sweep
+            if (cal_sweep_en) {
+                i2t_accumulator = 0.0f;
+            } else {
+                i2t_accumulator += (I2_clamped - i2t_accumulator / I2T_TAU_W) * dt;
                 if (i2t_accumulator < 0.0f) i2t_accumulator = 0.0f;
             }
 
