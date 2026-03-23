@@ -105,8 +105,14 @@ volatile float debug_speed_error = 0.0f;      // SpeedRef - SpeedFb (should be p
 volatile float debug_Ialpha = 0.0f;           // Clarke transform output
 volatile float debug_Ibeta = 0.0f;            // Clarke transform output
 volatile float debug_Iq_integral = 0.0f;      // For streaming diagnostic
-volatile float debug_i2_max = 0.0f;           // Peak I² seen by I²t
+volatile float debug_i2_max = 0.0f;           // Peak I² seen by I²t (LPF後)
 volatile float debug_i2_avg = 0.0f;           // Running average I²
+volatile float debug_iq_raw_max = 0.0f;       // Peak |Iq_raw| (LPF前)
+volatile float debug_id_raw_max = 0.0f;       // Peak |Id_raw| (LPF前)
+volatile float debug_ia_pu_at_spike = 0.0f;   // Ia_pu when I²_raw spike detected
+volatile float debug_ib_pu_at_spike = 0.0f;   // Ib_pu when I²_raw spike detected
+volatile uint16_t debug_ia_adc_at_spike = 0;  // Raw ADC count at spike
+volatile uint16_t debug_ib_adc_at_spike = 0;  // Raw ADC count at spike
 volatile uint8_t debug_encl_smooth = 0;       // 0=Open-loop, 1=Closed-loop enabled
 volatile float debug_abs_speed_error = 0.0f;  // Absolute speed error for transition check
 volatile uint8_t debug_foc_state = 0;         // 0=disabled, 1=active, 2=idq_zero_brake, 3=enable_off
@@ -603,6 +609,10 @@ static const var_entry_t var_registry[] = {
     {"cal_best_ofs",        (void*)&cal_sweep_best_offset, VAR_FLOAT, 0},
     {"i2_max",              (void*)&debug_i2_max,        VAR_FLOAT,  0},
     {"i2_avg",              (void*)&debug_i2_avg,        VAR_FLOAT,  0},
+    {"iq_raw_max",          (void*)&debug_iq_raw_max,    VAR_FLOAT,  0},
+    {"id_raw_max",          (void*)&debug_id_raw_max,    VAR_FLOAT,  0},
+    {"ia_at_spike",         (void*)&debug_ia_pu_at_spike, VAR_FLOAT, 0},
+    {"ib_at_spike",         (void*)&debug_ib_pu_at_spike, VAR_FLOAT, 0},
 };
 #define VAR_REGISTRY_SIZE (sizeof(var_registry)/sizeof(var_registry[0]))
 
@@ -1143,6 +1153,21 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
             float Id_raw =  Ialpha * cos_theta + Ibeta * sin_theta;
             float Iq_raw = Ibeta * cos_theta - Ialpha * sin_theta;
 
+            // Debug: record RAW peak values and ADC data at spike
+            {
+                float iq_abs = Iq_raw > 0 ? Iq_raw : -Iq_raw;
+                float id_abs = Id_raw > 0 ? Id_raw : -Id_raw;
+                if (iq_abs > debug_iq_raw_max) debug_iq_raw_max = iq_abs;
+                if (id_abs > debug_id_raw_max) debug_id_raw_max = id_abs;
+                float i2_raw = Id_raw * Id_raw + Iq_raw * Iq_raw;
+                if (i2_raw > 0.10f) {  // Spike threshold: > 0.32 PU = 5.2A
+                    debug_ia_pu_at_spike = Ia_pu;
+                    debug_ib_pu_at_spike = Ib_pu;
+                    debug_ia_adc_at_spike = Iab[0];
+                    debug_ib_adc_at_spike = Iab[1];
+                }
+            }
+
             static float Id_fb = 0.0f, Iq_fb_val = 0.0f;
             Id_fb     += 0.1f * (Id_raw - Id_fb);
             Iq_fb_val += 0.1f * (Iq_raw - Iq_fb_val);
@@ -1160,8 +1185,10 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
                     Id_integral = 0.0f;
                     Iq_integral = 0.0f;
                     Vq_ff_lpf = 0.0f;
-                    debug_i2_max = 0.0f;  // Reset peak tracking for this run
+                    debug_i2_max = 0.0f;
                     debug_i2_avg = 0.0f;
+                    debug_iq_raw_max = 0.0f;
+                    debug_id_raw_max = 0.0f;
                     foc_was_enabled = 1;
                 }
 
@@ -1191,13 +1218,13 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
                 // Only update when Ki > 0
                 if (PI_params.Ki_id > 0.0f) {
                     Id_integral += PI_params.Ki_id * 0.0001f * Id_error;
-                    if (Id_integral >  0.10f) Id_integral =  0.10f;
-                    if (Id_integral < -0.10f) Id_integral = -0.10f;
+                    if (Id_integral >  0.05f) Id_integral =  0.05f;
+                    if (Id_integral < -0.05f) Id_integral = -0.05f;
                 }
                 if (PI_params.Ki_iq > 0.0f) {
                     Iq_integral += PI_params.Ki_iq * 0.0001f * Iq_error;
-                    if (Iq_integral >  0.10f) Iq_integral =  0.10f;
-                    if (Iq_integral < -0.10f) Iq_integral = -0.10f;
+                    if (Iq_integral >  0.05f) Iq_integral =  0.05f;
+                    if (Iq_integral < -0.05f) Iq_integral = -0.05f;
                 }
                 debug_Iq_integral = Iq_integral;
 
