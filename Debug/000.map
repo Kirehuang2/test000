@@ -1292,7 +1292,7 @@ LOAD C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin
 LOAD C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libm.a
 END GROUP
 
-.text           0x00000000     0xa44c
+.text           0x00000000     0xa4cc
                 0x00000000                        __tz_FLASH_S = ABSOLUTE (FLASH_START)
                 0x00000000                        __ROM_Start = .
  *(.fixed_vectors*)
@@ -1343,512 +1343,511 @@ END GROUP
                 0x00001a2c       0x18 ./src/hal_entry.o
                 0x00001a2c                R_BSP_WarmStart
  .text.rm_motor_driver_cyclic
-                0x00001a44      0xc28 ./src/hal_entry.o
+                0x00001a44      0xc8c ./src/hal_entry.o
                 0x00001a44                rm_motor_driver_cyclic
  .text.current_cb
-                0x0000266c        0x4 ./src/hal_entry.o
-                0x0000266c                current_cb
+                0x000026d0        0x4 ./src/hal_entry.o
+                0x000026d0                current_cb
  .text.One_ms_Int
-                0x00002670      0xa00 ./src/hal_entry.o
-                0x00002670                One_ms_Int
+                0x000026d4      0xa20 ./src/hal_entry.o
+                0x000026d4                One_ms_Int
  .text.spi1_callback
-                0x00003070       0x28 ./src/hal_entry.o
-                0x00003070                spi1_callback
+                0x000030f4       0x28 ./src/hal_entry.o
+                0x000030f4                spi1_callback
  .text.sci3_uart_callback
-                0x00003098      0x11c ./src/hal_entry.o
-                0x00003098                sci3_uart_callback
- *fill*         0x000031b4        0x4 ff
+                0x0000311c      0x11c ./src/hal_entry.o
+                0x0000311c                sci3_uart_callback
  .text.rtGetInf
-                0x000031b8       0x10 ./src/rtGetInf.o
-                0x000031b8                rtGetInf
+                0x00003238       0x10 ./src/rtGetInf.o
+                0x00003238                rtGetInf
  .text.rtGetInfF
-                0x000031c8        0xc ./src/rtGetInf.o
-                0x000031c8                rtGetInfF
- *fill*         0x000031d4        0x4 ff
+                0x00003248        0xc ./src/rtGetInf.o
+                0x00003248                rtGetInfF
+ *fill*         0x00003254        0x4 ff
  .text.rtGetMinusInf
-                0x000031d8       0x10 ./src/rtGetInf.o
-                0x000031d8                rtGetMinusInf
+                0x00003258       0x10 ./src/rtGetInf.o
+                0x00003258                rtGetMinusInf
  .text.rtGetMinusInfF
-                0x000031e8        0xc ./src/rtGetInf.o
-                0x000031e8                rtGetMinusInfF
- *fill*         0x000031f4        0x4 ff
+                0x00003268        0xc ./src/rtGetInf.o
+                0x00003268                rtGetMinusInfF
+ *fill*         0x00003274        0x4 ff
  .text.rtGetNaN
-                0x000031f8       0x10 ./src/rtGetNaN.o
-                0x000031f8                rtGetNaN
+                0x00003278       0x10 ./src/rtGetNaN.o
+                0x00003278                rtGetNaN
  .text.rtGetNaNF
-                0x00003208        0xc ./src/rtGetNaN.o
-                0x00003208                rtGetNaNF
+                0x00003288        0xc ./src/rtGetNaN.o
+                0x00003288                rtGetNaNF
  .text.rt_InitInfAndNaN
-                0x00003214       0x58 ./src/rt_nonfinite.o
-                0x00003214                rt_InitInfAndNaN
+                0x00003294       0x58 ./src/rt_nonfinite.o
+                0x00003294                rt_InitInfAndNaN
  .text.startup.main
-                0x0000326c        0xc ./ra_gen/main.o
-                0x0000326c                main
+                0x000032ec        0xc ./ra_gen/main.o
+                0x000032ec                main
  .text.RM_MOTOR_SENSE_HALL_AngleSpeedGet
-                0x00003278      0x2d4 ./ra/fsp/src/rm_motor_sense_hall/rm_motor_sense_hall.o
-                0x00003278                RM_MOTOR_SENSE_HALL_AngleSpeedGet
+                0x000032f8      0x2d4 ./ra/fsp/src/rm_motor_sense_hall/rm_motor_sense_hall.o
+                0x000032f8                RM_MOTOR_SENSE_HALL_AngleSpeedGet
  .text.RM_MOTOR_SENSE_HALL_Open
-                0x0000354c       0x80 ./ra/fsp/src/rm_motor_sense_hall/rm_motor_sense_hall.o
-                0x0000354c                RM_MOTOR_SENSE_HALL_Open
+                0x000035cc       0x80 ./ra/fsp/src/rm_motor_sense_hall/rm_motor_sense_hall.o
+                0x000035cc                RM_MOTOR_SENSE_HALL_Open
  .text.r_spi_b_write_read_common
-                0x000035cc      0x100 ./ra/fsp/src/r_spi_b/r_spi_b.o
+                0x0000364c      0x100 ./ra/fsp/src/r_spi_b/r_spi_b.o
  .text.R_SPI_B_WriteRead
-                0x000036cc       0x10 ./ra/fsp/src/r_spi_b/r_spi_b.o
-                0x000036cc                R_SPI_B_WriteRead
+                0x0000374c       0x10 ./ra/fsp/src/r_spi_b/r_spi_b.o
+                0x0000374c                R_SPI_B_WriteRead
  .text.r_spi_b_call_callback
-                0x000036dc       0x40 ./ra/fsp/src/r_spi_b/r_spi_b.o
+                0x0000375c       0x40 ./ra/fsp/src/r_spi_b/r_spi_b.o
  .text.R_SPI_B_Open
-                0x0000371c      0x2c0 ./ra/fsp/src/r_spi_b/r_spi_b.o
-                0x0000371c                R_SPI_B_Open
+                0x0000379c      0x2c0 ./ra/fsp/src/r_spi_b/r_spi_b.o
+                0x0000379c                R_SPI_B_Open
  .text.spi_b_rxi_isr
-                0x000039dc       0x90 ./ra/fsp/src/r_spi_b/r_spi_b.o
-                0x000039dc                spi_b_rxi_isr
+                0x00003a5c       0x90 ./ra/fsp/src/r_spi_b/r_spi_b.o
+                0x00003a5c                spi_b_rxi_isr
  .text.spi_b_txi_isr
-                0x00003a6c       0xdc ./ra/fsp/src/r_spi_b/r_spi_b.o
-                0x00003a6c                spi_b_txi_isr
+                0x00003aec       0xdc ./ra/fsp/src/r_spi_b/r_spi_b.o
+                0x00003aec                spi_b_txi_isr
  .text.spi_b_tei_isr
-                0x00003b48       0xd0 ./ra/fsp/src/r_spi_b/r_spi_b.o
-                0x00003b48                spi_b_tei_isr
+                0x00003bc8       0xd0 ./ra/fsp/src/r_spi_b/r_spi_b.o
+                0x00003bc8                spi_b_tei_isr
  .text.spi_b_eri_isr
-                0x00003c18       0xe0 ./ra/fsp/src/r_spi_b/r_spi_b.o
-                0x00003c18                spi_b_eri_isr
+                0x00003c98       0xe0 ./ra/fsp/src/r_spi_b/r_spi_b.o
+                0x00003c98                spi_b_eri_isr
  .text.R_SCI_B_UART_Write
-                0x00003cf8       0x40 ./ra/fsp/src/r_sci_b_uart/r_sci_b_uart.o
-                0x00003cf8                R_SCI_B_UART_Write
+                0x00003d78       0x40 ./ra/fsp/src/r_sci_b_uart/r_sci_b_uart.o
+                0x00003d78                R_SCI_B_UART_Write
  .text.r_sci_b_uart_call_callback
-                0x00003d38       0x44 ./ra/fsp/src/r_sci_b_uart/r_sci_b_uart.o
+                0x00003db8       0x44 ./ra/fsp/src/r_sci_b_uart/r_sci_b_uart.o
  .text.R_SCI_B_UART_Close
-                0x00003d7c      0x100 ./ra/fsp/src/r_sci_b_uart/r_sci_b_uart.o
-                0x00003d7c                R_SCI_B_UART_Close
+                0x00003dfc      0x100 ./ra/fsp/src/r_sci_b_uart/r_sci_b_uart.o
+                0x00003dfc                R_SCI_B_UART_Close
  .text.R_SCI_B_UART_Open
-                0x00003e7c      0x390 ./ra/fsp/src/r_sci_b_uart/r_sci_b_uart.o
-                0x00003e7c                R_SCI_B_UART_Open
+                0x00003efc      0x390 ./ra/fsp/src/r_sci_b_uart/r_sci_b_uart.o
+                0x00003efc                R_SCI_B_UART_Open
  .text.sci_b_uart_txi_isr
-                0x0000420c       0x90 ./ra/fsp/src/r_sci_b_uart/r_sci_b_uart.o
-                0x0000420c                sci_b_uart_txi_isr
+                0x0000428c       0x90 ./ra/fsp/src/r_sci_b_uart/r_sci_b_uart.o
+                0x0000428c                sci_b_uart_txi_isr
  .text.sci_b_uart_rxi_isr
-                0x0000429c       0x90 ./ra/fsp/src/r_sci_b_uart/r_sci_b_uart.o
-                0x0000429c                sci_b_uart_rxi_isr
+                0x0000431c       0x90 ./ra/fsp/src/r_sci_b_uart/r_sci_b_uart.o
+                0x0000431c                sci_b_uart_rxi_isr
  .text.sci_b_uart_tei_isr
-                0x0000432c       0x4c ./ra/fsp/src/r_sci_b_uart/r_sci_b_uart.o
-                0x0000432c                sci_b_uart_tei_isr
+                0x000043ac       0x4c ./ra/fsp/src/r_sci_b_uart/r_sci_b_uart.o
+                0x000043ac                sci_b_uart_tei_isr
  .text.sci_b_uart_eri_isr
-                0x00004378       0x84 ./ra/fsp/src/r_sci_b_uart/r_sci_b_uart.o
-                0x00004378                sci_b_uart_eri_isr
+                0x000043f8       0x84 ./ra/fsp/src/r_sci_b_uart/r_sci_b_uart.o
+                0x000043f8                sci_b_uart_eri_isr
  .text.R_IOPORT_PinRead
-                0x000043fc       0x24 ./ra/fsp/src/r_ioport/r_ioport.o
-                0x000043fc                R_IOPORT_PinRead
+                0x0000447c       0x24 ./ra/fsp/src/r_ioport/r_ioport.o
+                0x0000447c                R_IOPORT_PinRead
  .text.R_IOPORT_PinWrite
-                0x00004420       0x20 ./ra/fsp/src/r_ioport/r_ioport.o
-                0x00004420                R_IOPORT_PinWrite
+                0x000044a0       0x20 ./ra/fsp/src/r_ioport/r_ioport.o
+                0x000044a0                R_IOPORT_PinWrite
  .text.r_ioport_pins_config
-                0x00004440       0xa4 ./ra/fsp/src/r_ioport/r_ioport.o
+                0x000044c0       0xa4 ./ra/fsp/src/r_ioport/r_ioport.o
  .text.R_IOPORT_Open
-                0x000044e4       0x14 ./ra/fsp/src/r_ioport/r_ioport.o
-                0x000044e4                R_IOPORT_Open
+                0x00004564       0x14 ./ra/fsp/src/r_ioport/r_ioport.o
+                0x00004564                R_IOPORT_Open
  .text.R_IOPORT_PinCfg
-                0x000044f8       0x90 ./ra/fsp/src/r_ioport/r_ioport.o
-                0x000044f8                R_IOPORT_PinCfg
+                0x00004578       0x90 ./ra/fsp/src/r_ioport/r_ioport.o
+                0x00004578                R_IOPORT_PinCfg
  .text.R_GPT_THREE_PHASE_Start
-                0x00004588        0xc ./ra/fsp/src/r_gpt_three_phase/r_gpt_three_phase.o
-                0x00004588                R_GPT_THREE_PHASE_Start
+                0x00004608        0xc ./ra/fsp/src/r_gpt_three_phase/r_gpt_three_phase.o
+                0x00004608                R_GPT_THREE_PHASE_Start
  .text.R_GPT_THREE_PHASE_DutyCycleSet
-                0x00004594       0x44 ./ra/fsp/src/r_gpt_three_phase/r_gpt_three_phase.o
-                0x00004594                R_GPT_THREE_PHASE_DutyCycleSet
+                0x00004614       0x44 ./ra/fsp/src/r_gpt_three_phase/r_gpt_three_phase.o
+                0x00004614                R_GPT_THREE_PHASE_DutyCycleSet
  .text.R_GPT_THREE_PHASE_Open
-                0x000045d8       0x50 ./ra/fsp/src/r_gpt_three_phase/r_gpt_three_phase.o
-                0x000045d8                R_GPT_THREE_PHASE_Open
+                0x00004658       0x50 ./ra/fsp/src/r_gpt_three_phase/r_gpt_three_phase.o
+                0x00004658                R_GPT_THREE_PHASE_Open
  .text.R_GPT_Stop
-                0x00004628        0xc ./ra/fsp/src/r_gpt/r_gpt.o
-                0x00004628                R_GPT_Stop
+                0x000046a8        0xc ./ra/fsp/src/r_gpt/r_gpt.o
+                0x000046a8                R_GPT_Stop
  .text.R_GPT_Start
-                0x00004634        0xc ./ra/fsp/src/r_gpt/r_gpt.o
-                0x00004634                R_GPT_Start
+                0x000046b4        0xc ./ra/fsp/src/r_gpt/r_gpt.o
+                0x000046b4                R_GPT_Start
  .text.R_GPT_Reset
-                0x00004640        0xc ./ra/fsp/src/r_gpt/r_gpt.o
-                0x00004640                R_GPT_Reset
+                0x000046c0        0xc ./ra/fsp/src/r_gpt/r_gpt.o
+                0x000046c0                R_GPT_Reset
  .text.R_GPT_Enable
-                0x0000464c       0x38 ./ra/fsp/src/r_gpt/r_gpt.o
-                0x0000464c                R_GPT_Enable
+                0x000046cc       0x38 ./ra/fsp/src/r_gpt/r_gpt.o
+                0x000046cc                R_GPT_Enable
  .text.R_GPT_Disable
-                0x00004684       0x28 ./ra/fsp/src/r_gpt/r_gpt.o
-                0x00004684                R_GPT_Disable
+                0x00004704       0x28 ./ra/fsp/src/r_gpt/r_gpt.o
+                0x00004704                R_GPT_Disable
  .text.R_GPT_PeriodSet
-                0x000046ac       0x44 ./ra/fsp/src/r_gpt/r_gpt.o
-                0x000046ac                R_GPT_PeriodSet
+                0x0000472c       0x44 ./ra/fsp/src/r_gpt/r_gpt.o
+                0x0000472c                R_GPT_PeriodSet
  .text.R_GPT_CompareMatchSet
-                0x000046f0       0x14 ./ra/fsp/src/r_gpt/r_gpt.o
-                0x000046f0                R_GPT_CompareMatchSet
+                0x00004770       0x14 ./ra/fsp/src/r_gpt/r_gpt.o
+                0x00004770                R_GPT_CompareMatchSet
  .text.R_GPT_StatusGet
-                0x00004704       0x18 ./ra/fsp/src/r_gpt/r_gpt.o
-                0x00004704                R_GPT_StatusGet
+                0x00004784       0x18 ./ra/fsp/src/r_gpt/r_gpt.o
+                0x00004784                R_GPT_StatusGet
  .text.R_GPT_CallbackSet
-                0x0000471c       0x10 ./ra/fsp/src/r_gpt/r_gpt.o
-                0x0000471c                R_GPT_CallbackSet
+                0x0000479c       0x10 ./ra/fsp/src/r_gpt/r_gpt.o
+                0x0000479c                R_GPT_CallbackSet
  .text.r_gpt_call_callback
-                0x0000472c       0x3c ./ra/fsp/src/r_gpt/r_gpt.o
+                0x000047ac       0x3c ./ra/fsp/src/r_gpt/r_gpt.o
  .text.R_GPT_InfoGet
-                0x00004768       0x48 ./ra/fsp/src/r_gpt/r_gpt.o
-                0x00004768                R_GPT_InfoGet
+                0x000047e8       0x48 ./ra/fsp/src/r_gpt/r_gpt.o
+                0x000047e8                R_GPT_InfoGet
  .text.gpt_calculate_duty_cycle.isra.0
-                0x000047b0       0x84 ./ra/fsp/src/r_gpt/r_gpt.o
- *fill*         0x00004834        0x4 ff
+                0x00004830       0x84 ./ra/fsp/src/r_gpt/r_gpt.o
+ *fill*         0x000048b4        0x4 ff
  .text.R_GPT_DutyCycleSet
-                0x00004838       0xf0 ./ra/fsp/src/r_gpt/r_gpt.o
-                0x00004838                R_GPT_DutyCycleSet
+                0x000048b8       0xf0 ./ra/fsp/src/r_gpt/r_gpt.o
+                0x000048b8                R_GPT_DutyCycleSet
  .text.r_gpt_enable_irq
-                0x00004928       0x60 ./ra/fsp/src/r_gpt/r_gpt.o
+                0x000049a8       0x60 ./ra/fsp/src/r_gpt/r_gpt.o
  .text.R_GPT_Open
-                0x00004988      0x370 ./ra/fsp/src/r_gpt/r_gpt.o
-                0x00004988                R_GPT_Open
+                0x00004a08      0x370 ./ra/fsp/src/r_gpt/r_gpt.o
+                0x00004a08                R_GPT_Open
  .text.R_GPT_Close
-                0x00004cf8       0xd0 ./ra/fsp/src/r_gpt/r_gpt.o
-                0x00004cf8                R_GPT_Close
+                0x00004d78       0xd0 ./ra/fsp/src/r_gpt/r_gpt.o
+                0x00004d78                R_GPT_Close
  .text.R_GPT_OutputEnable
-                0x00004dc8       0x18 ./ra/fsp/src/r_gpt/r_gpt.o
-                0x00004dc8                R_GPT_OutputEnable
+                0x00004e48       0x18 ./ra/fsp/src/r_gpt/r_gpt.o
+                0x00004e48                R_GPT_OutputEnable
  .text.gpt_counter_overflow_isr
-                0x00004de0       0x9c ./ra/fsp/src/r_gpt/r_gpt.o
-                0x00004de0                gpt_counter_overflow_isr
+                0x00004e60       0x9c ./ra/fsp/src/r_gpt/r_gpt.o
+                0x00004e60                gpt_counter_overflow_isr
  .text.R_DTC_Reset
-                0x00004e7c       0x8c ./ra/fsp/src/r_dtc/r_dtc.o
-                0x00004e7c                R_DTC_Reset
+                0x00004efc       0x8c ./ra/fsp/src/r_dtc/r_dtc.o
+                0x00004efc                R_DTC_Reset
  .text.R_DTC_SoftwareStart
-                0x00004f08        0x4 ./ra/fsp/src/r_dtc/r_dtc.o
-                0x00004f08                R_DTC_SoftwareStart
+                0x00004f88        0x4 ./ra/fsp/src/r_dtc/r_dtc.o
+                0x00004f88                R_DTC_SoftwareStart
  .text.R_DTC_SoftwareStop
-                0x00004f0c        0x4 ./ra/fsp/src/r_dtc/r_dtc.o
-                0x00004f0c                R_DTC_SoftwareStop
+                0x00004f8c        0x4 ./ra/fsp/src/r_dtc/r_dtc.o
+                0x00004f8c                R_DTC_SoftwareStop
  .text.R_DTC_Enable
-                0x00004f10       0x20 ./ra/fsp/src/r_dtc/r_dtc.o
-                0x00004f10                R_DTC_Enable
+                0x00004f90       0x20 ./ra/fsp/src/r_dtc/r_dtc.o
+                0x00004f90                R_DTC_Enable
  .text.R_DTC_Disable
-                0x00004f30       0x20 ./ra/fsp/src/r_dtc/r_dtc.o
-                0x00004f30                R_DTC_Disable
+                0x00004fb0       0x20 ./ra/fsp/src/r_dtc/r_dtc.o
+                0x00004fb0                R_DTC_Disable
  .text.R_DTC_InfoGet
-                0x00004f50       0x54 ./ra/fsp/src/r_dtc/r_dtc.o
-                0x00004f50                R_DTC_InfoGet
+                0x00004fd0       0x54 ./ra/fsp/src/r_dtc/r_dtc.o
+                0x00004fd0                R_DTC_InfoGet
  .text.R_DTC_Reload
-                0x00004fa4        0x4 ./ra/fsp/src/r_dtc/r_dtc.o
-                0x00004fa4                R_DTC_Reload
+                0x00005024        0x4 ./ra/fsp/src/r_dtc/r_dtc.o
+                0x00005024                R_DTC_Reload
  .text.R_DTC_CallbackSet
-                0x00004fa8        0x4 ./ra/fsp/src/r_dtc/r_dtc.o
-                0x00004fa8                R_DTC_CallbackSet
+                0x00005028        0x4 ./ra/fsp/src/r_dtc/r_dtc.o
+                0x00005028                R_DTC_CallbackSet
  .text.R_DTC_Close
-                0x00004fac       0x30 ./ra/fsp/src/r_dtc/r_dtc.o
-                0x00004fac                R_DTC_Close
+                0x0000502c       0x30 ./ra/fsp/src/r_dtc/r_dtc.o
+                0x0000502c                R_DTC_Close
  .text.R_DTC_Reconfigure
-                0x00004fdc       0x88 ./ra/fsp/src/r_dtc/r_dtc.o
-                0x00004fdc                R_DTC_Reconfigure
+                0x0000505c       0x88 ./ra/fsp/src/r_dtc/r_dtc.o
+                0x0000505c                R_DTC_Reconfigure
  .text.R_DTC_Open
-                0x00005064       0xb4 ./ra/fsp/src/r_dtc/r_dtc.o
-                0x00005064                R_DTC_Open
+                0x000050e4       0xb4 ./ra/fsp/src/r_dtc/r_dtc.o
+                0x000050e4                R_DTC_Open
  .text.R_ADC_B_ScanGroupStart
-                0x00005118       0x34 ./ra/fsp/src/r_adc_b/r_adc_b.o
-                0x00005118                R_ADC_B_ScanGroupStart
+                0x00005198       0x34 ./ra/fsp/src/r_adc_b/r_adc_b.o
+                0x00005198                R_ADC_B_ScanGroupStart
  .text.R_ADC_B_StatusGet
-                0x0000514c       0x28 ./ra/fsp/src/r_adc_b/r_adc_b.o
-                0x0000514c                R_ADC_B_StatusGet
+                0x000051cc       0x28 ./ra/fsp/src/r_adc_b/r_adc_b.o
+                0x000051cc                R_ADC_B_StatusGet
  .text.adc_b_update_calibrate_state
-                0x00005174       0x84 ./ra/fsp/src/r_adc_b/r_adc_b.o
+                0x000051f4       0x84 ./ra/fsp/src/r_adc_b/r_adc_b.o
  .text.R_ADC_B_Open
-                0x000051f8      0x1f4 ./ra/fsp/src/r_adc_b/r_adc_b.o
-                0x000051f8                R_ADC_B_Open
+                0x00005278      0x1f4 ./ra/fsp/src/r_adc_b/r_adc_b.o
+                0x00005278                R_ADC_B_Open
  .text.R_ADC_B_ScanCfg
-                0x000053ec      0x264 ./ra/fsp/src/r_adc_b/r_adc_b.o
-                0x000053ec                R_ADC_B_ScanCfg
+                0x0000546c      0x264 ./ra/fsp/src/r_adc_b/r_adc_b.o
+                0x0000546c                R_ADC_B_ScanCfg
  .text.adc_b_isr_handler
-                0x00005650       0x90 ./ra/fsp/src/r_adc_b/r_adc_b.o
+                0x000056d0       0x90 ./ra/fsp/src/r_adc_b/r_adc_b.o
  .text.R_ADC_B_Calibrate
-                0x000056e0       0x60 ./ra/fsp/src/r_adc_b/r_adc_b.o
-                0x000056e0                R_ADC_B_Calibrate
+                0x00005760       0x60 ./ra/fsp/src/r_adc_b/r_adc_b.o
+                0x00005760                R_ADC_B_Calibrate
  .text.R_ADC_B_FifoRead
-                0x00005740       0x74 ./ra/fsp/src/r_adc_b/r_adc_b.o
-                0x00005740                R_ADC_B_FifoRead
+                0x000057c0       0x74 ./ra/fsp/src/r_adc_b/r_adc_b.o
+                0x000057c0                R_ADC_B_FifoRead
  .text.adc_b_calend0_isr
-                0x000057b4       0xa8 ./ra/fsp/src/r_adc_b/r_adc_b.o
-                0x000057b4                adc_b_calend0_isr
+                0x00005834       0xa8 ./ra/fsp/src/r_adc_b/r_adc_b.o
+                0x00005834                adc_b_calend0_isr
  .text.adc_b_calend1_isr
-                0x0000585c       0xb0 ./ra/fsp/src/r_adc_b/r_adc_b.o
-                0x0000585c                adc_b_calend1_isr
+                0x000058dc       0xb0 ./ra/fsp/src/r_adc_b/r_adc_b.o
+                0x000058dc                adc_b_calend1_isr
  .text.adc_b_adi0_isr
-                0x0000590c       0x3c ./ra/fsp/src/r_adc_b/r_adc_b.o
-                0x0000590c                adc_b_adi0_isr
+                0x0000598c       0x3c ./ra/fsp/src/r_adc_b/r_adc_b.o
+                0x0000598c                adc_b_adi0_isr
  .text.SystemCoreClockUpdate
-                0x00005948       0x28 ./ra/fsp/src/bsp/mcu/all/bsp_clocks.o
-                0x00005948                SystemCoreClockUpdate
+                0x000059c8       0x28 ./ra/fsp/src/bsp/mcu/all/bsp_clocks.o
+                0x000059c8                SystemCoreClockUpdate
  .text.bsp_clock_init
-                0x00005970      0x114 ./ra/fsp/src/bsp/mcu/all/bsp_clocks.o
-                0x00005970                bsp_clock_init
+                0x000059f0      0x114 ./ra/fsp/src/bsp/mcu/all/bsp_clocks.o
+                0x000059f0                bsp_clock_init
  .text.bsp_init_internal
-                0x00005a84        0x4 ./ra/fsp/src/bsp/mcu/all/bsp_common.o
-                0x00005a84                bsp_init_internal
-                0x00005a84                bsp_init
+                0x00005b04        0x4 ./ra/fsp/src/bsp/mcu/all/bsp_common.o
+                0x00005b04                bsp_init_internal
+                0x00005b04                bsp_init
  .text.__assert_func
-                0x00005a88        0x4 ./ra/fsp/src/bsp/mcu/all/bsp_common.o
-                0x00005a88                __assert_func
+                0x00005b08        0x4 ./ra/fsp/src/bsp/mcu/all/bsp_common.o
+                0x00005b08                __assert_func
  .text.bsp_prv_software_delay_loop
-                0x00005a8c        0xc ./ra/fsp/src/bsp/mcu/all/bsp_delay.o
-                0x00005a8c                bsp_prv_software_delay_loop
+                0x00005b0c        0xc ./ra/fsp/src/bsp/mcu/all/bsp_delay.o
+                0x00005b0c                bsp_prv_software_delay_loop
  .text.R_BSP_SoftwareDelay
-                0x00005a98       0x58 ./ra/fsp/src/bsp/mcu/all/bsp_delay.o
-                0x00005a98                R_BSP_SoftwareDelay
+                0x00005b18       0x58 ./ra/fsp/src/bsp/mcu/all/bsp_delay.o
+                0x00005b18                R_BSP_SoftwareDelay
  .text.NMI_Handler
-                0x00005af0       0x3c ./ra/fsp/src/bsp/mcu/all/bsp_group_irq.o
-                0x00005af0                NMI_Handler
+                0x00005b70       0x3c ./ra/fsp/src/bsp/mcu/all/bsp_group_irq.o
+                0x00005b70                NMI_Handler
  .text.bsp_irq_cfg
-                0x00005b2c       0x94 ./ra/fsp/src/bsp/mcu/all/bsp_irq.o
-                0x00005b2c                bsp_irq_cfg
+                0x00005bac       0x94 ./ra/fsp/src/bsp/mcu/all/bsp_irq.o
+                0x00005bac                bsp_irq_cfg
  .text.R_BSP_RegisterProtectEnable
-                0x00005bc0       0x60 ./ra/fsp/src/bsp/mcu/all/bsp_register_protection.o
-                0x00005bc0                R_BSP_RegisterProtectEnable
+                0x00005c40       0x60 ./ra/fsp/src/bsp/mcu/all/bsp_register_protection.o
+                0x00005c40                R_BSP_RegisterProtectEnable
  .text.R_BSP_RegisterProtectDisable
-                0x00005c20       0x54 ./ra/fsp/src/bsp/mcu/all/bsp_register_protection.o
-                0x00005c20                R_BSP_RegisterProtectDisable
- .text._sbrk    0x00005c74       0x40 ./ra/fsp/src/bsp/mcu/all/bsp_sbrk.o
-                0x00005c74                _sbrk
+                0x00005ca0       0x54 ./ra/fsp/src/bsp/mcu/all/bsp_register_protection.o
+                0x00005ca0                R_BSP_RegisterProtectDisable
+ .text._sbrk    0x00005cf4       0x40 ./ra/fsp/src/bsp/mcu/all/bsp_sbrk.o
+                0x00005cf4                _sbrk
  .text.Default_Handler
-                0x00005cb4        0x4 ./ra/fsp/src/bsp/cmsis/Device/RENESAS/Source/startup.o
-                0x00005cb4                DebugMon_Handler
-                0x00005cb4                HardFault_Handler
-                0x00005cb4                SysTick_Handler
-                0x00005cb4                PendSV_Handler
-                0x00005cb4                UsageFault_Handler
-                0x00005cb4                SecureFault_Handler
-                0x00005cb4                Default_Handler
-                0x00005cb4                MemManage_Handler
-                0x00005cb4                SVC_Handler
-                0x00005cb4                BusFault_Handler
+                0x00005d34        0x4 ./ra/fsp/src/bsp/cmsis/Device/RENESAS/Source/startup.o
+                0x00005d34                DebugMon_Handler
+                0x00005d34                HardFault_Handler
+                0x00005d34                SysTick_Handler
+                0x00005d34                PendSV_Handler
+                0x00005d34                UsageFault_Handler
+                0x00005d34                SecureFault_Handler
+                0x00005d34                Default_Handler
+                0x00005d34                MemManage_Handler
+                0x00005d34                SVC_Handler
+                0x00005d34                BusFault_Handler
  .text.Reset_Handler
-                0x00005cb8        0xc ./ra/fsp/src/bsp/cmsis/Device/RENESAS/Source/startup.o
-                0x00005cb8                Reset_Handler
+                0x00005d38        0xc ./ra/fsp/src/bsp/cmsis/Device/RENESAS/Source/startup.o
+                0x00005d38                Reset_Handler
  .text.SystemInit
-                0x00005cc4       0xf8 ./ra/fsp/src/bsp/cmsis/Device/RENESAS/Source/system.o
-                0x00005cc4                SystemInit
- .text          0x00005dbc      0x110 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libgcc.a(_arm_cmpdf2.o)
-                0x00005dbc                __gtdf2
-                0x00005dbc                __gedf2
-                0x00005dc4                __ltdf2
-                0x00005dc4                __ledf2
-                0x00005dcc                __nedf2
-                0x00005dcc                __eqdf2
-                0x00005dcc                __cmpdf2
-                0x00005e48                __aeabi_cdrcmple
-                0x00005e58                __aeabi_cdcmpeq
-                0x00005e58                __aeabi_cdcmple
-                0x00005e68                __aeabi_dcmpeq
-                0x00005e7c                __aeabi_dcmplt
-                0x00005e90                __aeabi_dcmple
-                0x00005ea4                __aeabi_dcmpge
-                0x00005eb8                __aeabi_dcmpgt
- .text          0x00005ecc       0xa0 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libgcc.a(_arm_truncdfsf2.o)
-                0x00005ecc                __truncdfsf2
-                0x00005ecc                __aeabi_d2f
- .text.atof     0x00005f6c        0x6 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-atof.o)
-                0x00005f6c                atof
- .text.atoi     0x00005f72        0x8 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-atoi.o)
-                0x00005f72                atoi
- .text.sulp     0x00005f7a       0x3c C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-strtod.o)
- *fill*         0x00005fb6        0x2 ff
+                0x00005d44       0xf8 ./ra/fsp/src/bsp/cmsis/Device/RENESAS/Source/system.o
+                0x00005d44                SystemInit
+ .text          0x00005e3c      0x110 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libgcc.a(_arm_cmpdf2.o)
+                0x00005e3c                __gtdf2
+                0x00005e3c                __gedf2
+                0x00005e44                __ltdf2
+                0x00005e44                __ledf2
+                0x00005e4c                __nedf2
+                0x00005e4c                __eqdf2
+                0x00005e4c                __cmpdf2
+                0x00005ec8                __aeabi_cdrcmple
+                0x00005ed8                __aeabi_cdcmpeq
+                0x00005ed8                __aeabi_cdcmple
+                0x00005ee8                __aeabi_dcmpeq
+                0x00005efc                __aeabi_dcmplt
+                0x00005f10                __aeabi_dcmple
+                0x00005f24                __aeabi_dcmpge
+                0x00005f38                __aeabi_dcmpgt
+ .text          0x00005f4c       0xa0 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libgcc.a(_arm_truncdfsf2.o)
+                0x00005f4c                __truncdfsf2
+                0x00005f4c                __aeabi_d2f
+ .text.atof     0x00005fec        0x6 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-atof.o)
+                0x00005fec                atof
+ .text.atoi     0x00005ff2        0x8 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-atoi.o)
+                0x00005ff2                atoi
+ .text.sulp     0x00005ffa       0x3c C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-strtod.o)
+ *fill*         0x00006036        0x2 ff
  .text._strtod_l
-                0x00005fb8      0xbc8 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-strtod.o)
-                0x00005fb8                _strtod_l
- .text.strtod   0x00006b80       0x18 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-strtod.o)
-                0x00006b80                strtod
+                0x00006038      0xbc8 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-strtod.o)
+                0x00006038                _strtod_l
+ .text.strtod   0x00006c00       0x18 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-strtod.o)
+                0x00006c00                strtod
  .text._strtol_l.isra.0
-                0x00006b98       0xf4 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-strtol.o)
- .text.strtol   0x00006c8c       0x14 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-strtol.o)
-                0x00006c8c                strtol
+                0x00006c18       0xf4 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-strtol.o)
+ .text.strtol   0x00006d0c       0x14 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-strtol.o)
+                0x00006d0c                strtol
  .text._strtoul_l.isra.0
-                0x00006ca0       0xdc C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-strtoul.o)
- .text.strtoul  0x00006d7c       0x14 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-strtoul.o)
-                0x00006d7c                strtoul
+                0x00006d20       0xdc C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-strtoul.o)
+ .text.strtoul  0x00006dfc       0x14 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-strtoul.o)
+                0x00006dfc                strtoul
  .text.snprintf
-                0x00006d90       0x68 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-snprintf.o)
-                0x00006d90                sniprintf
-                0x00006d90                snprintf
- .text.memset   0x00006df8       0x10 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-memset.o)
-                0x00006df8                memset
- .text.strchr   0x00006e08       0x1a C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-strchr.o)
-                0x00006e08                strchr
- .text.strncat  0x00006e22       0x26 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-strncat.o)
-                0x00006e22                strncat
- .text.strncmp  0x00006e48       0x24 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-strncmp.o)
-                0x00006e48                strncmp
- .text.__errno  0x00006e6c        0xc C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-errno.o)
-                0x00006e6c                __errno
+                0x00006e10       0x68 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-snprintf.o)
+                0x00006e10                sniprintf
+                0x00006e10                snprintf
+ .text.memset   0x00006e78       0x10 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-memset.o)
+                0x00006e78                memset
+ .text.strchr   0x00006e88       0x1a C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-strchr.o)
+                0x00006e88                strchr
+ .text.strncat  0x00006ea2       0x26 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-strncat.o)
+                0x00006ea2                strncat
+ .text.strncmp  0x00006ec8       0x24 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-strncmp.o)
+                0x00006ec8                strncmp
+ .text.__errno  0x00006eec        0xc C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-errno.o)
+                0x00006eec                __errno
  .text.__retarget_lock_acquire_recursive
-                0x00006e78        0x2 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-lock.o)
-                0x00006e78                __retarget_lock_acquire_recursive
+                0x00006ef8        0x2 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-lock.o)
+                0x00006ef8                __retarget_lock_acquire_recursive
  .text.__retarget_lock_release_recursive
-                0x00006e7a        0x2 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-lock.o)
-                0x00006e7a                __retarget_lock_release_recursive
- .text          0x00006e7c       0x14 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-strcmp.o)
-                0x00006e7c                strcmp
- .text.memcpy   0x00006e90       0x1a C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-memcpy-stub.o)
-                0x00006e90                memcpy
- .text          0x00006eaa       0x10 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-strlen.o)
-                0x00006eaa                strlen
- *fill*         0x00006eba        0x6 ff
- .text.nan      0x00006ec0       0x10 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libm_a-s_nan.o)
-                0x00006ec0                nan
- .text.nanf     0x00006ed0        0xc C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libm_a-sf_nan.o)
-                0x00006ed0                nanf
- .text._free_r  0x00006edc       0x94 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-freer.o)
-                0x00006edc                _free_r
- .text.rshift   0x00006f70       0xa2 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-gdtoa-gethex.o)
+                0x00006efa        0x2 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-lock.o)
+                0x00006efa                __retarget_lock_release_recursive
+ .text          0x00006efc       0x14 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-strcmp.o)
+                0x00006efc                strcmp
+ .text.memcpy   0x00006f10       0x1a C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-memcpy-stub.o)
+                0x00006f10                memcpy
+ .text          0x00006f2a       0x10 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-strlen.o)
+                0x00006f2a                strlen
+ *fill*         0x00006f3a        0x6 ff
+ .text.nan      0x00006f40       0x10 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libm_a-s_nan.o)
+                0x00006f40                nan
+ .text.nanf     0x00006f50        0xc C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libm_a-sf_nan.o)
+                0x00006f50                nanf
+ .text._free_r  0x00006f5c       0x94 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-freer.o)
+                0x00006f5c                _free_r
+ .text.rshift   0x00006ff0       0xa2 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-gdtoa-gethex.o)
  .text.__hexdig_fun
-                0x00007012       0x2a C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-gdtoa-gethex.o)
-                0x00007012                __hexdig_fun
+                0x00007092       0x2a C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-gdtoa-gethex.o)
+                0x00007092                __hexdig_fun
  .text.__gethex
-                0x0000703c      0x41c C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-gdtoa-gethex.o)
-                0x0000703c                __gethex
- .text.L_shift  0x00007458       0x24 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-gdtoa-hexnan.o)
- .text.__match  0x0000747c       0x28 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-gdtoa-hexnan.o)
-                0x0000747c                __match
+                0x000070bc      0x41c C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-gdtoa-gethex.o)
+                0x000070bc                __gethex
+ .text.L_shift  0x000074d8       0x24 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-gdtoa-hexnan.o)
+ .text.__match  0x000074fc       0x28 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-gdtoa-hexnan.o)
+                0x000074fc                __match
  .text.__hexnan
-                0x000074a4      0x136 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-gdtoa-hexnan.o)
-                0x000074a4                __hexnan
- *fill*         0x000075da        0x2 ff
+                0x00007524      0x136 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-gdtoa-hexnan.o)
+                0x00007524                __hexnan
+ *fill*         0x0000765a        0x2 ff
  .text.sbrk_aligned
-                0x000075dc       0x44 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mallocr.o)
+                0x0000765c       0x44 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mallocr.o)
  .text._malloc_r
-                0x00007620      0x100 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mallocr.o)
-                0x00007620                _malloc_r
+                0x000076a0      0x100 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mallocr.o)
+                0x000076a0                _malloc_r
  .text.__ascii_mbtowc
-                0x00007720       0x24 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mbtowc_r.o)
-                0x00007720                __ascii_mbtowc
+                0x000077a0       0x24 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mbtowc_r.o)
+                0x000077a0                __ascii_mbtowc
  .text.__malloc_lock
-                0x00007744        0xc C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mlock.o)
-                0x00007744                __malloc_lock
+                0x000077c4        0xc C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mlock.o)
+                0x000077c4                __malloc_lock
  .text.__malloc_unlock
-                0x00007750        0xc C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mlock.o)
-                0x00007750                __malloc_unlock
- .text._Balloc  0x0000775c       0x80 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
-                0x0000775c                _Balloc
- .text._Bfree   0x000077dc       0x44 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
-                0x000077dc                _Bfree
+                0x000077d0        0xc C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mlock.o)
+                0x000077d0                __malloc_unlock
+ .text._Balloc  0x000077dc       0x80 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
+                0x000077dc                _Balloc
+ .text._Bfree   0x0000785c       0x44 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
+                0x0000785c                _Bfree
  .text.__multadd
-                0x00007820       0x90 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
-                0x00007820                __multadd
- .text.__s2b    0x000078b0       0x94 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
-                0x000078b0                __s2b
+                0x000078a0       0x90 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
+                0x000078a0                __multadd
+ .text.__s2b    0x00007930       0x94 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
+                0x00007930                __s2b
  .text.__hi0bits
-                0x00007944       0x3e C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
-                0x00007944                __hi0bits
+                0x000079c4       0x3e C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
+                0x000079c4                __hi0bits
  .text.__lo0bits
-                0x00007982       0x5a C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
-                0x00007982                __lo0bits
- .text.__i2b    0x000079dc       0x2c C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
-                0x000079dc                __i2b
+                0x00007a02       0x5a C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
+                0x00007a02                __lo0bits
+ .text.__i2b    0x00007a5c       0x2c C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
+                0x00007a5c                __i2b
  .text.__multiply
-                0x00007a08      0x148 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
-                0x00007a08                __multiply
+                0x00007a88      0x148 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
+                0x00007a88                __multiply
  .text.__pow5mult
-                0x00007b50       0xb4 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
-                0x00007b50                __pow5mult
+                0x00007bd0       0xb4 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
+                0x00007bd0                __pow5mult
  .text.__lshift
-                0x00007c04       0xd8 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
-                0x00007c04                __lshift
- .text.__mcmp   0x00007cdc       0x36 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
-                0x00007cdc                __mcmp
- *fill*         0x00007d12        0x2 ff
- .text.__mdiff  0x00007d14      0x130 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
-                0x00007d14                __mdiff
- .text.__ulp    0x00007e44       0x4c C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
-                0x00007e44                __ulp
- .text.__b2d    0x00007e90       0x9c C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
-                0x00007e90                __b2d
- .text.__d2b    0x00007f2c       0xb0 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
-                0x00007f2c                __d2b
- .text.__ratio  0x00007fdc       0x64 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
-                0x00007fdc                __ratio
+                0x00007c84       0xd8 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
+                0x00007c84                __lshift
+ .text.__mcmp   0x00007d5c       0x36 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
+                0x00007d5c                __mcmp
+ *fill*         0x00007d92        0x2 ff
+ .text.__mdiff  0x00007d94      0x130 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
+                0x00007d94                __mdiff
+ .text.__ulp    0x00007ec4       0x4c C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
+                0x00007ec4                __ulp
+ .text.__b2d    0x00007f10       0x9c C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
+                0x00007f10                __b2d
+ .text.__d2b    0x00007fac       0xb0 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
+                0x00007fac                __d2b
+ .text.__ratio  0x0000805c       0x64 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
+                0x0000805c                __ratio
  .text.__copybits
-                0x00008040       0x46 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
-                0x00008040                __copybits
+                0x000080c0       0x46 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
+                0x000080c0                __copybits
  .text.__any_on
-                0x00008086       0x42 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
-                0x00008086                __any_on
+                0x00008106       0x42 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
+                0x00008106                __any_on
  .text.__ascii_wctomb
-                0x000080c8       0x1a C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-wctomb_r.o)
-                0x000080c8                __ascii_wctomb
+                0x00008148       0x1a C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-wctomb_r.o)
+                0x00008148                __ascii_wctomb
  .text.__ssputs_r
-                0x000080e2       0xb6 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-nano-svfprintf.o)
-                0x000080e2                __ssputs_r
+                0x00008162       0xb6 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-nano-svfprintf.o)
+                0x00008162                __ssputs_r
  .text._svfprintf_r
-                0x00008198      0x1f8 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-nano-svfprintf.o)
-                0x00008198                _svfiprintf_r
-                0x00008198                _svfprintf_r
+                0x00008218      0x1f8 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-nano-svfprintf.o)
+                0x00008218                _svfiprintf_r
+                0x00008218                _svfprintf_r
  .text._printf_common
-                0x00008390       0xe4 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-nano-vfprintf_i.o)
-                0x00008390                _printf_common
+                0x00008410       0xe4 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-nano-vfprintf_i.o)
+                0x00008410                _printf_common
  .text._printf_i
-                0x00008474      0x23c C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-nano-vfprintf_i.o)
-                0x00008474                _printf_i
- .text.memmove  0x000086b0       0x34 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-memmove.o)
-                0x000086b0                memmove
- .text._sbrk_r  0x000086e4       0x20 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-sbrkr.o)
-                0x000086e4                _sbrk_r
- .text.memchr   0x00008704       0x1c C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-memchr-stub.o)
-                0x00008704                memchr
+                0x000084f4      0x23c C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-nano-vfprintf_i.o)
+                0x000084f4                _printf_i
+ .text.memmove  0x00008730       0x34 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-memmove.o)
+                0x00008730                memmove
+ .text._sbrk_r  0x00008764       0x20 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-sbrkr.o)
+                0x00008764                _sbrk_r
+ .text.memchr   0x00008784       0x1c C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-memchr-stub.o)
+                0x00008784                memchr
  .text._calloc_r
-                0x00008720       0x28 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-callocr.o)
-                0x00008720                _calloc_r
- .text.malloc   0x00008748       0x10 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-malloc.o)
-                0x00008748                malloc
+                0x000087a0       0x28 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-callocr.o)
+                0x000087a0                _calloc_r
+ .text.malloc   0x000087c8       0x10 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-malloc.o)
+                0x000087c8                malloc
  .text._realloc_r
-                0x00008758       0x5c C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-reallocr.o)
-                0x00008758                _realloc_r
+                0x000087d8       0x5c C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-reallocr.o)
+                0x000087d8                _realloc_r
  .text._malloc_usable_size_r
-                0x000087b4       0x10 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-msizer.o)
-                0x000087b4                _malloc_usable_size_r
- .text          0x000087c4      0x378 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libgcc.a(_arm_addsubdf3.o)
-                0x000087c4                __aeabi_drsub
-                0x000087cc                __aeabi_dsub
-                0x000087cc                __subdf3
-                0x000087d0                __aeabi_dadd
-                0x000087d0                __adddf3
-                0x00008a48                __floatunsidf
-                0x00008a48                __aeabi_ui2d
-                0x00008a68                __floatsidf
-                0x00008a68                __aeabi_i2d
-                0x00008a8c                __aeabi_f2d
-                0x00008a8c                __extendsfdf2
-                0x00008ad0                __floatundidf
-                0x00008ad0                __aeabi_ul2d
-                0x00008ae0                __floatdidf
-                0x00008ae0                __aeabi_l2d
- .text          0x00008b3c      0x424 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libgcc.a(_arm_muldivdf3.o)
-                0x00008b3c                __aeabi_dmul
-                0x00008b3c                __muldf3
-                0x00008d90                __divdf3
-                0x00008d90                __aeabi_ddiv
- .text          0x00008f60       0x40 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libgcc.a(_arm_fixunsdfsi.o)
-                0x00008f60                __aeabi_d2uiz
-                0x00008f60                __fixunsdfsi
+                0x00008834       0x10 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-msizer.o)
+                0x00008834                _malloc_usable_size_r
+ .text          0x00008844      0x378 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libgcc.a(_arm_addsubdf3.o)
+                0x00008844                __aeabi_drsub
+                0x0000884c                __aeabi_dsub
+                0x0000884c                __subdf3
+                0x00008850                __aeabi_dadd
+                0x00008850                __adddf3
+                0x00008ac8                __floatunsidf
+                0x00008ac8                __aeabi_ui2d
+                0x00008ae8                __floatsidf
+                0x00008ae8                __aeabi_i2d
+                0x00008b0c                __aeabi_f2d
+                0x00008b0c                __extendsfdf2
+                0x00008b50                __floatundidf
+                0x00008b50                __aeabi_ul2d
+                0x00008b60                __floatdidf
+                0x00008b60                __aeabi_l2d
+ .text          0x00008bbc      0x424 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libgcc.a(_arm_muldivdf3.o)
+                0x00008bbc                __aeabi_dmul
+                0x00008bbc                __muldf3
+                0x00008e10                __divdf3
+                0x00008e10                __aeabi_ddiv
+ .text          0x00008fe0       0x40 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libgcc.a(_arm_fixunsdfsi.o)
+                0x00008fe0                __aeabi_d2uiz
+                0x00008fe0                __fixunsdfsi
  .text.__fixdfdi
-                0x00008fa0       0x30 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libgcc.a(_fixdfdi.o)
-                0x00008fa0                __fixdfdi
-                0x00008fa0                __aeabi_d2lz
+                0x00009020       0x30 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libgcc.a(_fixdfdi.o)
+                0x00009020                __fixdfdi
+                0x00009020                __aeabi_d2lz
  .text.__fixunsdfdi
-                0x00008fd0       0x3c C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libgcc.a(_fixunsdfdi.o)
-                0x00008fd0                __fixunsdfdi
-                0x00008fd0                __aeabi_d2ulz
- .text.logf     0x0000900c       0x60 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libm.a(libm_a-wf_log.o)
-                0x0000900c                logf
+                0x00009050       0x3c C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libgcc.a(_fixunsdfdi.o)
+                0x00009050                __fixunsdfdi
+                0x00009050                __aeabi_d2ulz
+ .text.logf     0x0000908c       0x60 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libm.a(libm_a-wf_log.o)
+                0x0000908c                logf
  .text.__ieee754_logf
-                0x0000906c      0x1f8 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libm.a(libm_a-ef_log.o)
-                0x0000906c                __ieee754_logf
+                0x000090ec      0x1f8 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libm.a(libm_a-ef_log.o)
+                0x000090ec                __ieee754_logf
  *(.version)
- .version       0x00009264       0x50 ./ra/fsp/src/bsp/mcu/all/bsp_common.o
+ .version       0x000092e4       0x50 ./ra/fsp/src/bsp/mcu/all/bsp_common.o
  *(.init)
- .init          0x000092b4        0x4 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard/crti.o
-                0x000092b4                _init
- .init          0x000092b8        0x8 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard/crtn.o
+ .init          0x00009334        0x4 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard/crti.o
+                0x00009334                _init
+ .init          0x00009338        0x8 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard/crtn.o
  *(.fini)
- .fini          0x000092c0        0x4 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard/crti.o
-                0x000092c0                _fini
- .fini          0x000092c4        0x8 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard/crtn.o
+ .fini          0x00009340        0x4 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard/crti.o
+                0x00009340                _fini
+ .fini          0x00009344        0x8 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard/crtn.o
  *crtbegin.o(.ctors)
  *crtbegin?.o(.ctors)
  *(EXCLUDE_FILE(*crtend.o *crtend?.o) .ctors)
@@ -1861,268 +1860,268 @@ END GROUP
  *(.dtors)
  *(.rodata*)
  .rodata.fmt_float.isra.0.str1.4
-                0x000092cc      0x3db ./src/hal_entry.o
+                0x0000934c      0x3db ./src/hal_entry.o
                                   0x4 (size before relaxing)
  .rodata.ble_uart_tick.str1.4
-                0x000096a7      0x189 ./src/hal_entry.o
- *fill*         0x000096a7        0x1 ff
+                0x00009727      0x189 ./src/hal_entry.o
+ *fill*         0x00009727        0x1 ff
  .rodata.cal_offsets.5
-                0x000096a8       0x34 ./src/hal_entry.o
+                0x00009728       0x34 ./src/hal_entry.o
  .rodata.str1.4
-                0x000096dc      0x25b ./src/hal_entry.o
+                0x0000975c      0x25b ./src/hal_entry.o
  .rodata.var_registry
-                0x000096dc      0x24c ./src/hal_entry.o
+                0x0000975c      0x24c ./src/hal_entry.o
  .rodata.g_motor_angle0_cfg
-                0x00009928        0x8 ./ra_gen/hal_data.o
-                0x00009928                g_motor_angle0_cfg
+                0x000099a8        0x8 ./ra_gen/hal_data.o
+                0x000099a8                g_motor_angle0_cfg
  .rodata.g_motor_angle0_extend
-                0x00009930       0x30 ./ra_gen/hal_data.o
-                0x00009930                g_motor_angle0_extend
+                0x000099b0       0x30 ./ra_gen/hal_data.o
+                0x000099b0                g_motor_angle0_extend
  .rodata.g_three_phase0_cfg
-                0x00009960       0x20 ./ra_gen/hal_data.o
-                0x00009960                g_three_phase0_cfg
+                0x000099e0       0x20 ./ra_gen/hal_data.o
+                0x000099e0                g_three_phase0_cfg
  .rodata.g_timer0
-                0x00009980        0xc ./ra_gen/hal_data.o
-                0x00009980                g_timer0
+                0x00009a00        0xc ./ra_gen/hal_data.o
+                0x00009a00                g_timer0
  .rodata.g_timer0_cfg
-                0x0000998c       0x20 ./ra_gen/hal_data.o
-                0x0000998c                g_timer0_cfg
+                0x00009a0c       0x20 ./ra_gen/hal_data.o
+                0x00009a0c                g_timer0_cfg
  .rodata.g_timer0_extend
-                0x000099ac       0x3c ./ra_gen/hal_data.o
-                0x000099ac                g_timer0_extend
+                0x00009a2c       0x3c ./ra_gen/hal_data.o
+                0x00009a2c                g_timer0_extend
  .rodata.g_timer0_pwm_extend
-                0x000099e8       0x20 ./ra_gen/hal_data.o
-                0x000099e8                g_timer0_pwm_extend
+                0x00009a68       0x20 ./ra_gen/hal_data.o
+                0x00009a68                g_timer0_pwm_extend
  .rodata.g_timer1
-                0x00009a08        0xc ./ra_gen/hal_data.o
-                0x00009a08                g_timer1
+                0x00009a88        0xc ./ra_gen/hal_data.o
+                0x00009a88                g_timer1
  .rodata.g_timer1_cfg
-                0x00009a14       0x20 ./ra_gen/hal_data.o
-                0x00009a14                g_timer1_cfg
+                0x00009a94       0x20 ./ra_gen/hal_data.o
+                0x00009a94                g_timer1_cfg
  .rodata.g_timer1_extend
-                0x00009a34       0x3c ./ra_gen/hal_data.o
-                0x00009a34                g_timer1_extend
+                0x00009ab4       0x3c ./ra_gen/hal_data.o
+                0x00009ab4                g_timer1_extend
  .rodata.g_timer1_pwm_extend
-                0x00009a70       0x20 ./ra_gen/hal_data.o
-                0x00009a70                g_timer1_pwm_extend
+                0x00009af0       0x20 ./ra_gen/hal_data.o
+                0x00009af0                g_timer1_pwm_extend
  .rodata.g_timer2
-                0x00009a90        0xc ./ra_gen/hal_data.o
-                0x00009a90                g_timer2
+                0x00009b10        0xc ./ra_gen/hal_data.o
+                0x00009b10                g_timer2
  .rodata.g_timer2_cfg
-                0x00009a9c       0x20 ./ra_gen/hal_data.o
-                0x00009a9c                g_timer2_cfg
+                0x00009b1c       0x20 ./ra_gen/hal_data.o
+                0x00009b1c                g_timer2_cfg
  .rodata.g_timer2_extend
-                0x00009abc       0x3c ./ra_gen/hal_data.o
-                0x00009abc                g_timer2_extend
+                0x00009b3c       0x3c ./ra_gen/hal_data.o
+                0x00009b3c                g_timer2_extend
  .rodata.g_timer2_pwm_extend
-                0x00009af8       0x20 ./ra_gen/hal_data.o
-                0x00009af8                g_timer2_pwm_extend
+                0x00009b78       0x20 ./ra_gen/hal_data.o
+                0x00009b78                g_timer2_pwm_extend
  .rodata.g_adc0_cfg
-                0x00009b18       0x18 ./ra_gen/hal_data.o
-                0x00009b18                g_adc0_cfg
+                0x00009b98       0x18 ./ra_gen/hal_data.o
+                0x00009b98                g_adc0_cfg
  .rodata.g_adc0_cfg_extend
-                0x00009b30      0x104 ./ra_gen/hal_data.o
-                0x00009b30                g_adc0_cfg_extend
+                0x00009bb0      0x104 ./ra_gen/hal_data.o
+                0x00009bb0                g_adc0_cfg_extend
  .rodata.g_adc0_isr_cfg
-                0x00009c34       0x38 ./ra_gen/hal_data.o
-                0x00009c34                g_adc0_isr_cfg
+                0x00009cb4       0x38 ./ra_gen/hal_data.o
+                0x00009cb4                g_adc0_isr_cfg
  .rodata.g_adc0_scan_cfg
-                0x00009c6c        0x8 ./ra_gen/hal_data.o
-                0x00009c6c                g_adc0_scan_cfg
+                0x00009cec        0x8 ./ra_gen/hal_data.o
+                0x00009cec                g_adc0_scan_cfg
  .rodata.g_adc0_scan_cfg_groups
-                0x00009c74        0x8 ./ra_gen/hal_data.o
-                0x00009c74                g_adc0_scan_cfg_groups
+                0x00009cf4        0x8 ./ra_gen/hal_data.o
+                0x00009cf4                g_adc0_scan_cfg_groups
  .rodata.g_adc0_group_2_cfg
-                0x00009c7c       0x1c ./ra_gen/hal_data.o
-                0x00009c7c                g_adc0_group_2_cfg
+                0x00009cfc       0x1c ./ra_gen/hal_data.o
+                0x00009cfc                g_adc0_group_2_cfg
  .rodata.g_adc0_group_0_cfg
-                0x00009c98       0x1c ./ra_gen/hal_data.o
-                0x00009c98                g_adc0_group_0_cfg
+                0x00009d18       0x1c ./ra_gen/hal_data.o
+                0x00009d18                g_adc0_group_0_cfg
  .rodata.g_adc0_group_2_virtual_channels
-                0x00009cb4        0x8 ./ra_gen/hal_data.o
-                0x00009cb4                g_adc0_group_2_virtual_channels
+                0x00009d34        0x8 ./ra_gen/hal_data.o
+                0x00009d34                g_adc0_group_2_virtual_channels
  .rodata.g_adc0_group_0_virtual_channels
-                0x00009cbc       0x1c ./ra_gen/hal_data.o
-                0x00009cbc                g_adc0_group_0_virtual_channels
+                0x00009d3c       0x1c ./ra_gen/hal_data.o
+                0x00009d3c                g_adc0_group_0_virtual_channels
  .rodata.g_adc0_virtual_channel_8_cfg
-                0x00009cd8       0x14 ./ra_gen/hal_data.o
-                0x00009cd8                g_adc0_virtual_channel_8_cfg
+                0x00009d58       0x14 ./ra_gen/hal_data.o
+                0x00009d58                g_adc0_virtual_channel_8_cfg
  .rodata.g_adc0_virtual_channel_7_cfg
-                0x00009cec       0x14 ./ra_gen/hal_data.o
-                0x00009cec                g_adc0_virtual_channel_7_cfg
+                0x00009d6c       0x14 ./ra_gen/hal_data.o
+                0x00009d6c                g_adc0_virtual_channel_7_cfg
  .rodata.g_adc0_virtual_channel_6_cfg
-                0x00009d00       0x14 ./ra_gen/hal_data.o
-                0x00009d00                g_adc0_virtual_channel_6_cfg
+                0x00009d80       0x14 ./ra_gen/hal_data.o
+                0x00009d80                g_adc0_virtual_channel_6_cfg
  .rodata.g_adc0_virtual_channel_5_cfg
-                0x00009d14       0x14 ./ra_gen/hal_data.o
-                0x00009d14                g_adc0_virtual_channel_5_cfg
+                0x00009d94       0x14 ./ra_gen/hal_data.o
+                0x00009d94                g_adc0_virtual_channel_5_cfg
  .rodata.g_adc0_virtual_channel_4_cfg
-                0x00009d28       0x14 ./ra_gen/hal_data.o
-                0x00009d28                g_adc0_virtual_channel_4_cfg
+                0x00009da8       0x14 ./ra_gen/hal_data.o
+                0x00009da8                g_adc0_virtual_channel_4_cfg
  .rodata.g_adc0_virtual_channel_3_cfg
-                0x00009d3c       0x14 ./ra_gen/hal_data.o
-                0x00009d3c                g_adc0_virtual_channel_3_cfg
+                0x00009dbc       0x14 ./ra_gen/hal_data.o
+                0x00009dbc                g_adc0_virtual_channel_3_cfg
  .rodata.g_adc0_virtual_channel_2_cfg
-                0x00009d50       0x14 ./ra_gen/hal_data.o
-                0x00009d50                g_adc0_virtual_channel_2_cfg
+                0x00009dd0       0x14 ./ra_gen/hal_data.o
+                0x00009dd0                g_adc0_virtual_channel_2_cfg
  .rodata.g_adc0_virtual_channel_1_cfg
-                0x00009d64       0x14 ./ra_gen/hal_data.o
-                0x00009d64                g_adc0_virtual_channel_1_cfg
+                0x00009de4       0x14 ./ra_gen/hal_data.o
+                0x00009de4                g_adc0_virtual_channel_1_cfg
  .rodata.g_adc0_virtual_channel_0_cfg
-                0x00009d78       0x14 ./ra_gen/hal_data.o
-                0x00009d78                g_adc0_virtual_channel_0_cfg
+                0x00009df8       0x14 ./ra_gen/hal_data.o
+                0x00009df8                g_adc0_virtual_channel_0_cfg
  .rodata.g_timer4_cfg
-                0x00009d8c       0x20 ./ra_gen/hal_data.o
-                0x00009d8c                g_timer4_cfg
+                0x00009e0c       0x20 ./ra_gen/hal_data.o
+                0x00009e0c                g_timer4_cfg
  .rodata.g_timer4_extend
-                0x00009dac       0x3c ./ra_gen/hal_data.o
-                0x00009dac                g_timer4_extend
+                0x00009e2c       0x3c ./ra_gen/hal_data.o
+                0x00009e2c                g_timer4_extend
  .rodata.g_uart3_cfg
-                0x00009de8       0x20 ./ra_gen/hal_data.o
-                0x00009de8                g_uart3_cfg
+                0x00009e68       0x20 ./ra_gen/hal_data.o
+                0x00009e68                g_uart3_cfg
  .rodata.g_uart3_cfg_extend
-                0x00009e08       0x14 ./ra_gen/hal_data.o
-                0x00009e08                g_uart3_cfg_extend
+                0x00009e88       0x14 ./ra_gen/hal_data.o
+                0x00009e88                g_uart3_cfg_extend
  .rodata.g_spi1_cfg
-                0x00009e1c       0x24 ./ra_gen/hal_data.o
-                0x00009e1c                g_spi1_cfg
+                0x00009e9c       0x24 ./ra_gen/hal_data.o
+                0x00009e9c                g_spi1_cfg
  .rodata.g_spi1_ext_cfg
-                0x00009e40        0xd ./ra_gen/hal_data.o
-                0x00009e40                g_spi1_ext_cfg
- *fill*         0x00009e4d        0x3 ff
+                0x00009ec0        0xd ./ra_gen/hal_data.o
+                0x00009ec0                g_spi1_ext_cfg
+ *fill*         0x00009ecd        0x3 ff
  .rodata.g_transfer1
-                0x00009e50        0xc ./ra_gen/hal_data.o
-                0x00009e50                g_transfer1
+                0x00009ed0        0xc ./ra_gen/hal_data.o
+                0x00009ed0                g_transfer1
  .rodata.g_transfer1_cfg
-                0x00009e5c        0x8 ./ra_gen/hal_data.o
-                0x00009e5c                g_transfer1_cfg
+                0x00009edc        0x8 ./ra_gen/hal_data.o
+                0x00009edc                g_transfer1_cfg
  .rodata.g_transfer1_cfg_extend
-                0x00009e64        0x1 ./ra_gen/hal_data.o
-                0x00009e64                g_transfer1_cfg_extend
- *fill*         0x00009e65        0x3 ff
+                0x00009ee4        0x1 ./ra_gen/hal_data.o
+                0x00009ee4                g_transfer1_cfg_extend
+ *fill*         0x00009ee5        0x3 ff
  .rodata.g_transfer0
-                0x00009e68        0xc ./ra_gen/hal_data.o
-                0x00009e68                g_transfer0
+                0x00009ee8        0xc ./ra_gen/hal_data.o
+                0x00009ee8                g_transfer0
  .rodata.g_transfer0_cfg
-                0x00009e74        0x8 ./ra_gen/hal_data.o
-                0x00009e74                g_transfer0_cfg
+                0x00009ef4        0x8 ./ra_gen/hal_data.o
+                0x00009ef4                g_transfer0_cfg
  .rodata.g_transfer0_cfg_extend
-                0x00009e7c        0x1 ./ra_gen/hal_data.o
-                0x00009e7c                g_transfer0_cfg_extend
- *fill*         0x00009e7d        0x3 ff
+                0x00009efc        0x1 ./ra_gen/hal_data.o
+                0x00009efc                g_transfer0_cfg_extend
+ *fill*         0x00009efd        0x3 ff
  .rodata.g_bsp_pin_cfg
-                0x00009e80        0xc ./ra_gen/pin_data.o
-                0x00009e80                g_bsp_pin_cfg
+                0x00009f00        0xc ./ra_gen/pin_data.o
+                0x00009f00                g_bsp_pin_cfg
  .rodata.g_bsp_pin_cfg_data
-                0x00009e8c      0x190 ./ra_gen/pin_data.o
-                0x00009e8c                g_bsp_pin_cfg_data
+                0x00009f0c      0x190 ./ra_gen/pin_data.o
+                0x00009f0c                g_bsp_pin_cfg_data
  .rodata.g_interrupt_event_link_select
-                0x0000a01c       0x1a ./ra_gen/vector_data.o
-                0x0000a01c                g_interrupt_event_link_select
- *fill*         0x0000a036        0x2 ff
+                0x0000a09c       0x1a ./ra_gen/vector_data.o
+                0x0000a09c                g_interrupt_event_link_select
+ *fill*         0x0000a0b6        0x2 ff
  .rodata.g_timer_on_gpt
-                0x0000a038       0x34 ./ra/fsp/src/r_gpt/r_gpt.o
-                0x0000a038                g_timer_on_gpt
+                0x0000a0b8       0x34 ./ra/fsp/src/r_gpt/r_gpt.o
+                0x0000a0b8                g_timer_on_gpt
  .rodata.g_transfer_on_dtc
-                0x0000a06c       0x2c ./ra/fsp/src/r_dtc/r_dtc.o
-                0x0000a06c                g_transfer_on_dtc
+                0x0000a0ec       0x2c ./ra/fsp/src/r_dtc/r_dtc.o
+                0x0000a0ec                g_transfer_on_dtc
  .rodata.g_prcr_masks
-                0x0000a098        0x8 ./ra/fsp/src/bsp/mcu/all/bsp_register_protection.o
+                0x0000a118        0x8 ./ra/fsp/src/bsp/mcu/all/bsp_register_protection.o
  .rodata._strtod_l.str1.1
-                0x0000a0a0      0x12c C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-strtod.o)
+                0x0000a120      0x12c C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-strtod.o)
                                   0xf (size before relaxing)
  .rodata.fpinan.0
-                0x0000a1cc       0x14 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-strtod.o)
- .rodata.fpi.1  0x0000a1e0       0x14 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-strtod.o)
- *fill*         0x0000a1f4        0x4 ff
+                0x0000a24c       0x14 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-strtod.o)
+ .rodata.fpi.1  0x0000a260       0x14 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-strtod.o)
+ *fill*         0x0000a274        0x4 ff
  .rodata.tinytens
-                0x0000a1f8       0x28 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-strtod.o)
+                0x0000a278       0x28 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-strtod.o)
  .rodata._ctype_
-                0x0000a220      0x101 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-ctype_.o)
-                0x0000a220                _ctype_
+                0x0000a2a0      0x101 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-ctype_.o)
+                0x0000a2a0                _ctype_
  .rodata._setlocale_r.str1.1
-                0x0000a321        0x9 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-locale.o)
+                0x0000a3a1        0x9 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-locale.o)
  .rodata.str1.1
-                0x0000a321        0x2 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-locale.o)
+                0x0000a3a1        0x2 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-locale.o)
  .rodata.__gethex.str1.1
-                0x0000a321       0x74 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-gdtoa-gethex.o)
+                0x0000a3a1       0x74 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-gdtoa-gethex.o)
  .rodata._Balloc.str1.1
-                0x0000a321       0x71 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
+                0x0000a3a1       0x71 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
  .rodata.__multadd.str1.1
-                0x0000a321       0x11 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
- *fill*         0x0000a321        0x3 ff
- .rodata.p05.0  0x0000a324        0xc C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
+                0x0000a3a1       0x11 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
+ *fill*         0x0000a3a1        0x3 ff
+ .rodata.p05.0  0x0000a3a4        0xc C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
  .rodata.__mprec_bigtens
-                0x0000a330       0x28 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
-                0x0000a330                __mprec_bigtens
+                0x0000a3b0       0x28 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
+                0x0000a3b0                __mprec_bigtens
  .rodata.__mprec_tens
-                0x0000a358       0xc8 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
-                0x0000a358                __mprec_tens
+                0x0000a3d8       0xc8 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mprec.o)
+                0x0000a3d8                __mprec_tens
  .rodata._svfprintf_r.str1.1
-                0x0000a420       0x11 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-nano-svfprintf.o)
+                0x0000a4a0       0x11 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-nano-svfprintf.o)
  .rodata._printf_i.str1.1
-                0x0000a420       0x22 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-nano-vfprintf_i.o)
+                0x0000a4a0       0x22 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-nano-vfprintf_i.o)
  .rodata.logf.str1.4
-                0x0000a420        0x1 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libm.a(libm_a-wf_log.o)
-                0x0000a420                        __usb_dev_descriptor_start_fs = .
+                0x0000a4a0        0x1 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libm.a(libm_a-wf_log.o)
+                0x0000a4a0                        __usb_dev_descriptor_start_fs = .
  *(.usb_device_desc_fs*)
-                0x0000a420                        __usb_cfg_descriptor_start_fs = .
+                0x0000a4a0                        __usb_cfg_descriptor_start_fs = .
  *(.usb_config_desc_fs*)
-                0x0000a420                        __usb_interface_descriptor_start_fs = .
+                0x0000a4a0                        __usb_interface_descriptor_start_fs = .
  *(.usb_interface_desc_fs*)
-                0x0000a420                        __usb_descriptor_end_fs = .
-                0x0000a420                        __usb_dev_descriptor_start_hs = .
+                0x0000a4a0                        __usb_descriptor_end_fs = .
+                0x0000a4a0                        __usb_dev_descriptor_start_hs = .
  *(.usb_device_desc_hs*)
-                0x0000a420                        __usb_cfg_descriptor_start_hs = .
+                0x0000a4a0                        __usb_cfg_descriptor_start_hs = .
  *(.usb_config_desc_hs*)
-                0x0000a420                        __usb_interface_descriptor_start_hs = .
+                0x0000a4a0                        __usb_interface_descriptor_start_hs = .
  *(.usb_interface_desc_hs*)
-                0x0000a420                        __usb_descriptor_end_hs = .
+                0x0000a4a0                        __usb_descriptor_end_hs = .
  *(.eh_frame*)
- .eh_frame      0x0000a420        0x0 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard/crtbegin.o
- .eh_frame      0x0000a420       0x28 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-strlen.o)
- .eh_frame      0x0000a448        0x4 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard/crtend.o
-                0x0000a44c                        __ROM_End = .
+ .eh_frame      0x0000a4a0        0x0 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard/crtbegin.o
+ .eh_frame      0x0000a4a0       0x28 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-strlen.o)
+ .eh_frame      0x0000a4c8        0x4 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard/crtend.o
+                0x0000a4cc                        __ROM_End = .
                 0x00000074                        __Vectors_Size = (__Vectors_End - __Vectors)
 
-.glue_7         0x0000a44c        0x0
- .glue_7        0x0000a44c        0x0 linker stubs
+.glue_7         0x0000a4cc        0x0
+ .glue_7        0x0000a4cc        0x0 linker stubs
 
-.glue_7t        0x0000a44c        0x0
- .glue_7t       0x0000a44c        0x0 linker stubs
+.glue_7t        0x0000a4cc        0x0
+ .glue_7t       0x0000a4cc        0x0 linker stubs
 
-.vfp11_veneer   0x0000a44c        0x0
- .vfp11_veneer  0x0000a44c        0x0 linker stubs
+.vfp11_veneer   0x0000a4cc        0x0
+ .vfp11_veneer  0x0000a4cc        0x0 linker stubs
 
-.v4_bx          0x0000a44c        0x0
- .v4_bx         0x0000a44c        0x0 linker stubs
+.v4_bx          0x0000a4cc        0x0
+ .v4_bx         0x0000a4cc        0x0 linker stubs
 
-.iplt           0x0000a44c        0x0
- .iplt          0x0000a44c        0x0 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard/crtbegin.o
-                0x0000a44c                        . = .
-                0x0000a44c                        __itcm_data_pre_location = .
+.iplt           0x0000a4cc        0x0
+ .iplt          0x0000a4cc        0x0 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard/crtbegin.o
+                0x0000a4cc                        . = .
+                0x0000a4cc                        __itcm_data_pre_location = .
 
-.itcm_data      0x00000000        0x0 load address 0x0000a450
+.itcm_data      0x00000000        0x0 load address 0x0000a4d0
                 0x00000000                        __tz_ITCM_S = ABSOLUTE (ITCM_START)
                 0x00000000                        __itcm_data_start = .
  *(.itcm_data*)
                 0x00000000                        . = ALIGN (0x8)
                 0x00000000                        __itcm_data_end = .
                 0x00000000                        __tz_ITCM_N = DEFINED (ITCM_NS_START)?ABSOLUTE (ITCM_NS_START):ALIGN (__itcm_data_end, 0x2000)
-                0x0000a450                        __itcm_data_init_start = LOADADDR (.itcm_data)
-                0x0000a450                        __itcm_data_init_end = (LOADADDR (.itcm_data) + SIZEOF (.itcm_data))
+                0x0000a4d0                        __itcm_data_init_start = LOADADDR (.itcm_data)
+                0x0000a4d0                        __itcm_data_init_end = (LOADADDR (.itcm_data) + SIZEOF (.itcm_data))
                 0x00000001                        ASSERT (((ORIGIN (ITCM) % 0x8) == 0x0), ITCM memory region origin must be aligned to 8 bytes.)
                 0x00000001                        ASSERT (((LENGTH (ITCM) % 0x8) == 0x0), ITCM memory region length must be a multiple of 8 bytes.)
                 0x00000001                        ASSERT (((LOADADDR (.itcm_data) % 0x10) == 0x0), .itcm_data section must be aligned to 16 bytes.)
                 0x00000001                        ASSERT (((SIZEOF (.itcm_data) % 0x8) == 0x0), .itcm_data section size must be a multiple of 8 bytes.)
-                0x0000a44c                        . = (SIZEOF (.itcm_data) > 0x0)?__itcm_data_init_end:__itcm_data_pre_location
-                0x0000a44c                        __exidx_start = .
+                0x0000a4cc                        . = (SIZEOF (.itcm_data) > 0x0)?__itcm_data_init_end:__itcm_data_pre_location
+                0x0000a4cc                        __exidx_start = .
 
 /DISCARD/
  *(.ARM.extab* .gnu.linkonce.armextab.*)
  *(.ARM.exidx* .gnu.linkonce.armexidx.*)
-                0x0000a44c                        __exidx_end = .
-                0x0000a44c                        __etext = .
+                0x0000a4cc                        __exidx_end = .
+                0x0000a4cc                        __etext = .
                 0x20000000                        __tz_RAM_S = ORIGIN (RAM)
 
 .fsp_dtc_vector_table
@@ -2132,7 +2131,7 @@ END GROUP
  .fsp_dtc_vector_table
                 0x20000000       0x34 ./ra/fsp/src/r_dtc/r_dtc.o
 
-.data           0x20000038      0x2a0 load address 0x0000a44c
+.data           0x20000038      0x2a0 load address 0x0000a4cc
                 0x20000038                        __data_start__ = .
                 0x20000038                        . = ALIGN (0x4)
                 0x20000038                        __Code_In_RAM_Start = .
@@ -2261,18 +2260,18 @@ END GROUP
                 0x200002d8                        __data_end__ = .
 
 .tm_clone_table
-                0x200002d8        0x0 load address 0x0000a6ec
+                0x200002d8        0x0 load address 0x0000a76c
  .tm_clone_table
                 0x200002d8        0x0 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard/crtbegin.o
  .tm_clone_table
                 0x200002d8        0x0 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard/crtend.o
 
-.igot.plt       0x200002d8        0x0 load address 0x0000a6ec
+.igot.plt       0x200002d8        0x0 load address 0x0000a76c
  .igot.plt      0x200002d8        0x0 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard/crtbegin.o
                 0x200002d8                        . = .
-                0x0000a6ec                        __dtcm_data_pre_location = (LOADADDR (.data) + SIZEOF (.data))
+                0x0000a76c                        __dtcm_data_pre_location = (LOADADDR (.data) + SIZEOF (.data))
 
-.dtcm_data      0x00000000        0x0 load address 0x0000a6f0
+.dtcm_data      0x00000000        0x0 load address 0x0000a770
                 0x00000000                        __tz_DTCM_S = ABSOLUTE (DTCM_START)
                 0x00000000                        __dtcm_data_start = .
  *(.dtcm_data*)
@@ -2286,8 +2285,8 @@ END GROUP
                 0x00000000                        . = ALIGN (0x8)
                 0x00000000                        __dtcm_bss_end = .
                 0x00000000                        __tz_DTCM_N = DEFINED (DTCM_NS_START)?ABSOLUTE (DTCM_NS_START):ALIGN (__dtcm_bss_end, 0x2000)
-                0x0000a6f0                        __dtcm_data_init_start = LOADADDR (.dtcm_data)
-                0x0000a6f0                        __dtcm_data_init_end = (LOADADDR (.dtcm_data) + SIZEOF (.dtcm_data))
+                0x0000a770                        __dtcm_data_init_start = LOADADDR (.dtcm_data)
+                0x0000a770                        __dtcm_data_init_end = (LOADADDR (.dtcm_data) + SIZEOF (.dtcm_data))
                 0x00000001                        ASSERT (((ORIGIN (DTCM) % 0x8) == 0x0), DTCM memory region origin must be aligned to 8 bytes.)
                 0x00000001                        ASSERT (((LENGTH (DTCM) % 0x8) == 0x0), DTCM memory region length must be a multiple of 8 bytes.)
                 0x00000001                        ASSERT ((LOADADDR (.dtcm_bss) == ADDR (.dtcm_bss)), .dtcm_bss has (VMA != LMA) but should be NOLOAD (VMA == LMA).)
@@ -2296,8 +2295,8 @@ END GROUP
                 0x00000001                        ASSERT (((LOADADDR (.dtcm_bss) % 0x8) == 0x0), .dtcm_bss section must be aligned to 8 bytes.)
                 0x00000001                        ASSERT (((SIZEOF (.dtcm_bss) % 0x8) == 0x0), .dtcm_bss section size must be a multiple of 8 bytes.)
                 0x00000001                        ASSERT ((__dtcm_bss_start == __dtcm_data_end), .dtcm_bss section is not adjacent to .dtcm_data section.)
-                0x0000a6ec                        . = (SIZEOF (.dtcm_data) > 0x0)?__dtcm_data_init_end:__dtcm_data_pre_location
-                0x0000a6ec                        sgstubs_pre_location = .
+                0x0000a76c                        . = (SIZEOF (.dtcm_data) > 0x0)?__dtcm_data_init_end:__dtcm_data_pre_location
+                0x0000a76c                        sgstubs_pre_location = .
                 0x0000a800                        SGSTUBS_LOC = (DEFINED (PROJECT_SECURE) && DEFINED (FLASH_NSC_START))?ABSOLUTE (FLASH_NSC_START):ALIGN (0x400)
 
 .gnu.sgstubs    0x0000a800        0x0
@@ -2316,10 +2315,10 @@ END GROUP
  *(.code_in_qspi*)
                 0x60000000                        __qspi_flash_end__ = .
                 0x00000000                        __qspi_flash_code_size__ = (__qspi_flash_end__ - __qspi_flash_start__)
-                0x0000a6ec                        __qspi_flash_code_addr__ = sgstubs_pre_location
+                0x0000a76c                        __qspi_flash_code_addr__ = sgstubs_pre_location
 
 .qspi_non_retentive
-                0x60000000        0x0 load address 0x0000a6ec
+                0x60000000        0x0 load address 0x0000a76c
                 0x60000000                        __qspi_non_retentive_start__ = .
  *(.qspi_non_retentive*)
                 0x60000000                        __qspi_non_retentive_end__ = .
@@ -2352,10 +2351,10 @@ END GROUP
  *(.code_in_ospi_device_0*)
                 0x80020000                        __ospi_device_0_end__ = .
                 0x00000000                        __ospi_device_0_code_size__ = (__ospi_device_0_end__ - __ospi_device_0_start__)
-                0x0000a6ec                        __ospi_device_0_code_addr__ = (sgstubs_pre_location + SIZEOF (.qspi_non_retentive))
+                0x0000a76c                        __ospi_device_0_code_addr__ = (sgstubs_pre_location + SIZEOF (.qspi_non_retentive))
 
 .ospi_device_0_non_retentive
-                0x80020000        0x0 load address 0x0000a6ec
+                0x80020000        0x0 load address 0x0000a76c
                 0x80020000                        __ospi_device_0_non_retentive_start__ = .
  *(.ospi_device_0_non_retentive*)
                 0x80020000                        __ospi_device_0_non_retentive_end__ = .
@@ -2372,10 +2371,10 @@ END GROUP
  *(.code_in_ospi_device_1*)
                 0x80030000                        __ospi_device_1_end__ = .
                 0x00000000                        __ospi_device_1_code_size__ = (__ospi_device_1_end__ - __ospi_device_1_start__)
-                0x0000a6ec                        __ospi_device_1_code_addr__ = (sgstubs_pre_location + (SIZEOF (.qspi_non_retentive) + SIZEOF (.ospi_device_0_non_retentive)))
+                0x0000a76c                        __ospi_device_1_code_addr__ = (sgstubs_pre_location + (SIZEOF (.qspi_non_retentive) + SIZEOF (.ospi_device_0_non_retentive)))
 
 .ospi_device_1_non_retentive
-                0x80030000        0x0 load address 0x0000a6ec
+                0x80030000        0x0 load address 0x0000a76c
                 0x80030000                        __ospi_device_1_non_retentive_start__ = .
  *(.ospi_device_1_non_retentive*)
                 0x80030000                        __ospi_device_1_non_retentive_end__ = .
@@ -2395,7 +2394,7 @@ END GROUP
  *(.heap.*)
                 0x200002f8                        __noinit_end = .
 
-.bss            0x200002f8     0x3b58
+.bss            0x200002f8     0x3b68
                 0x200002f8                        . = ALIGN (0x4)
                 0x200002f8                        __bss_start__ = .
  *(.bss*)
@@ -2441,532 +2440,540 @@ END GROUP
  .bss.Iq_fb_val.13
                 0x200004d4        0x4 ./src/hal_entry.o
  .bss.Id_fb.14  0x200004d8        0x4 ./src/hal_entry.o
- .bss.ADC_data  0x200004dc       0x24 ./src/hal_entry.o
-                0x200004dc                ADC_data
- .bss.pack_idx  0x20000500        0x1 ./src/hal_entry.o
- *fill*         0x20000501        0x3 
- .bss.pack_rpm  0x20000504        0xa ./src/hal_entry.o
- *fill*         0x2000050e        0x2 
+ .bss.cos_filtered.15
+                0x200004dc        0x4 ./src/hal_entry.o
+ .bss.sin_filtered.16
+                0x200004e0        0x4 ./src/hal_entry.o
+ .bss.sincos_initialized.17
+                0x200004e4        0x1 ./src/hal_entry.o
+ *fill*         0x200004e5        0x3 
+ .bss.ADC_data  0x200004e8       0x24 ./src/hal_entry.o
+                0x200004e8                ADC_data
+ .bss.pack_idx  0x2000050c        0x1 ./src/hal_entry.o
+ *fill*         0x2000050d        0x3 
+ .bss.pack_rpm  0x20000510        0xa ./src/hal_entry.o
+ *fill*         0x2000051a        0x2 
  .bss.spi1_rx_buf
-                0x20000510       0x10 ./src/hal_entry.o
+                0x2000051c       0x10 ./src/hal_entry.o
  .bss.spi1_tx_buf
-                0x20000520       0x10 ./src/hal_entry.o
+                0x2000052c       0x10 ./src/hal_entry.o
  .bss.imu_read_request
-                0x20000530        0x1 ./src/hal_entry.o
- *fill*         0x20000531        0x3 
+                0x2000053c        0x1 ./src/hal_entry.o
+ *fill*         0x2000053d        0x3 
  .bss.imu_gyro_dps
-                0x20000534        0xc ./src/hal_entry.o
-                0x20000534                imu_gyro_dps
- .bss.imu_accel_g
                 0x20000540        0xc ./src/hal_entry.o
-                0x20000540                imu_accel_g
+                0x20000540                imu_gyro_dps
+ .bss.imu_accel_g
+                0x2000054c        0xc ./src/hal_entry.o
+                0x2000054c                imu_accel_g
  .bss.imu_gyro_raw
-                0x2000054c        0x6 ./src/hal_entry.o
-                0x2000054c                imu_gyro_raw
- *fill*         0x20000552        0x2 
+                0x20000558        0x6 ./src/hal_entry.o
+                0x20000558                imu_gyro_raw
+ *fill*         0x2000055e        0x2 
  .bss.imu_accel_raw
-                0x20000554        0x6 ./src/hal_entry.o
-                0x20000554                imu_accel_raw
+                0x20000560        0x6 ./src/hal_entry.o
+                0x20000560                imu_accel_raw
  .bss.imu_spi_timeout_cnt
-                0x2000055a        0x1 ./src/hal_entry.o
-                0x2000055a                imu_spi_timeout_cnt
- .bss.imu_spi_wr_err
-                0x2000055b        0x1 ./src/hal_entry.o
-                0x2000055b                imu_spi_wr_err
- .bss.imu_spi_timeout
-                0x2000055c        0x1 ./src/hal_entry.o
-                0x2000055c                imu_spi_timeout
- .bss.imu_rx_byte1
-                0x2000055d        0x1 ./src/hal_entry.o
-                0x2000055d                imu_rx_byte1
- .bss.imu_rx_byte0
-                0x2000055e        0x1 ./src/hal_entry.o
-                0x2000055e                imu_rx_byte0
- .bss.imu_spi_cb_count
-                0x2000055f        0x1 ./src/hal_entry.o
-                0x2000055f                imu_spi_cb_count
- .bss.imu_init_stage
-                0x20000560        0x1 ./src/hal_entry.o
-                0x20000560                imu_init_stage
- .bss.imu_int_status
-                0x20000561        0x1 ./src/hal_entry.o
-                0x20000561                imu_int_status
- .bss.imu_accel_cfg
-                0x20000562        0x1 ./src/hal_entry.o
-                0x20000562                imu_accel_cfg
- .bss.imu_pwr_mgmt0
-                0x20000563        0x1 ./src/hal_entry.o
-                0x20000563                imu_pwr_mgmt0
- .bss.imu_init_ok
-                0x20000564        0x1 ./src/hal_entry.o
-                0x20000564                imu_init_ok
- .bss.imu_who_am_i
-                0x20000565        0x1 ./src/hal_entry.o
-                0x20000565                imu_who_am_i
- .bss.spi1_tx_done
                 0x20000566        0x1 ./src/hal_entry.o
- *fill*         0x20000567        0x1 
- .bss.dbg_log_bursts
-                0x20000568        0x2 ./src/hal_entry.o
-                0x20000568                dbg_log_bursts
- .bss.dbg_log_lines_total
-                0x2000056a        0x2 ./src/hal_entry.o
-                0x2000056a                dbg_log_lines_total
- .bss.log_burst_sent
+                0x20000566                imu_spi_timeout_cnt
+ .bss.imu_spi_wr_err
+                0x20000567        0x1 ./src/hal_entry.o
+                0x20000567                imu_spi_wr_err
+ .bss.imu_spi_timeout
+                0x20000568        0x1 ./src/hal_entry.o
+                0x20000568                imu_spi_timeout
+ .bss.imu_rx_byte1
+                0x20000569        0x1 ./src/hal_entry.o
+                0x20000569                imu_rx_byte1
+ .bss.imu_rx_byte0
+                0x2000056a        0x1 ./src/hal_entry.o
+                0x2000056a                imu_rx_byte0
+ .bss.imu_spi_cb_count
+                0x2000056b        0x1 ./src/hal_entry.o
+                0x2000056b                imu_spi_cb_count
+ .bss.imu_init_stage
                 0x2000056c        0x1 ./src/hal_entry.o
- .bss.log_burst_max
+                0x2000056c                imu_init_stage
+ .bss.imu_int_status
                 0x2000056d        0x1 ./src/hal_entry.o
-                0x2000056d                log_burst_max
- .bss.ble_log_counter
-                0x2000056e        0x2 ./src/hal_entry.o
- .bss.ble_log_streaming
+                0x2000056d                imu_int_status
+ .bss.imu_accel_cfg
+                0x2000056e        0x1 ./src/hal_entry.o
+                0x2000056e                imu_accel_cfg
+ .bss.imu_pwr_mgmt0
+                0x2000056f        0x1 ./src/hal_entry.o
+                0x2000056f                imu_pwr_mgmt0
+ .bss.imu_init_ok
                 0x20000570        0x1 ./src/hal_entry.o
- *fill*         0x20000571        0x1 
- .bss.dbg_tx_write_count
-                0x20000572        0x2 ./src/hal_entry.o
-                0x20000572                dbg_tx_write_count
- .bss.dbg_tx_last_len
+                0x20000570                imu_init_ok
+ .bss.imu_who_am_i
+                0x20000571        0x1 ./src/hal_entry.o
+                0x20000571                imu_who_am_i
+ .bss.spi1_tx_done
+                0x20000572        0x1 ./src/hal_entry.o
+ *fill*         0x20000573        0x1 
+ .bss.dbg_log_bursts
                 0x20000574        0x2 ./src/hal_entry.o
-                0x20000574                dbg_tx_last_len
- .bss.tx_spacing_timer
-                0x20000576        0x1 ./src/hal_entry.o
- *fill*         0x20000577        0x1 
- .bss.dbg_cmd_timeout_count
-                0x20000578        0x2 ./src/hal_entry.o
-                0x20000578                dbg_cmd_timeout_count
- .bss.dbg_cmd_get_count
+                0x20000574                dbg_log_bursts
+ .bss.dbg_log_lines_total
+                0x20000576        0x2 ./src/hal_entry.o
+                0x20000576                dbg_log_lines_total
+ .bss.log_burst_sent
+                0x20000578        0x1 ./src/hal_entry.o
+ .bss.log_burst_max
+                0x20000579        0x1 ./src/hal_entry.o
+                0x20000579                log_burst_max
+ .bss.ble_log_counter
                 0x2000057a        0x2 ./src/hal_entry.o
-                0x2000057a                dbg_cmd_get_count
+ .bss.ble_log_streaming
+                0x2000057c        0x1 ./src/hal_entry.o
+ *fill*         0x2000057d        0x1 
+ .bss.dbg_tx_write_count
+                0x2000057e        0x2 ./src/hal_entry.o
+                0x2000057e                dbg_tx_write_count
+ .bss.dbg_tx_last_len
+                0x20000580        0x2 ./src/hal_entry.o
+                0x20000580                dbg_tx_last_len
+ .bss.tx_spacing_timer
+                0x20000582        0x1 ./src/hal_entry.o
+ *fill*         0x20000583        0x1 
+ .bss.dbg_cmd_timeout_count
+                0x20000584        0x2 ./src/hal_entry.o
+                0x20000584                dbg_cmd_timeout_count
+ .bss.dbg_cmd_get_count
+                0x20000586        0x2 ./src/hal_entry.o
+                0x20000586                dbg_cmd_get_count
  .bss.dbg_cmd_rx_count
-                0x2000057c        0x2 ./src/hal_entry.o
-                0x2000057c                dbg_cmd_rx_count
+                0x20000588        0x2 ./src/hal_entry.o
+                0x20000588                dbg_cmd_rx_count
  .bss.dbg_auto_send
-                0x2000057e        0x1 ./src/hal_entry.o
-                0x2000057e                dbg_auto_send
- *fill*         0x2000057f        0x1 
+                0x2000058a        0x1 ./src/hal_entry.o
+                0x2000058a                dbg_auto_send
+ *fill*         0x2000058b        0x1 
  .bss.dbg_baud_cyccnt
-                0x20000580        0x4 ./src/hal_entry.o
-                0x20000580                dbg_baud_cyccnt
- .bss.dbg_baud_cycles
-                0x20000584        0x4 ./src/hal_entry.o
-                0x20000584                dbg_baud_cycles
- .bss.dbg_actual_brr
-                0x20000588        0x1 ./src/hal_entry.o
-                0x20000588                dbg_actual_brr
- *fill*         0x20000589        0x1 
- .bss.dbg_ping_count
-                0x2000058a        0x2 ./src/hal_entry.o
-                0x2000058a                dbg_ping_count
- .bss.dbg_ccr2_value
                 0x2000058c        0x4 ./src/hal_entry.o
-                0x2000058c                dbg_ccr2_value
+                0x2000058c                dbg_baud_cyccnt
+ .bss.dbg_baud_cycles
+                0x20000590        0x4 ./src/hal_entry.o
+                0x20000590                dbg_baud_cycles
+ .bss.dbg_actual_brr
+                0x20000594        0x1 ./src/hal_entry.o
+                0x20000594                dbg_actual_brr
+ *fill*         0x20000595        0x1 
+ .bss.dbg_ping_count
+                0x20000596        0x2 ./src/hal_entry.o
+                0x20000596                dbg_ping_count
+ .bss.dbg_ccr2_value
+                0x20000598        0x4 ./src/hal_entry.o
+                0x20000598                dbg_ccr2_value
  .bss.dbg_rx_raw_idx
-                0x20000590        0x1 ./src/hal_entry.o
- *fill*         0x20000591        0x3 
+                0x2000059c        0x1 ./src/hal_entry.o
+ *fill*         0x2000059d        0x3 
  .bss.dbg_rx_raw
-                0x20000594       0x40 ./src/hal_entry.o
+                0x200005a0       0x40 ./src/hal_entry.o
  .bss.dbg_poll_count
-                0x200005d4        0x2 ./src/hal_entry.o
+                0x200005e0        0x2 ./src/hal_entry.o
  .bss.uart_err_count
-                0x200005d6        0x2 ./src/hal_entry.o
+                0x200005e2        0x2 ./src/hal_entry.o
  .bss.uart_rx_byte_count
-                0x200005d8        0x2 ./src/hal_entry.o
+                0x200005e4        0x2 ./src/hal_entry.o
  .bss.ble_debug_state
-                0x200005da        0x1 ./src/hal_entry.o
- *fill*         0x200005db        0x1 
+                0x200005e6        0x1 ./src/hal_entry.o
+ *fill*         0x200005e7        0x1 
  .bss.uart_rx_idle_ms
-                0x200005dc        0x2 ./src/hal_entry.o
+                0x200005e8        0x2 ./src/hal_entry.o
  .bss.tx_drop_count
-                0x200005de        0x2 ./src/hal_entry.o
-                0x200005de                tx_drop_count
+                0x200005ea        0x2 ./src/hal_entry.o
+                0x200005ea                tx_drop_count
  .bss.tx_ring_count
-                0x200005e0        0x1 ./src/hal_entry.o
+                0x200005ec        0x1 ./src/hal_entry.o
  .bss.tx_ring_tail
-                0x200005e1        0x1 ./src/hal_entry.o
+                0x200005ed        0x1 ./src/hal_entry.o
  .bss.tx_ring_head
-                0x200005e2        0x1 ./src/hal_entry.o
- *fill*         0x200005e3        0x1 
- .bss.tx_ring   0x200005e4      0x800 ./src/hal_entry.o
+                0x200005ee        0x1 ./src/hal_entry.o
+ *fill*         0x200005ef        0x1 
+ .bss.tx_ring   0x200005f0      0x800 ./src/hal_entry.o
  .bss.uart_tx_busy
-                0x20000de4        0x1 ./src/hal_entry.o
+                0x20000df0        0x1 ./src/hal_entry.o
  .bss.rx_cmd_count
-                0x20000de5        0x1 ./src/hal_entry.o
+                0x20000df1        0x1 ./src/hal_entry.o
  .bss.rx_cmd_tail
-                0x20000de6        0x1 ./src/hal_entry.o
+                0x20000df2        0x1 ./src/hal_entry.o
  .bss.rx_cmd_head
-                0x20000de7        0x1 ./src/hal_entry.o
+                0x20000df3        0x1 ./src/hal_entry.o
  .bss.rx_cmd_ring
-                0x20000de8      0x100 ./src/hal_entry.o
+                0x20000df4      0x100 ./src/hal_entry.o
  .bss.uart_rx_idx
-                0x20000ee8        0x2 ./src/hal_entry.o
- *fill*         0x20000eea        0x2 
+                0x20000ef4        0x2 ./src/hal_entry.o
+ *fill*         0x20000ef6        0x2 
  .bss.uart_rx_buf
-                0x20000eec       0x80 ./src/hal_entry.o
+                0x20000ef8       0x80 ./src/hal_entry.o
  .bss.i2t_ratio
-                0x20000f6c        0x4 ./src/hal_entry.o
-                0x20000f6c                i2t_ratio
+                0x20000f78        0x4 ./src/hal_entry.o
+                0x20000f78                i2t_ratio
  .bss.i2t_accumulator
-                0x20000f70        0x4 ./src/hal_entry.o
-                0x20000f70                i2t_accumulator
- .bss.sw_in2_debounce
-                0x20000f74        0x2 ./src/hal_entry.o
- .bss.sw_in1_debounce
-                0x20000f76        0x2 ./src/hal_entry.o
- .bss.turbo_mode
-                0x20000f78        0x1 ./src/hal_entry.o
-                0x20000f78                turbo_mode
- .bss.assist_level
-                0x20000f79        0x1 ./src/hal_entry.o
-                0x20000f79                assist_level
- *fill*         0x20000f7a        0x2 
- .bss.speed_ref_rpm
                 0x20000f7c        0x4 ./src/hal_entry.o
-                0x20000f7c                speed_ref_rpm
- .bss.protection_state
-                0x20000f80        0x1 ./src/hal_entry.o
-                0x20000f80                protection_state
- *fill*         0x20000f81        0x1 
- .bss.temp_regen_adc_raw
+                0x20000f7c                i2t_accumulator
+ .bss.sw_in2_debounce
+                0x20000f80        0x2 ./src/hal_entry.o
+ .bss.sw_in1_debounce
                 0x20000f82        0x2 ./src/hal_entry.o
-                0x20000f82                temp_regen_adc_raw
- .bss.temp_inv_adc_raw
-                0x20000f84        0x2 ./src/hal_entry.o
-                0x20000f84                temp_inv_adc_raw
- .bss.battery_adc_raw
-                0x20000f86        0x2 ./src/hal_entry.o
-                0x20000f86                battery_adc_raw
- .bss.battery_voltage
+ .bss.turbo_mode
+                0x20000f84        0x1 ./src/hal_entry.o
+                0x20000f84                turbo_mode
+ .bss.assist_level
+                0x20000f85        0x1 ./src/hal_entry.o
+                0x20000f85                assist_level
+ *fill*         0x20000f86        0x2 
+ .bss.speed_ref_rpm
                 0x20000f88        0x4 ./src/hal_entry.o
-                0x20000f88                battery_voltage
- .bss.led_state
+                0x20000f88                speed_ref_rpm
+ .bss.protection_state
                 0x20000f8c        0x1 ./src/hal_entry.o
-                0x20000f8c                led_state
- .bss.led_mode  0x20000f8d        0x1 ./src/hal_entry.o
-                0x20000f8d                led_mode
- .bss.as_low_counter
+                0x20000f8c                protection_state
+ *fill*         0x20000f8d        0x1 
+ .bss.temp_regen_adc_raw
                 0x20000f8e        0x2 ./src/hal_entry.o
- .bss.as_adc_raw
+                0x20000f8e                temp_regen_adc_raw
+ .bss.temp_inv_adc_raw
                 0x20000f90        0x2 ./src/hal_entry.o
-                0x20000f90                as_adc_raw
- *fill*         0x20000f92        0x2 
- .bss.as_voltage
+                0x20000f90                temp_inv_adc_raw
+ .bss.battery_adc_raw
+                0x20000f92        0x2 ./src/hal_entry.o
+                0x20000f92                battery_adc_raw
+ .bss.battery_voltage
                 0x20000f94        0x4 ./src/hal_entry.o
-                0x20000f94                as_voltage
- .bss.makita_battery_state
+                0x20000f94                battery_voltage
+ .bss.led_state
                 0x20000f98        0x1 ./src/hal_entry.o
-                0x20000f98                makita_battery_state
+                0x20000f98                led_state
+ .bss.led_mode  0x20000f99        0x1 ./src/hal_entry.o
+                0x20000f99                led_mode
+ .bss.as_low_counter
+                0x20000f9a        0x2 ./src/hal_entry.o
+ .bss.as_adc_raw
+                0x20000f9c        0x2 ./src/hal_entry.o
+                0x20000f9c                as_adc_raw
+ *fill*         0x20000f9e        0x2 
+ .bss.as_voltage
+                0x20000fa0        0x4 ./src/hal_entry.o
+                0x20000fa0                as_voltage
+ .bss.makita_battery_state
+                0x20000fa4        0x1 ./src/hal_entry.o
+                0x20000fa4                makita_battery_state
  .bss.makita_battery_en
-                0x20000f99        0x1 ./src/hal_entry.o
-                0x20000f99                makita_battery_en
+                0x20000fa5        0x1 ./src/hal_entry.o
+                0x20000fa5                makita_battery_en
  .bss.debug_shutdown_requested
-                0x20000f9a        0x1 ./src/hal_entry.o
-                0x20000f9a                debug_shutdown_requested
- *fill*         0x20000f9b        0x1 
+                0x20000fa6        0x1 ./src/hal_entry.o
+                0x20000fa6                debug_shutdown_requested
+ *fill*         0x20000fa7        0x1 
  .bss.debug_pe14_counter
-                0x20000f9c        0x4 ./src/hal_entry.o
-                0x20000f9c                debug_pe14_counter
- .bss.debug_pe14_state
-                0x20000fa0        0x1 ./src/hal_entry.o
-                0x20000fa0                debug_pe14_state
- .bss.debug_pe04_state
-                0x20000fa1        0x1 ./src/hal_entry.o
-                0x20000fa1                debug_pe04_state
- .bss.debug_pe03_state
-                0x20000fa2        0x1 ./src/hal_entry.o
-                0x20000fa2                debug_pe03_state
- .bss.shutdown_requested
-                0x20000fa3        0x1 ./src/hal_entry.o
- .bss.power_switch_high_counter
-                0x20000fa4        0x4 ./src/hal_entry.o
- .bss.cal_sweep_best_offset
                 0x20000fa8        0x4 ./src/hal_entry.o
-                0x20000fa8                cal_sweep_best_offset
- .bss.cal_sweep_idx
+                0x20000fa8                debug_pe14_counter
+ .bss.debug_pe14_state
                 0x20000fac        0x1 ./src/hal_entry.o
-                0x20000fac                cal_sweep_idx
- .bss.cal_sweep_en
+                0x20000fac                debug_pe14_state
+ .bss.debug_pe04_state
                 0x20000fad        0x1 ./src/hal_entry.o
-                0x20000fad                cal_sweep_en
- .bss.drv8302_fault_latched
+                0x20000fad                debug_pe04_state
+ .bss.debug_pe03_state
                 0x20000fae        0x1 ./src/hal_entry.o
-                0x20000fae                drv8302_fault_latched
- .bss.drv8302_fault
+                0x20000fae                debug_pe03_state
+ .bss.shutdown_requested
                 0x20000faf        0x1 ./src/hal_entry.o
-                0x20000faf                drv8302_fault
+ .bss.power_switch_high_counter
+                0x20000fb0        0x4 ./src/hal_entry.o
+ .bss.cal_sweep_best_offset
+                0x20000fb4        0x4 ./src/hal_entry.o
+                0x20000fb4                cal_sweep_best_offset
+ .bss.cal_sweep_idx
+                0x20000fb8        0x1 ./src/hal_entry.o
+                0x20000fb8                cal_sweep_idx
+ .bss.cal_sweep_en
+                0x20000fb9        0x1 ./src/hal_entry.o
+                0x20000fb9                cal_sweep_en
+ .bss.drv8302_fault_latched
+                0x20000fba        0x1 ./src/hal_entry.o
+                0x20000fba                drv8302_fault_latched
+ .bss.drv8302_fault
+                0x20000fbb        0x1 ./src/hal_entry.o
+                0x20000fbb                drv8302_fault
  .bss.debug_vabc
-                0x20000fb0        0xc ./src/hal_entry.o
-                0x20000fb0                debug_vabc
- .bss.debug_duty
                 0x20000fbc        0xc ./src/hal_entry.o
-                0x20000fbc                debug_duty
+                0x20000fbc                debug_vabc
+ .bss.debug_duty
+                0x20000fc8        0xc ./src/hal_entry.o
+                0x20000fc8                debug_duty
  .bss.log_counter
-                0x20000fc8        0x2 ./src/hal_entry.o
-                0x20000fc8                log_counter
+                0x20000fd4        0x2 ./src/hal_entry.o
+                0x20000fd4                log_counter
  .bss.log_index
-                0x20000fca        0x2 ./src/hal_entry.o
-                0x20000fca                log_index
+                0x20000fd6        0x2 ./src/hal_entry.o
+                0x20000fd6                log_index
  .bss.log_buffer
-                0x20000fcc     0x2710 ./src/hal_entry.o
-                0x20000fcc                log_buffer
+                0x20000fd8     0x2710 ./src/hal_entry.o
+                0x20000fd8                log_buffer
  .bss.overcurrent_peak_id
-                0x200036dc        0x4 ./src/hal_entry.o
-                0x200036dc                overcurrent_peak_id
- .bss.overcurrent_peak_iq
-                0x200036e0        0x4 ./src/hal_entry.o
-                0x200036e0                overcurrent_peak_iq
- .bss.overcurrent_fault
-                0x200036e4        0x1 ./src/hal_entry.o
-                0x200036e4                overcurrent_fault
- .bss.debug_enable_off_src
-                0x200036e5        0x1 ./src/hal_entry.o
-                0x200036e5                debug_enable_off_src
- .bss.debug_stop_rpm
-                0x200036e6        0x2 ./src/hal_entry.o
-                0x200036e6                debug_stop_rpm
- .bss.debug_stop_idqref
                 0x200036e8        0x4 ./src/hal_entry.o
-                0x200036e8                debug_stop_idqref
- .bss.debug_stop_iq
+                0x200036e8                overcurrent_peak_id
+ .bss.overcurrent_peak_iq
                 0x200036ec        0x4 ./src/hal_entry.o
-                0x200036ec                debug_stop_iq
- .bss.debug_stop_reason
+                0x200036ec                overcurrent_peak_iq
+ .bss.overcurrent_fault
                 0x200036f0        0x1 ./src/hal_entry.o
-                0x200036f0                debug_stop_reason
- .bss.debug_foc_state
+                0x200036f0                overcurrent_fault
+ .bss.debug_enable_off_src
                 0x200036f1        0x1 ./src/hal_entry.o
-                0x200036f1                debug_foc_state
- *fill*         0x200036f2        0x2 
- .bss.debug_abs_speed_error
+                0x200036f1                debug_enable_off_src
+ .bss.debug_stop_rpm
+                0x200036f2        0x2 ./src/hal_entry.o
+                0x200036f2                debug_stop_rpm
+ .bss.debug_stop_idqref
                 0x200036f4        0x4 ./src/hal_entry.o
-                0x200036f4                debug_abs_speed_error
- .bss.debug_encl_smooth
-                0x200036f8        0x1 ./src/hal_entry.o
-                0x200036f8                debug_encl_smooth
- *fill*         0x200036f9        0x3 
- .bss.debug_i2_avg
-                0x200036fc        0x4 ./src/hal_entry.o
-                0x200036fc                debug_i2_avg
- .bss.debug_i2_max
+                0x200036f4                debug_stop_idqref
+ .bss.debug_stop_iq
+                0x200036f8        0x4 ./src/hal_entry.o
+                0x200036f8                debug_stop_iq
+ .bss.debug_stop_reason
+                0x200036fc        0x1 ./src/hal_entry.o
+                0x200036fc                debug_stop_reason
+ .bss.debug_foc_state
+                0x200036fd        0x1 ./src/hal_entry.o
+                0x200036fd                debug_foc_state
+ *fill*         0x200036fe        0x2 
+ .bss.debug_abs_speed_error
                 0x20003700        0x4 ./src/hal_entry.o
-                0x20003700                debug_i2_max
- .bss.debug_Iq_integral
-                0x20003704        0x4 ./src/hal_entry.o
-                0x20003704                debug_Iq_integral
- .bss.debug_Ibeta
+                0x20003700                debug_abs_speed_error
+ .bss.debug_encl_smooth
+                0x20003704        0x1 ./src/hal_entry.o
+                0x20003704                debug_encl_smooth
+ *fill*         0x20003705        0x3 
+ .bss.debug_i2_avg
                 0x20003708        0x4 ./src/hal_entry.o
-                0x20003708                debug_Ibeta
- .bss.debug_Ialpha
+                0x20003708                debug_i2_avg
+ .bss.debug_i2_max
                 0x2000370c        0x4 ./src/hal_entry.o
-                0x2000370c                debug_Ialpha
- .bss.debug_fifo0_ch
+                0x2000370c                debug_i2_max
+ .bss.debug_Iq_integral
                 0x20003710        0x4 ./src/hal_entry.o
-                0x20003710                debug_fifo0_ch
+                0x20003710                debug_Iq_integral
+ .bss.debug_Ibeta
+                0x20003714        0x4 ./src/hal_entry.o
+                0x20003714                debug_Ibeta
+ .bss.debug_Ialpha
+                0x20003718        0x4 ./src/hal_entry.o
+                0x20003718                debug_Ialpha
+ .bss.debug_fifo0_ch
+                0x2000371c        0x4 ./src/hal_entry.o
+                0x2000371c                debug_fifo0_ch
  .bss.debug_fifo0_data
-                0x20003714        0x8 ./src/hal_entry.o
-                0x20003714                debug_fifo0_data
+                0x20003720        0x8 ./src/hal_entry.o
+                0x20003720                debug_fifo0_data
  .bss.debug_fifo2_err
-                0x2000371c        0x8 ./src/hal_entry.o
-                0x2000371c                debug_fifo2_err
+                0x20003728        0x8 ./src/hal_entry.o
+                0x20003728                debug_fifo2_err
  .bss.debug_fifo2_ch
-                0x20003724        0x8 ./src/hal_entry.o
-                0x20003724                debug_fifo2_ch
+                0x20003730        0x8 ./src/hal_entry.o
+                0x20003730                debug_fifo2_ch
  .bss.debug_fifo2_data
-                0x2000372c       0x10 ./src/hal_entry.o
-                0x2000372c                debug_fifo2_data
+                0x20003738       0x10 ./src/hal_entry.o
+                0x20003738                debug_fifo2_data
  .bss.debug_fifo2_count
-                0x2000373c        0x1 ./src/hal_entry.o
-                0x2000373c                debug_fifo2_count
+                0x20003748        0x1 ./src/hal_entry.o
+                0x20003748                debug_fifo2_count
  .bss.vdc_compensation_en
-                0x2000373d        0x1 ./src/hal_entry.o
-                0x2000373d                vdc_compensation_en
- *fill*         0x2000373e        0x2 
+                0x20003749        0x1 ./src/hal_entry.o
+                0x20003749                vdc_compensation_en
+ *fill*         0x2000374a        0x2 
  .bss.adc_rate_result
-                0x20003740        0x4 ./src/hal_entry.o
-                0x20003740                adc_rate_result
- .bss.adc_count_at_1s
-                0x20003744        0x4 ./src/hal_entry.o
- .bss.timer_callback_count
-                0x20003748        0x4 ./src/hal_entry.o
-                0x20003748                timer_callback_count
- .bss.adc_callback_count
                 0x2000374c        0x4 ./src/hal_entry.o
-                0x2000374c                adc_callback_count
- .bss.debug_f_get_speed_raw
+                0x2000374c                adc_rate_result
+ .bss.adc_count_at_1s
                 0x20003750        0x4 ./src/hal_entry.o
-                0x20003750                debug_f_get_speed_raw
- .bss.debug_angle_unwrapped
+ .bss.timer_callback_count
                 0x20003754        0x4 ./src/hal_entry.o
-                0x20003754                debug_angle_unwrapped
- .bss.debug_speed_from_angle
+                0x20003754                timer_callback_count
+ .bss.adc_callback_count
                 0x20003758        0x4 ./src/hal_entry.o
-                0x20003758                debug_speed_from_angle
- .bss.angle_accumulated
+                0x20003758                adc_callback_count
+ .bss.debug_f_get_speed_raw
                 0x2000375c        0x4 ./src/hal_entry.o
- .bss.prev_angle_for_unwrap
+                0x2000375c                debug_f_get_speed_raw
+ .bss.debug_angle_unwrapped
                 0x20003760        0x4 ./src/hal_entry.o
+                0x20003760                debug_angle_unwrapped
+ .bss.debug_speed_from_angle
+                0x20003764        0x4 ./src/hal_entry.o
+                0x20003764                debug_speed_from_angle
+ .bss.angle_accumulated
+                0x20003768        0x4 ./src/hal_entry.o
+ .bss.prev_angle_for_unwrap
+                0x2000376c        0x4 ./src/hal_entry.o
  .bss.angle_hist_filled
-                0x20003764        0x1 ./src/hal_entry.o
- *fill*         0x20003765        0x1 
+                0x20003770        0x1 ./src/hal_entry.o
+ *fill*         0x20003771        0x1 
  .bss.angle_hist_idx
-                0x20003766        0x2 ./src/hal_entry.o
+                0x20003772        0x2 ./src/hal_entry.o
  .bss.angle_history
-                0x20003768      0x320 ./src/hal_entry.o
+                0x20003774      0x320 ./src/hal_entry.o
  .bss.SpeedRefIn_PU
-                0x20003a88        0x4 ./src/hal_entry.o
-                0x20003a88                SpeedRefIn_PU
- .bss.IdFb      0x20003a8c        0x4 ./src/hal_entry.o
-                0x20003a8c                IdFb
- .bss.IqFb      0x20003a90        0x4 ./src/hal_entry.o
-                0x20003a90                IqFb
- .bss.EnCl      0x20003a94        0x1 ./src/hal_entry.o
-                0x20003a94                EnCl
- *fill*         0x20003a95        0x3 
+                0x20003a94        0x4 ./src/hal_entry.o
+                0x20003a94                SpeedRefIn_PU
+ .bss.IdFb      0x20003a98        0x4 ./src/hal_entry.o
+                0x20003a98                IdFb
+ .bss.IqFb      0x20003a9c        0x4 ./src/hal_entry.o
+                0x20003a9c                IqFb
+ .bss.EnCl      0x20003aa0        0x1 ./src/hal_entry.o
+                0x20003aa0                EnCl
+ *fill*         0x20003aa1        0x3 
  .bss.SpeedFb_Hall_PU
-                0x20003a98        0x4 ./src/hal_entry.o
-                0x20003a98                SpeedFb_Hall_PU
+                0x20003aa4        0x4 ./src/hal_entry.o
+                0x20003aa4                SpeedFb_Hall_PU
  .bss.SpeedFb_PU
-                0x20003a9c        0x4 ./src/hal_entry.o
-                0x20003a9c                SpeedFb_PU
- .bss.IdqRef    0x20003aa0        0x8 ./src/hal_entry.o
-                0x20003aa0                IdqRef
- .bss.f_get_phase_err
                 0x20003aa8        0x4 ./src/hal_entry.o
-                0x20003aa8                f_get_phase_err
+                0x20003aa8                SpeedFb_PU
+ .bss.IdqRef    0x20003aac        0x8 ./src/hal_entry.o
+                0x20003aac                IdqRef
+ .bss.f_get_phase_err
+                0x20003ab4        0x4 ./src/hal_entry.o
+                0x20003ab4                f_get_phase_err
  .bss.f_get_speed
-                0x20003aac        0x4 ./src/hal_entry.o
-                0x20003aac                f_get_speed
+                0x20003ab8        0x4 ./src/hal_entry.o
+                0x20003ab8                f_get_speed
  .bss.f_get_angle
-                0x20003ab0        0x4 ./src/hal_entry.o
-                0x20003ab0                f_get_angle
- .bss.Vabc_out  0x20003ab4        0xc ./src/hal_entry.o
-                0x20003ab4                Vabc_out
- .bss.Iab       0x20003ac0        0x4 ./src/hal_entry.o
-                0x20003ac0                Iab
+                0x20003abc        0x4 ./src/hal_entry.o
+                0x20003abc                f_get_angle
+ .bss.Vabc_out  0x20003ac0        0xc ./src/hal_entry.o
+                0x20003ac0                Vabc_out
+ .bss.Iab       0x20003acc        0x4 ./src/hal_entry.o
+                0x20003acc                Iab
  .bss.SpeedRefFinal_PU
-                0x20003ac4        0x4 ./src/hal_entry.o
-                0x20003ac4                SpeedRefFinal_PU
+                0x20003ad0        0x4 ./src/hal_entry.o
+                0x20003ad0                SpeedRefFinal_PU
  .bss.SpeedFb_RPM
-                0x20003ac8        0x4 ./src/hal_entry.o
-                0x20003ac8                SpeedFb_RPM
+                0x20003ad4        0x4 ./src/hal_entry.o
+                0x20003ad4                SpeedFb_RPM
  .bss.SpeedRef_RPM
-                0x20003acc        0x4 ./src/hal_entry.o
-                0x20003acc                SpeedRef_RPM
- .bss.Enable    0x20003ad0        0x1 ./src/hal_entry.o
-                0x20003ad0                Enable
- *fill*         0x20003ad1        0x3 
- .bss.rtNaNF    0x20003ad4        0x4 ./src/rt_nonfinite.o
-                0x20003ad4                rtNaNF
+                0x20003ad8        0x4 ./src/hal_entry.o
+                0x20003ad8                SpeedRef_RPM
+ .bss.Enable    0x20003adc        0x1 ./src/hal_entry.o
+                0x20003adc                Enable
+ *fill*         0x20003add        0x3 
+ .bss.rtNaNF    0x20003ae0        0x4 ./src/rt_nonfinite.o
+                0x20003ae0                rtNaNF
  .bss.rtMinusInfF
-                0x20003ad8        0x4 ./src/rt_nonfinite.o
-                0x20003ad8                rtMinusInfF
- .bss.rtInfF    0x20003adc        0x4 ./src/rt_nonfinite.o
-                0x20003adc                rtInfF
- .bss.rtNaN     0x20003ae0        0x8 ./src/rt_nonfinite.o
-                0x20003ae0                rtNaN
+                0x20003ae4        0x4 ./src/rt_nonfinite.o
+                0x20003ae4                rtMinusInfF
+ .bss.rtInfF    0x20003ae8        0x4 ./src/rt_nonfinite.o
+                0x20003ae8                rtInfF
+ *fill*         0x20003aec        0x4 
+ .bss.rtNaN     0x20003af0        0x8 ./src/rt_nonfinite.o
+                0x20003af0                rtNaN
  .bss.rtMinusInf
-                0x20003ae8        0x8 ./src/rt_nonfinite.o
-                0x20003ae8                rtMinusInf
- .bss.rtInf     0x20003af0        0x8 ./src/rt_nonfinite.o
-                0x20003af0                rtInf
+                0x20003af8        0x8 ./src/rt_nonfinite.o
+                0x20003af8                rtMinusInf
+ .bss.rtInf     0x20003b00        0x8 ./src/rt_nonfinite.o
+                0x20003b00                rtInf
  .bss.g_ioport_ctrl
-                0x20003af8        0x8 ./ra_gen/common_data.o
-                0x20003af8                g_ioport_ctrl
+                0x20003b08        0x8 ./ra_gen/common_data.o
+                0x20003b08                g_ioport_ctrl
  .bss.g_motor_angle0_ctrl
-                0x20003b00       0x40 ./ra_gen/hal_data.o
-                0x20003b00                g_motor_angle0_ctrl
+                0x20003b10       0x40 ./ra_gen/hal_data.o
+                0x20003b10                g_motor_angle0_ctrl
  .bss.g_three_phase0_ctrl
-                0x20003b40       0x1c ./ra_gen/hal_data.o
-                0x20003b40                g_three_phase0_ctrl
+                0x20003b50       0x1c ./ra_gen/hal_data.o
+                0x20003b50                g_three_phase0_ctrl
  .bss.g_timer0_ctrl
-                0x20003b5c       0x20 ./ra_gen/hal_data.o
-                0x20003b5c                g_timer0_ctrl
+                0x20003b6c       0x20 ./ra_gen/hal_data.o
+                0x20003b6c                g_timer0_ctrl
  .bss.g_timer1_ctrl
-                0x20003b7c       0x20 ./ra_gen/hal_data.o
-                0x20003b7c                g_timer1_ctrl
+                0x20003b8c       0x20 ./ra_gen/hal_data.o
+                0x20003b8c                g_timer1_ctrl
  .bss.g_timer2_ctrl
-                0x20003b9c       0x20 ./ra_gen/hal_data.o
-                0x20003b9c                g_timer2_ctrl
+                0x20003bac       0x20 ./ra_gen/hal_data.o
+                0x20003bac                g_timer2_ctrl
  .bss.g_adc0_ctrl
-                0x20003bbc       0x28 ./ra_gen/hal_data.o
-                0x20003bbc                g_adc0_ctrl
+                0x20003bcc       0x28 ./ra_gen/hal_data.o
+                0x20003bcc                g_adc0_ctrl
  .bss.g_timer4_ctrl
-                0x20003be4       0x20 ./ra_gen/hal_data.o
-                0x20003be4                g_timer4_ctrl
+                0x20003bf4       0x20 ./ra_gen/hal_data.o
+                0x20003bf4                g_timer4_ctrl
  .bss.g_uart3_ctrl
-                0x20003c04       0x30 ./ra_gen/hal_data.o
-                0x20003c04                g_uart3_ctrl
+                0x20003c14       0x30 ./ra_gen/hal_data.o
+                0x20003c14                g_uart3_ctrl
  .bss.g_spi1_ctrl
-                0x20003c34       0x30 ./ra_gen/hal_data.o
-                0x20003c34                g_spi1_ctrl
+                0x20003c44       0x30 ./ra_gen/hal_data.o
+                0x20003c44                g_spi1_ctrl
  .bss.g_transfer1_ctrl
-                0x20003c64        0x8 ./ra_gen/hal_data.o
-                0x20003c64                g_transfer1_ctrl
+                0x20003c74        0x8 ./ra_gen/hal_data.o
+                0x20003c74                g_transfer1_ctrl
  .bss.g_transfer0_ctrl
-                0x20003c6c        0x8 ./ra_gen/hal_data.o
-                0x20003c6c                g_transfer0_ctrl
+                0x20003c7c        0x8 ./ra_gen/hal_data.o
+                0x20003c7c                g_transfer0_ctrl
  .bss.dummy_tx.0
-                0x20003c74        0x4 ./ra/fsp/src/r_spi_b/r_spi_b.o
+                0x20003c84        0x4 ./ra/fsp/src/r_spi_b/r_spi_b.o
  .bss.dummy_rx.1
-                0x20003c78        0x4 ./ra/fsp/src/r_spi_b/r_spi_b.o
+                0x20003c88        0x4 ./ra/fsp/src/r_spi_b/r_spi_b.o
  .bss.g_dtc_state_initialized.0
-                0x20003c7c        0x1 ./ra/fsp/src/r_dtc/r_dtc.o
- *fill*         0x20003c7d        0x3 
+                0x20003c8c        0x1 ./ra/fsp/src/r_dtc/r_dtc.o
+ *fill*         0x20003c8d        0x3 
  .bss.g_bsp_group_irq_sources
-                0x20003c80       0x40 ./ra/fsp/src/bsp/mcu/all/bsp_group_irq.o
-                0x20003c80                g_bsp_group_irq_sources
+                0x20003c90       0x40 ./ra/fsp/src/bsp/mcu/all/bsp_group_irq.o
+                0x20003c90                g_bsp_group_irq_sources
  .bss.g_protect_pfswe_counter
-                0x20003cc0        0x4 ./ra/fsp/src/bsp/mcu/all/bsp_io.o
-                0x20003cc0                g_protect_pfswe_counter
+                0x20003cd0        0x4 ./ra/fsp/src/bsp/mcu/all/bsp_io.o
+                0x20003cd0                g_protect_pfswe_counter
  .bss.gp_renesas_isr_context
-                0x20003cc4       0x34 ./ra/fsp/src/bsp/mcu/all/bsp_irq.o
-                0x20003cc4                gp_renesas_isr_context
+                0x20003cd4       0x34 ./ra/fsp/src/bsp/mcu/all/bsp_irq.o
+                0x20003cd4                gp_renesas_isr_context
  .bss.g_protect_counters
-                0x20003cf8        0x8 ./ra/fsp/src/bsp/mcu/all/bsp_register_protection.o
-                0x20003cf8                g_protect_counters
+                0x20003d08        0x8 ./ra/fsp/src/bsp/mcu/all/bsp_register_protection.o
+                0x20003d08                g_protect_counters
  .bss.current_heap_end.0
-                0x20003d00        0x4 ./ra/fsp/src/bsp/mcu/all/bsp_sbrk.o
+                0x20003d10        0x4 ./ra/fsp/src/bsp/mcu/all/bsp_sbrk.o
  .bss.SystemCoreClock
-                0x20003d04        0x4 ./ra/fsp/src/bsp/cmsis/Device/RENESAS/Source/system.o
-                0x20003d04                SystemCoreClock
- .bss.__sf      0x20003d08      0x138 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-findfp.o)
-                0x20003d08                __sf
- .bss.errno     0x20003e40        0x4 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-reent.o)
-                0x20003e40                errno
+                0x20003d14        0x4 ./ra/fsp/src/bsp/cmsis/Device/RENESAS/Source/system.o
+                0x20003d14                SystemCoreClock
+ .bss.__sf      0x20003d18      0x138 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-findfp.o)
+                0x20003d18                __sf
+ .bss.errno     0x20003e50        0x4 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-reent.o)
+                0x20003e50                errno
  .bss.__lock___malloc_recursive_mutex
-                0x20003e44        0x1 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-lock.o)
-                0x20003e44                __lock___malloc_recursive_mutex
- *fill*         0x20003e45        0x3 
+                0x20003e54        0x1 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-lock.o)
+                0x20003e54                __lock___malloc_recursive_mutex
+ *fill*         0x20003e55        0x3 
  .bss.__malloc_sbrk_start
-                0x20003e48        0x4 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mallocr.o)
-                0x20003e48                __malloc_sbrk_start
+                0x20003e58        0x4 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mallocr.o)
+                0x20003e58                __malloc_sbrk_start
  .bss.__malloc_free_list
-                0x20003e4c        0x4 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mallocr.o)
-                0x20003e4c                __malloc_free_list
+                0x20003e5c        0x4 C:/Renesas/RA/e2studio_v2025-04_fsp_v5.9.0/toolchains/gcc_arm/13.2.rel1/bin/../lib/gcc/arm-none-eabi/13.2.1/thumb/v8-m.main+fp/hard\libg_nano.a(libc_a-mallocr.o)
+                0x20003e5c                __malloc_free_list
  *(COMMON)
-                0x20003e50                        . = ALIGN (0x4)
-                0x20003e50                        __bss_end__ = .
+                0x20003e60                        . = ALIGN (0x4)
+                0x20003e60                        __bss_end__ = .
 
-.heap           0x20003e50        0x0
-                0x20003e50                        . = ALIGN (0x8)
-                0x20003e50                        __HeapBase = .
+.heap           0x20003e60        0x0
+                0x20003e60                        . = ALIGN (0x8)
+                0x20003e60                        __HeapBase = .
  *(.heap)
-                0x20003e50                        __HeapLimit = .
+                0x20003e60                        __HeapLimit = .
 
-.stack_dummy    0x20003e50     0x1000
-                0x20003e50                        . = ALIGN (0x8)
-                0x20003e50                        __StackLimit = .
+.stack_dummy    0x20003e60     0x1000
+                0x20003e60                        . = ALIGN (0x8)
+                0x20003e60                        __StackLimit = .
  *(.stack)
- .stack         0x20003e50     0x1000 ./ra/fsp/src/bsp/cmsis/Device/RENESAS/Source/startup.o
-                0x20004e50                        __StackTop = .
+ .stack         0x20003e60     0x1000 ./ra/fsp/src/bsp/cmsis/Device/RENESAS/Source/startup.o
+                0x20004e60                        __StackTop = .
  *(.stack*)
-                0x20004e50                        __StackTopAll = .
-                0x20004e50                        PROVIDE (__stack = __StackTopAll)
-                0x20004e50                        __RAM_segment_used_end__ = ALIGN (__StackTopAll, 0x4)
+                0x20004e60                        __StackTopAll = .
+                0x20004e60                        PROVIDE (__stack = __StackTopAll)
+                0x20004e60                        __RAM_segment_used_end__ = ALIGN (__StackTopAll, 0x4)
                 0x20005000                        __tz_RAM_C = DEFINED (RAM_NSC_START)?ABSOLUTE ((RAM_NSC_START - RAM_NS_BUFFER_BLOCK_LENGTH)):__RESERVE_NS_RAM?ABSOLUTE (RAM_NS_BUFFER_BLOCK_START):ALIGN (__RAM_segment_used_end__, 0x400)
                 0x20006000                        __tz_RAM_N = DEFINED (RAM_NS_START)?ABSOLUTE ((RAM_NS_START - RAM_NS_BUFFER_BLOCK_LENGTH)):__RESERVE_NS_RAM?ABSOLUTE (RAM_NS_BUFFER_BLOCK_START):ALIGN (__tz_RAM_C, 0x2000)
 
-.ns_buffer      0x20004e50        0x0
-                0x20004e50                        . = __RESERVE_NS_RAM?ABSOLUTE ((RAM_NS_BUFFER_START & 0xffffffe0)):.
+.ns_buffer      0x20004e60        0x0
+                0x20004e60                        . = __RESERVE_NS_RAM?ABSOLUTE ((RAM_NS_BUFFER_START & 0xffffffe0)):.
  *(.ns_buffer*)
 
 .data_flash     0x08000000        0x0
@@ -3327,38 +3334,38 @@ LOAD linker stubs
  .comment       0x00000044       0x45 ./ra/fsp/src/bsp/cmsis/Device/RENESAS/Source/startup.o
  .comment       0x00000044       0x45 ./ra/fsp/src/bsp/cmsis/Device/RENESAS/Source/system.o
 
-.debug_info     0x00000000    0x691e9
+.debug_info     0x00000000    0x69266
  .debug_info    0x00000000      0x27c ./src/ConfigParameters.o
  .debug_info    0x0000027c     0x1256 ./src/FOCCurrentControl.o
  .debug_info    0x000014d2      0x3e2 ./src/FOCSpeedControl.o
- .debug_info    0x000018b4     0xd495 ./src/hal_entry.o
- .debug_info    0x0000ed49      0x272 ./src/rtGetInf.o
- .debug_info    0x0000efbb      0x1cf ./src/rtGetNaN.o
- .debug_info    0x0000f18a      0x3b0 ./src/rt_nonfinite.o
- .debug_info    0x0000f53a     0x1d03 ./ra_gen/common_data.o
- .debug_info    0x0001123d     0xaca8 ./ra_gen/hal_data.o
- .debug_info    0x0001bee5       0xb1 ./ra_gen/main.o
- .debug_info    0x0001bf96     0x1208 ./ra_gen/pin_data.o
- .debug_info    0x0001d19e      0x920 ./ra_gen/vector_data.o
- .debug_info    0x0001dabe     0x24df ./ra/fsp/src/rm_motor_sense_hall/rm_motor_sense_hall.o
- .debug_info    0x0001ff9d     0x95f9 ./ra/fsp/src/r_spi_b/r_spi_b.o
- .debug_info    0x00029596     0x9747 ./ra/fsp/src/r_sci_b_uart/r_sci_b_uart.o
- .debug_info    0x00032cdd     0x3334 ./ra/fsp/src/r_ioport/r_ioport.o
- .debug_info    0x00036011     0x425e ./ra/fsp/src/r_gpt_three_phase/r_gpt_three_phase.o
- .debug_info    0x0003a26f     0xb966 ./ra/fsp/src/r_gpt/r_gpt.o
- .debug_info    0x00045bd5     0x358e ./ra/fsp/src/r_dtc/r_dtc.o
- .debug_info    0x00049163     0xe774 ./ra/fsp/src/r_adc_b/r_adc_b.o
- .debug_info    0x000578d7     0x4a26 ./ra/fsp/src/bsp/mcu/all/bsp_clocks.o
- .debug_info    0x0005c2fd     0x1114 ./ra/fsp/src/bsp/mcu/all/bsp_common.o
- .debug_info    0x0005d411      0x1e2 ./ra/fsp/src/bsp/mcu/all/bsp_delay.o
- .debug_info    0x0005d5f3     0x1b0a ./ra/fsp/src/bsp/mcu/all/bsp_group_irq.o
- .debug_info    0x0005f0fd      0x88f ./ra/fsp/src/bsp/mcu/all/bsp_io.o
- .debug_info    0x0005f98c     0x2044 ./ra/fsp/src/bsp/mcu/all/bsp_irq.o
- .debug_info    0x000619d0     0x40e5 ./ra/fsp/src/bsp/mcu/all/bsp_register_protection.o
- .debug_info    0x00065ab5      0x995 ./ra/fsp/src/bsp/mcu/all/bsp_rom_registers.o
- .debug_info    0x0006644a      0x142 ./ra/fsp/src/bsp/mcu/all/bsp_sbrk.o
- .debug_info    0x0006658c      0x945 ./ra/fsp/src/bsp/cmsis/Device/RENESAS/Source/startup.o
- .debug_info    0x00066ed1     0x2318 ./ra/fsp/src/bsp/cmsis/Device/RENESAS/Source/system.o
+ .debug_info    0x000018b4     0xd512 ./src/hal_entry.o
+ .debug_info    0x0000edc6      0x272 ./src/rtGetInf.o
+ .debug_info    0x0000f038      0x1cf ./src/rtGetNaN.o
+ .debug_info    0x0000f207      0x3b0 ./src/rt_nonfinite.o
+ .debug_info    0x0000f5b7     0x1d03 ./ra_gen/common_data.o
+ .debug_info    0x000112ba     0xaca8 ./ra_gen/hal_data.o
+ .debug_info    0x0001bf62       0xb1 ./ra_gen/main.o
+ .debug_info    0x0001c013     0x1208 ./ra_gen/pin_data.o
+ .debug_info    0x0001d21b      0x920 ./ra_gen/vector_data.o
+ .debug_info    0x0001db3b     0x24df ./ra/fsp/src/rm_motor_sense_hall/rm_motor_sense_hall.o
+ .debug_info    0x0002001a     0x95f9 ./ra/fsp/src/r_spi_b/r_spi_b.o
+ .debug_info    0x00029613     0x9747 ./ra/fsp/src/r_sci_b_uart/r_sci_b_uart.o
+ .debug_info    0x00032d5a     0x3334 ./ra/fsp/src/r_ioport/r_ioport.o
+ .debug_info    0x0003608e     0x425e ./ra/fsp/src/r_gpt_three_phase/r_gpt_three_phase.o
+ .debug_info    0x0003a2ec     0xb966 ./ra/fsp/src/r_gpt/r_gpt.o
+ .debug_info    0x00045c52     0x358e ./ra/fsp/src/r_dtc/r_dtc.o
+ .debug_info    0x000491e0     0xe774 ./ra/fsp/src/r_adc_b/r_adc_b.o
+ .debug_info    0x00057954     0x4a26 ./ra/fsp/src/bsp/mcu/all/bsp_clocks.o
+ .debug_info    0x0005c37a     0x1114 ./ra/fsp/src/bsp/mcu/all/bsp_common.o
+ .debug_info    0x0005d48e      0x1e2 ./ra/fsp/src/bsp/mcu/all/bsp_delay.o
+ .debug_info    0x0005d670     0x1b0a ./ra/fsp/src/bsp/mcu/all/bsp_group_irq.o
+ .debug_info    0x0005f17a      0x88f ./ra/fsp/src/bsp/mcu/all/bsp_io.o
+ .debug_info    0x0005fa09     0x2044 ./ra/fsp/src/bsp/mcu/all/bsp_irq.o
+ .debug_info    0x00061a4d     0x40e5 ./ra/fsp/src/bsp/mcu/all/bsp_register_protection.o
+ .debug_info    0x00065b32      0x995 ./ra/fsp/src/bsp/mcu/all/bsp_rom_registers.o
+ .debug_info    0x000664c7      0x142 ./ra/fsp/src/bsp/mcu/all/bsp_sbrk.o
+ .debug_info    0x00066609      0x945 ./ra/fsp/src/bsp/cmsis/Device/RENESAS/Source/startup.o
+ .debug_info    0x00066f4e     0x2318 ./ra/fsp/src/bsp/cmsis/Device/RENESAS/Source/system.o
 
 .debug_abbrev   0x00000000     0x5376
  .debug_abbrev  0x00000000       0xa2 ./src/ConfigParameters.o
@@ -3457,174 +3464,174 @@ LOAD linker stubs
  .debug_aranges
                 0x00000938       0x28 ./ra/fsp/src/bsp/cmsis/Device/RENESAS/Source/system.o
 
-.debug_line     0x00000000    0x10c92
+.debug_line     0x00000000    0x10cdf
  .debug_line    0x00000000       0x76 ./src/ConfigParameters.o
  .debug_line    0x00000076      0xd77 ./src/FOCCurrentControl.o
  .debug_line    0x00000ded      0x33b ./src/FOCSpeedControl.o
- .debug_line    0x00001128     0x3469 ./src/hal_entry.o
- .debug_line    0x00004591      0x14c ./src/rtGetInf.o
- .debug_line    0x000046dd      0x10b ./src/rtGetNaN.o
- .debug_line    0x000047e8      0x243 ./src/rt_nonfinite.o
- .debug_line    0x00004a2b      0x2e6 ./ra_gen/common_data.o
- .debug_line    0x00004d11      0x3f1 ./ra_gen/hal_data.o
- .debug_line    0x00005102       0x5e ./ra_gen/main.o
- .debug_line    0x00005160      0x247 ./ra_gen/pin_data.o
- .debug_line    0x000053a7      0x11a ./ra_gen/vector_data.o
- .debug_line    0x000054c1      0x9cb ./ra/fsp/src/rm_motor_sense_hall/rm_motor_sense_hall.o
- .debug_line    0x00005e8c     0x1752 ./ra/fsp/src/r_spi_b/r_spi_b.o
- .debug_line    0x000075de     0x1889 ./ra/fsp/src/r_sci_b_uart/r_sci_b_uart.o
- .debug_line    0x00008e67      0x9a4 ./ra/fsp/src/r_ioport/r_ioport.o
- .debug_line    0x0000980b      0x585 ./ra/fsp/src/r_gpt_three_phase/r_gpt_three_phase.o
- .debug_line    0x00009d90     0x1b34 ./ra/fsp/src/r_gpt/r_gpt.o
- .debug_line    0x0000b8c4      0x9fc ./ra/fsp/src/r_dtc/r_dtc.o
- .debug_line    0x0000c2c0     0x22c1 ./ra/fsp/src/r_adc_b/r_adc_b.o
- .debug_line    0x0000e581      0x7bd ./ra/fsp/src/bsp/mcu/all/bsp_clocks.o
- .debug_line    0x0000ed3e      0x2de ./ra/fsp/src/bsp/mcu/all/bsp_common.o
- .debug_line    0x0000f01c      0x29b ./ra/fsp/src/bsp/mcu/all/bsp_delay.o
- .debug_line    0x0000f2b7      0x341 ./ra/fsp/src/bsp/mcu/all/bsp_group_irq.o
- .debug_line    0x0000f5f8      0x1c3 ./ra/fsp/src/bsp/mcu/all/bsp_io.o
- .debug_line    0x0000f7bb      0x500 ./ra/fsp/src/bsp/mcu/all/bsp_irq.o
- .debug_line    0x0000fcbb      0x3f7 ./ra/fsp/src/bsp/mcu/all/bsp_register_protection.o
- .debug_line    0x000100b2      0x184 ./ra/fsp/src/bsp/mcu/all/bsp_rom_registers.o
- .debug_line    0x00010236      0x1ce ./ra/fsp/src/bsp/mcu/all/bsp_sbrk.o
- .debug_line    0x00010404      0x22f ./ra/fsp/src/bsp/cmsis/Device/RENESAS/Source/startup.o
- .debug_line    0x00010633      0x65f ./ra/fsp/src/bsp/cmsis/Device/RENESAS/Source/system.o
+ .debug_line    0x00001128     0x34b6 ./src/hal_entry.o
+ .debug_line    0x000045de      0x14c ./src/rtGetInf.o
+ .debug_line    0x0000472a      0x10b ./src/rtGetNaN.o
+ .debug_line    0x00004835      0x243 ./src/rt_nonfinite.o
+ .debug_line    0x00004a78      0x2e6 ./ra_gen/common_data.o
+ .debug_line    0x00004d5e      0x3f1 ./ra_gen/hal_data.o
+ .debug_line    0x0000514f       0x5e ./ra_gen/main.o
+ .debug_line    0x000051ad      0x247 ./ra_gen/pin_data.o
+ .debug_line    0x000053f4      0x11a ./ra_gen/vector_data.o
+ .debug_line    0x0000550e      0x9cb ./ra/fsp/src/rm_motor_sense_hall/rm_motor_sense_hall.o
+ .debug_line    0x00005ed9     0x1752 ./ra/fsp/src/r_spi_b/r_spi_b.o
+ .debug_line    0x0000762b     0x1889 ./ra/fsp/src/r_sci_b_uart/r_sci_b_uart.o
+ .debug_line    0x00008eb4      0x9a4 ./ra/fsp/src/r_ioport/r_ioport.o
+ .debug_line    0x00009858      0x585 ./ra/fsp/src/r_gpt_three_phase/r_gpt_three_phase.o
+ .debug_line    0x00009ddd     0x1b34 ./ra/fsp/src/r_gpt/r_gpt.o
+ .debug_line    0x0000b911      0x9fc ./ra/fsp/src/r_dtc/r_dtc.o
+ .debug_line    0x0000c30d     0x22c1 ./ra/fsp/src/r_adc_b/r_adc_b.o
+ .debug_line    0x0000e5ce      0x7bd ./ra/fsp/src/bsp/mcu/all/bsp_clocks.o
+ .debug_line    0x0000ed8b      0x2de ./ra/fsp/src/bsp/mcu/all/bsp_common.o
+ .debug_line    0x0000f069      0x29b ./ra/fsp/src/bsp/mcu/all/bsp_delay.o
+ .debug_line    0x0000f304      0x341 ./ra/fsp/src/bsp/mcu/all/bsp_group_irq.o
+ .debug_line    0x0000f645      0x1c3 ./ra/fsp/src/bsp/mcu/all/bsp_io.o
+ .debug_line    0x0000f808      0x500 ./ra/fsp/src/bsp/mcu/all/bsp_irq.o
+ .debug_line    0x0000fd08      0x3f7 ./ra/fsp/src/bsp/mcu/all/bsp_register_protection.o
+ .debug_line    0x000100ff      0x184 ./ra/fsp/src/bsp/mcu/all/bsp_rom_registers.o
+ .debug_line    0x00010283      0x1ce ./ra/fsp/src/bsp/mcu/all/bsp_sbrk.o
+ .debug_line    0x00010451      0x22f ./ra/fsp/src/bsp/cmsis/Device/RENESAS/Source/startup.o
+ .debug_line    0x00010680      0x65f ./ra/fsp/src/bsp/cmsis/Device/RENESAS/Source/system.o
 
-.debug_str      0x00000000    0x17e77
- .debug_str     0x00000000    0x17e77 ./src/ConfigParameters.o
+.debug_str      0x00000000    0x17ebf
+ .debug_str     0x00000000    0x17ebf ./src/ConfigParameters.o
                                 0x2d9 (size before relaxing)
- .debug_str     0x00017e77      0xbdd ./src/FOCCurrentControl.o
- .debug_str     0x00017e77      0x491 ./src/FOCSpeedControl.o
- .debug_str     0x00017e77     0xbafe ./src/hal_entry.o
- .debug_str     0x00017e77      0x260 ./src/rtGetInf.o
- .debug_str     0x00017e77      0x238 ./src/rtGetNaN.o
- .debug_str     0x00017e77      0x311 ./src/rt_nonfinite.o
- .debug_str     0x00017e77     0x525c ./ra_gen/common_data.o
- .debug_str     0x00017e77     0xd32b ./ra_gen/hal_data.o
- .debug_str     0x00017e77      0x1d9 ./ra_gen/main.o
- .debug_str     0x00017e77     0x399d ./ra_gen/pin_data.o
- .debug_str     0x00017e77     0x1eeb ./ra_gen/vector_data.o
- .debug_str     0x00017e77     0x5749 ./ra/fsp/src/rm_motor_sense_hall/rm_motor_sense_hall.o
- .debug_str     0x00017e77     0x7257 ./ra/fsp/src/r_spi_b/r_spi_b.o
- .debug_str     0x00017e77     0x6c39 ./ra/fsp/src/r_sci_b_uart/r_sci_b_uart.o
- .debug_str     0x00017e77     0x56f8 ./ra/fsp/src/r_ioport/r_ioport.o
- .debug_str     0x00017e77     0x541a ./ra/fsp/src/r_gpt_three_phase/r_gpt_three_phase.o
- .debug_str     0x00017e77     0x8ca0 ./ra/fsp/src/r_gpt/r_gpt.o
- .debug_str     0x00017e77     0x4abd ./ra/fsp/src/r_dtc/r_dtc.o
- .debug_str     0x00017e77     0x9a19 ./ra/fsp/src/r_adc_b/r_adc_b.o
- .debug_str     0x00017e77     0x3e86 ./ra/fsp/src/bsp/mcu/all/bsp_clocks.o
- .debug_str     0x00017e77     0x381a ./ra/fsp/src/bsp/mcu/all/bsp_common.o
- .debug_str     0x00017e77      0x302 ./ra/fsp/src/bsp/mcu/all/bsp_delay.o
- .debug_str     0x00017e77     0x3d81 ./ra/fsp/src/bsp/mcu/all/bsp_group_irq.o
- .debug_str     0x00017e77     0x1df6 ./ra/fsp/src/bsp/mcu/all/bsp_io.o
- .debug_str     0x00017e77     0x286a ./ra/fsp/src/bsp/mcu/all/bsp_irq.o
- .debug_str     0x00017e77     0x3759 ./ra/fsp/src/bsp/mcu/all/bsp_register_protection.o
- .debug_str     0x00017e77     0x1f2a ./ra/fsp/src/bsp/mcu/all/bsp_rom_registers.o
- .debug_str     0x00017e77      0x263 ./ra/fsp/src/bsp/mcu/all/bsp_sbrk.o
- .debug_str     0x00017e77     0x1e5e ./ra/fsp/src/bsp/cmsis/Device/RENESAS/Source/startup.o
- .debug_str     0x00017e77     0x2ae7 ./ra/fsp/src/bsp/cmsis/Device/RENESAS/Source/system.o
+ .debug_str     0x00017ebf      0xbdd ./src/FOCCurrentControl.o
+ .debug_str     0x00017ebf      0x491 ./src/FOCSpeedControl.o
+ .debug_str     0x00017ebf     0xbb46 ./src/hal_entry.o
+ .debug_str     0x00017ebf      0x260 ./src/rtGetInf.o
+ .debug_str     0x00017ebf      0x238 ./src/rtGetNaN.o
+ .debug_str     0x00017ebf      0x311 ./src/rt_nonfinite.o
+ .debug_str     0x00017ebf     0x525c ./ra_gen/common_data.o
+ .debug_str     0x00017ebf     0xd32b ./ra_gen/hal_data.o
+ .debug_str     0x00017ebf      0x1d9 ./ra_gen/main.o
+ .debug_str     0x00017ebf     0x399d ./ra_gen/pin_data.o
+ .debug_str     0x00017ebf     0x1eeb ./ra_gen/vector_data.o
+ .debug_str     0x00017ebf     0x5749 ./ra/fsp/src/rm_motor_sense_hall/rm_motor_sense_hall.o
+ .debug_str     0x00017ebf     0x7257 ./ra/fsp/src/r_spi_b/r_spi_b.o
+ .debug_str     0x00017ebf     0x6c39 ./ra/fsp/src/r_sci_b_uart/r_sci_b_uart.o
+ .debug_str     0x00017ebf     0x56f8 ./ra/fsp/src/r_ioport/r_ioport.o
+ .debug_str     0x00017ebf     0x541a ./ra/fsp/src/r_gpt_three_phase/r_gpt_three_phase.o
+ .debug_str     0x00017ebf     0x8ca0 ./ra/fsp/src/r_gpt/r_gpt.o
+ .debug_str     0x00017ebf     0x4abd ./ra/fsp/src/r_dtc/r_dtc.o
+ .debug_str     0x00017ebf     0x9a19 ./ra/fsp/src/r_adc_b/r_adc_b.o
+ .debug_str     0x00017ebf     0x3e86 ./ra/fsp/src/bsp/mcu/all/bsp_clocks.o
+ .debug_str     0x00017ebf     0x381a ./ra/fsp/src/bsp/mcu/all/bsp_common.o
+ .debug_str     0x00017ebf      0x302 ./ra/fsp/src/bsp/mcu/all/bsp_delay.o
+ .debug_str     0x00017ebf     0x3d81 ./ra/fsp/src/bsp/mcu/all/bsp_group_irq.o
+ .debug_str     0x00017ebf     0x1df6 ./ra/fsp/src/bsp/mcu/all/bsp_io.o
+ .debug_str     0x00017ebf     0x286a ./ra/fsp/src/bsp/mcu/all/bsp_irq.o
+ .debug_str     0x00017ebf     0x3759 ./ra/fsp/src/bsp/mcu/all/bsp_register_protection.o
+ .debug_str     0x00017ebf     0x1f2a ./ra/fsp/src/bsp/mcu/all/bsp_rom_registers.o
+ .debug_str     0x00017ebf      0x263 ./ra/fsp/src/bsp/mcu/all/bsp_sbrk.o
+ .debug_str     0x00017ebf     0x1e5e ./ra/fsp/src/bsp/cmsis/Device/RENESAS/Source/startup.o
+ .debug_str     0x00017ebf     0x2ae7 ./ra/fsp/src/bsp/cmsis/Device/RENESAS/Source/system.o
 
 .debug_loclists
-                0x00000000     0x9ed7
+                0x00000000     0xac87
  .debug_loclists
                 0x00000000      0xd27 ./src/FOCCurrentControl.o
  .debug_loclists
                 0x00000d27      0x437 ./src/FOCSpeedControl.o
  .debug_loclists
-                0x0000115e     0x29b0 ./src/hal_entry.o
+                0x0000115e     0x3760 ./src/hal_entry.o
  .debug_loclists
-                0x00003b0e       0x7a ./src/rtGetInf.o
+                0x000048be       0x7a ./src/rtGetInf.o
  .debug_loclists
-                0x00003b88       0x50 ./src/rtGetNaN.o
+                0x00004938       0x50 ./src/rtGetNaN.o
  .debug_loclists
-                0x00003bd8       0x85 ./src/rt_nonfinite.o
+                0x00004988       0x85 ./src/rt_nonfinite.o
  .debug_loclists
-                0x00003c5d      0x435 ./ra/fsp/src/rm_motor_sense_hall/rm_motor_sense_hall.o
+                0x00004a0d      0x435 ./ra/fsp/src/rm_motor_sense_hall/rm_motor_sense_hall.o
  .debug_loclists
-                0x00004092     0x107a ./ra/fsp/src/r_spi_b/r_spi_b.o
+                0x00004e42     0x107a ./ra/fsp/src/r_spi_b/r_spi_b.o
  .debug_loclists
-                0x0000510c      0xf0f ./ra/fsp/src/r_sci_b_uart/r_sci_b_uart.o
+                0x00005ebc      0xf0f ./ra/fsp/src/r_sci_b_uart/r_sci_b_uart.o
  .debug_loclists
-                0x0000601b      0x704 ./ra/fsp/src/r_ioport/r_ioport.o
+                0x00006dcb      0x704 ./ra/fsp/src/r_ioport/r_ioport.o
  .debug_loclists
-                0x0000671f      0x250 ./ra/fsp/src/r_gpt_three_phase/r_gpt_three_phase.o
+                0x000074cf      0x250 ./ra/fsp/src/r_gpt_three_phase/r_gpt_three_phase.o
  .debug_loclists
-                0x0000696f     0x13b4 ./ra/fsp/src/r_gpt/r_gpt.o
+                0x0000771f     0x13b4 ./ra/fsp/src/r_gpt/r_gpt.o
  .debug_loclists
-                0x00007d23      0x435 ./ra/fsp/src/r_dtc/r_dtc.o
+                0x00008ad3      0x435 ./ra/fsp/src/r_dtc/r_dtc.o
  .debug_loclists
-                0x00008158     0x16c9 ./ra/fsp/src/r_adc_b/r_adc_b.o
+                0x00008f08     0x16c9 ./ra/fsp/src/r_adc_b/r_adc_b.o
  .debug_loclists
-                0x00009821      0x24a ./ra/fsp/src/bsp/mcu/all/bsp_clocks.o
+                0x0000a5d1      0x24a ./ra/fsp/src/bsp/mcu/all/bsp_clocks.o
  .debug_loclists
-                0x00009a6b       0x20 ./ra/fsp/src/bsp/mcu/all/bsp_common.o
+                0x0000a81b       0x20 ./ra/fsp/src/bsp/mcu/all/bsp_common.o
  .debug_loclists
-                0x00009a8b      0x11c ./ra/fsp/src/bsp/mcu/all/bsp_delay.o
+                0x0000a83b      0x11c ./ra/fsp/src/bsp/mcu/all/bsp_delay.o
  .debug_loclists
-                0x00009ba7       0x73 ./ra/fsp/src/bsp/mcu/all/bsp_group_irq.o
+                0x0000a957       0x73 ./ra/fsp/src/bsp/mcu/all/bsp_group_irq.o
  .debug_loclists
-                0x00009c1a       0x99 ./ra/fsp/src/bsp/mcu/all/bsp_irq.o
+                0x0000a9ca       0x99 ./ra/fsp/src/bsp/mcu/all/bsp_irq.o
  .debug_loclists
-                0x00009cb3       0xa7 ./ra/fsp/src/bsp/mcu/all/bsp_register_protection.o
+                0x0000aa63       0xa7 ./ra/fsp/src/bsp/mcu/all/bsp_register_protection.o
  .debug_loclists
-                0x00009d5a       0xbd ./ra/fsp/src/bsp/mcu/all/bsp_sbrk.o
+                0x0000ab0a       0xbd ./ra/fsp/src/bsp/mcu/all/bsp_sbrk.o
  .debug_loclists
-                0x00009e17       0xc0 ./ra/fsp/src/bsp/cmsis/Device/RENESAS/Source/system.o
+                0x0000abc7       0xc0 ./ra/fsp/src/bsp/cmsis/Device/RENESAS/Source/system.o
 
 .debug_rnglists
-                0x00000000     0x189f
+                0x00000000     0x1887
  .debug_rnglists
                 0x00000000       0x9f ./src/FOCCurrentControl.o
  .debug_rnglists
                 0x0000009f       0x20 ./src/FOCSpeedControl.o
  .debug_rnglists
-                0x000000bf      0x5e3 ./src/hal_entry.o
+                0x000000bf      0x5cb ./src/hal_entry.o
  .debug_rnglists
-                0x000006a2       0x25 ./src/rtGetInf.o
+                0x0000068a       0x25 ./src/rtGetInf.o
  .debug_rnglists
-                0x000006c7       0x19 ./src/rtGetNaN.o
+                0x000006af       0x19 ./src/rtGetNaN.o
  .debug_rnglists
-                0x000006e0       0x3a ./src/rt_nonfinite.o
+                0x000006c8       0x3a ./src/rt_nonfinite.o
  .debug_rnglists
-                0x0000071a       0x13 ./ra_gen/common_data.o
+                0x00000702       0x13 ./ra_gen/common_data.o
  .debug_rnglists
-                0x0000072d       0x13 ./ra_gen/hal_data.o
+                0x00000715       0x13 ./ra_gen/hal_data.o
  .debug_rnglists
-                0x00000740       0x13 ./ra_gen/main.o
+                0x00000728       0x13 ./ra_gen/main.o
  .debug_rnglists
-                0x00000753       0x8d ./ra/fsp/src/rm_motor_sense_hall/rm_motor_sense_hall.o
+                0x0000073b       0x8d ./ra/fsp/src/rm_motor_sense_hall/rm_motor_sense_hall.o
  .debug_rnglists
-                0x000007e0      0x2e9 ./ra/fsp/src/r_spi_b/r_spi_b.o
+                0x000007c8      0x2e9 ./ra/fsp/src/r_spi_b/r_spi_b.o
  .debug_rnglists
-                0x00000ac9      0x287 ./ra/fsp/src/r_sci_b_uart/r_sci_b_uart.o
+                0x00000ab1      0x287 ./ra/fsp/src/r_sci_b_uart/r_sci_b_uart.o
  .debug_rnglists
-                0x00000d50       0xd5 ./ra/fsp/src/r_ioport/r_ioport.o
+                0x00000d38       0xd5 ./ra/fsp/src/r_ioport/r_ioport.o
  .debug_rnglists
-                0x00000e25       0x52 ./ra/fsp/src/r_gpt_three_phase/r_gpt_three_phase.o
+                0x00000e0d       0x52 ./ra/fsp/src/r_gpt_three_phase/r_gpt_three_phase.o
  .debug_rnglists
-                0x00000e77      0x2b4 ./ra/fsp/src/r_gpt/r_gpt.o
+                0x00000e5f      0x2b4 ./ra/fsp/src/r_gpt/r_gpt.o
  .debug_rnglists
-                0x0000112b       0xfb ./ra/fsp/src/r_dtc/r_dtc.o
+                0x00001113       0xfb ./ra/fsp/src/r_dtc/r_dtc.o
  .debug_rnglists
-                0x00001226      0x463 ./ra/fsp/src/r_adc_b/r_adc_b.o
+                0x0000120e      0x463 ./ra/fsp/src/r_adc_b/r_adc_b.o
  .debug_rnglists
-                0x00001689       0xce ./ra/fsp/src/bsp/mcu/all/bsp_clocks.o
+                0x00001671       0xce ./ra/fsp/src/bsp/mcu/all/bsp_clocks.o
  .debug_rnglists
-                0x00001757       0x1f ./ra/fsp/src/bsp/mcu/all/bsp_common.o
+                0x0000173f       0x1f ./ra/fsp/src/bsp/mcu/all/bsp_common.o
  .debug_rnglists
-                0x00001776       0x2e ./ra/fsp/src/bsp/mcu/all/bsp_delay.o
+                0x0000175e       0x2e ./ra/fsp/src/bsp/mcu/all/bsp_delay.o
  .debug_rnglists
-                0x000017a4       0x37 ./ra/fsp/src/bsp/mcu/all/bsp_group_irq.o
+                0x0000178c       0x37 ./ra/fsp/src/bsp/mcu/all/bsp_group_irq.o
  .debug_rnglists
-                0x000017db       0x41 ./ra/fsp/src/bsp/mcu/all/bsp_irq.o
+                0x000017c3       0x41 ./ra/fsp/src/bsp/mcu/all/bsp_irq.o
  .debug_rnglists
-                0x0000181c       0x31 ./ra/fsp/src/bsp/mcu/all/bsp_register_protection.o
+                0x00001804       0x31 ./ra/fsp/src/bsp/mcu/all/bsp_register_protection.o
  .debug_rnglists
-                0x0000184d       0x13 ./ra/fsp/src/bsp/mcu/all/bsp_sbrk.o
+                0x00001835       0x13 ./ra/fsp/src/bsp/mcu/all/bsp_sbrk.o
  .debug_rnglists
-                0x00001860       0x19 ./ra/fsp/src/bsp/cmsis/Device/RENESAS/Source/startup.o
+                0x00001848       0x19 ./ra/fsp/src/bsp/cmsis/Device/RENESAS/Source/startup.o
  .debug_rnglists
-                0x00001879       0x26 ./ra/fsp/src/bsp/cmsis/Device/RENESAS/Source/system.o
+                0x00001861       0x26 ./ra/fsp/src/bsp/cmsis/Device/RENESAS/Source/system.o
 
 .debug_frame    0x00000000     0x2754
  .debug_frame   0x00000000      0x164 ./src/FOCCurrentControl.o

@@ -1131,21 +1131,8 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
             float sin_raw = sinf(theta_e);
             float cos_raw = cosf(theta_e);
 
-            // LPF on sin/cos to smooth Hall transition angle jumps
-            // α=0.3: cutoff ~570Hz, phase lag: 2° at 200RPM, 6° at 500RPM, 11° at 1000RPM
-            // Trade-off: less spike reduction than α=0.1 but much less phase lag at speed
-            static float sin_filtered = 0.0f, cos_filtered = 0.0f;
-            static uint8_t sincos_initialized = 0;
-            if (!sincos_initialized || !Enable) {
-                sin_filtered = sin_raw;  // Initialize to current value (no ramp from 0)
-                cos_filtered = cos_raw;
-                sincos_initialized = Enable ? 1 : 0;
-            } else {
-                sin_filtered += 0.3f * (sin_raw - sin_filtered);
-                cos_filtered += 0.3f * (cos_raw - cos_filtered);
-            }
-            float sin_theta = sin_filtered;
-            float cos_theta = cos_filtered;
+            float sin_theta = sin_raw;
+            float cos_theta = cos_raw;
 
             float Ia_pu = ((float)Iab[0] - (float)Iab_offset[0]) * 0.00048828125f;
             float Ib_pu = ((float)Iab[1] - (float)Iab_offset[1]) * 0.00048828125f;
