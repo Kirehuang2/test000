@@ -1649,8 +1649,8 @@ do_getall:
     } else if (cmd[0] == 'M' && (cmd[1] == '-' || (cmd[1] >= '0' && cmd[1] <= '9'))) {
         // Short speed set: "M100" = SET speed_ref_rpm 100 (≤6 bytes, BLE-safe)
         speed_ref_rpm = (float)atoi(cmd + 1);
-        if (speed_ref_rpm > 1000.0f) speed_ref_rpm = 1000.0f;
-        if (speed_ref_rpm < -1000.0f) speed_ref_rpm = -1000.0f;
+        if (speed_ref_rpm > 4400.0f) speed_ref_rpm = 4400.0f;
+        if (speed_ref_rpm < -4400.0f) speed_ref_rpm = -4400.0f;
 
     } else if (cmd[0] == 'T' && (cmd[1] == '-' || (cmd[1] >= '0' && cmd[1] <= '9'))) {
         // Short torque set: "T18" = 18/1000 = 0.018 PU (integer milliPU, BLE-safe)

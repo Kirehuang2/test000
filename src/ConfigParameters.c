@@ -73,7 +73,7 @@ struct_hXFaRMdP3p9q6ruHP5AkdC pmsm = {
   4750.0F,
   0.134F,
   0.05F,   // V_boost reduced from 0.15 to 0.05 to reduce open-loop overspeed
-  1559.0F    // N_base: restored to proven working value
+  4750.0F    // N_base: match motor rated speed (651614 datasheet)
 } ;                                    /* Referenced by: '<S1>/Gain3' */
 
 /* pmsm.P - Number of pole pairs
