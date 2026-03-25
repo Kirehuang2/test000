@@ -21,12 +21,12 @@
 
 /* Definition for custom storage class: ExportToFile */
 struct_DWWWf6N21VtITTqdrqSn0 PI_params = {
-  0.3F,       // Kp_id - moderate gain
-  0.1F,       // Ki_id (gentle startup)
-  0.5F,       // Kp_iq
-  0.1F,       // Ki_iq (gentle: ramp to clamp in 8.3s)
-  1.0F,       // Kp_speed - startup torque > 0.07 threshold, noise < 2.0 (was 0.5)
-  0.1F,       // Ki_speed - integral for steady-state torque (was 0.0)
+  0.30F,      // Kp_id
+  0.1F,       // Ki_id - safe proven value (increase via BLE: SET Ki_id <val>)
+  0.50F,      // Kp_iq
+  0.1F,       // Ki_iq - safe proven value (increase via BLE: SET Ki_iq <val>)
+  1.0F,       // Kp_speed - proven working value
+  0.1F,       // Ki_speed - proven working value
   2,
   20,
   2
@@ -73,7 +73,7 @@ struct_hXFaRMdP3p9q6ruHP5AkdC pmsm = {
   4750.0F,
   0.134F,
   0.05F,   // V_boost reduced from 0.15 to 0.05 to reduce open-loop overspeed
-  1559.0F
+  1559.0F    // N_base: restored to proven working value
 } ;                                    /* Referenced by: '<S1>/Gain3' */
 
 /* pmsm.P - Number of pole pairs

@@ -41,7 +41,7 @@ float Mode = 2.0f;  // Mode >= 2 required to start speed control state machine
 // compute speed as d(angle)/dt using a sliding window over
 // the interpolated f_get_angle from FSP Hall module.
 // ============================================================
-#define SPEED_EST_WINDOW  200  // Window size in calls (200 = 20ms at 10kHz)
+#define SPEED_EST_WINDOW  100  // Window size in calls (100 = 10ms at 10kHz, was 200=20ms)
 static float angle_history[SPEED_EST_WINDOW];  // Ring buffer of unwrapped angles
 static uint16_t angle_hist_idx = 0;
 static uint8_t angle_hist_filled = 0;
@@ -54,7 +54,7 @@ volatile float debug_angle_unwrapped = 0.0f;   // Accumulated unwrapped angle [r
 volatile float debug_f_get_speed_raw = 0.0f;   // Raw FSP speed for comparison
 
 // Speed filter coefficient (tunable via debugger)
-volatile float speed_filter_alpha = 0.02f;      // 0.02=smooth (was 0.10), 1.0=no filter
+volatile float speed_filter_alpha = 0.05f;      // 0.05: BW≈80Hz (was 0.02=32Hz, too slow for 30Hz speed loop)
 
 // ============================================================
 // Control mode switching (changeable via debugger)
@@ -65,6 +65,10 @@ volatile uint8_t control_mode = 1;              // 0=Speed, 1=Torque
 volatile float torque_ref_iq = 0.06f;           // Direct Iq command [PU]
 volatile float torque_ref_iq_max = 0.2f;        // Iq clamp: 0.2 PU × 16.5A = 3.3A ≈ rated 3.29A
 volatile float torque_max_speed_rpm = 500.0f;   // Speed limit for torque mode [RPM]
+
+// Integrator limits (tunable via debugger/BLE for safe bring-up)
+// Start conservative (0.15), increase to 0.50 after stability confirmed
+volatile float integrator_limit = 0.15f;        // PI integrator clamp [PU] (log_111029 stable at 0.15)
 
 // Debug counters
 volatile uint32_t adc_callback_count = 0;
@@ -130,14 +134,14 @@ volatile uint8_t debug_enable_off_src = 0;    // Who set Enable=0: 1=drv_fault, 
 // Monitors actual Id/Iq feedback current every 10kHz cycle
 // Trips immediately if current exceeds limit
 // ============================================================
-#define OC_RAW_TRIP_PU    1.00f   // DISABLED for pre-smoke baseline test (PC adapter 2.37A is HW limit)
-#define OC_TRIP_PU        1.00f   // DISABLED for pre-smoke baseline test
-#define OC_SUSTAIN_PU     0.20f   // Sustained limit: 0.20 PU = 3.3A (rated)
-#define OC_SUSTAIN_MS     500     // Sustained overcurrent time limit [ms] (500 counts at 1kHz)
-volatile uint8_t overcurrent_fault = 0;       // 0=OK, 1=tripped (latched, requires power cycle or BLE reset)
-volatile float overcurrent_peak_iq = 0.0f;    // Peak Iq at trip [PU]
-volatile float overcurrent_peak_id = 0.0f;    // Peak Id at trip [PU]
-static uint16_t oc_sustain_count = 0;          // Sustained overcurrent counter
+#define OC_TRIP_PU        0.40f   // OC trip threshold: 0.40 PU = 6.6A
+#define OC_GRACE_CYCLES   5000    // 500ms grace period after Enable (5000 × 0.1ms at 10kHz)
+#define OC_SUSTAIN_CYCLES 50      // 5ms sustain filter (50 × 0.1ms at 10kHz)
+volatile uint8_t overcurrent_fault = 0;       // 0=OK, 1=tripped (latched, requires E0 to clear)
+volatile float overcurrent_peak_iq = 0.0f;    // Peak |Iq| at trip [PU]
+volatile float overcurrent_peak_id = 0.0f;    // Peak |Id| at trip [PU]
+static uint16_t oc_grace_count = 0;            // Startup grace period counter (10kHz)
+static uint16_t oc_sustain_count = 0;          // Consecutive over-threshold counter (10kHz)
 
 // ============================================================
 // Data Logger - Ring Buffer for debugging
@@ -165,7 +169,7 @@ volatile uint8_t drv8302_fault = 0;       // 0=Normal, 1=Fault detected
 volatile uint8_t drv8302_fault_latched = 0; // Latched fault (requires power cycle to clear)
 
 // Hall sensor angle offset (adjustable via debugger or BLE P43=<value>)
-volatile float hall_angle_offset = 0.0f;    // Default (calibration inconclusive)
+volatile float hall_angle_offset = 0.25f;   // Calibrated offset (0.25 stable for CW, tunable via BLE)
 
 // Auto-sweep for offset calibration (set cal_sweep_en=1 via debugger or BLE)
 volatile uint8_t cal_sweep_en = 0;        // 1=sweeping, 0=idle
@@ -236,6 +240,10 @@ volatile uint16_t temp_regen_adc_raw = 0;    // Raw ADC value
 // Protection state
 volatile uint8_t protection_state = 0;       // 0=Normal, 1=Warning, 2=Derating, 3=Emergency stop
 volatile float output_derating = 1.0f;       // Output limit factor (0.0~1.0)
+
+// ff_scale: diagnostic only (no longer used in FOC — replaced by dq decoupling)
+// Tracks |iq_cmd_final| / |iq_cmd_raw| ratio from speed/torque limiter
+volatile float ff_scale = 1.0f;              // 0.0~1.0: diagnostic only
 
 // JOG speed reference (settable via debugger or BLE)
 volatile float speed_ref_rpm = 0.0f;         // Target speed [RPM]
@@ -576,7 +584,7 @@ static const var_entry_t var_registry[] = {
     {"imu_gy",           (void*)&imu_gyro_dps[1],     VAR_FLOAT,  0},
     {"imu_gz",           (void*)&imu_gyro_dps[2],     VAR_FLOAT,  0},
     // Read-write (parameters)
-    {"enable",              (void*)&Enable,              VAR_UINT8,  1},
+    {"enable",              (void*)&Enable,              VAR_UINT8,  0},  // Read-only: use E0/E1 commands (OC fault check)
     {"control_mode",        (void*)&control_mode,        VAR_UINT8,  1},
     {"speed_ref_rpm",       (void*)&speed_ref_rpm,       VAR_FLOAT,  1},
     {"torque_ref_iq",       (void*)&torque_ref_iq,       VAR_FLOAT,  1},
@@ -592,6 +600,7 @@ static const var_entry_t var_registry[] = {
     {"Ki_iq",              (void*)&PI_params.Ki_iq,      VAR_FLOAT,  1},
     {"Kp_speed",           (void*)&PI_params.Kp_speed,   VAR_FLOAT,  1},
     {"Ki_speed",           (void*)&PI_params.Ki_speed,   VAR_FLOAT,  1},
+    {"int_limit",           (void*)&integrator_limit,    VAR_FLOAT,  1},
     {"foc_state",           (void*)&debug_foc_state,     VAR_UINT8,  0},
     {"stop_reason",         (void*)&debug_stop_reason,   VAR_UINT8,  0},
     {"stop_iq",             (void*)&debug_stop_iq,       VAR_FLOAT,  0},
@@ -606,6 +615,7 @@ static const var_entry_t var_registry[] = {
     {"as_voltage",          (void*)&as_voltage,          VAR_FLOAT,  0},
     {"makita_bat_state",    (void*)&makita_battery_state, VAR_UINT8, 0},
     {"i2t_ratio",           (void*)&i2t_ratio,           VAR_FLOAT,  0},
+    {"ff_scale",            (void*)&ff_scale,            VAR_FLOAT,  0},
     {"hall_offset",         (void*)&hall_angle_offset,   VAR_FLOAT,  1},
     {"IdFb",                (void*)&IdFb,                VAR_FLOAT,  0},
     {"cal_sweep",           (void*)&cal_sweep_en,        VAR_UINT8,  1},
@@ -664,6 +674,10 @@ void hal_entry(void)
 
  R_GPT_THREE_PHASE_Open(&g_three_phase0_ctrl, &g_three_phase0_cfg);
  R_GPT_THREE_PHASE_Start(&g_three_phase0_ctrl);
+ // Immediately disable PWM output pins (timer runs for ADC trigger, but FETs stay off)
+ R_GPT_OutputDisable(&g_timer0_ctrl, GPT_IO_PIN_GTIOCA_AND_GTIOCB);
+ R_GPT_OutputDisable(&g_timer1_ctrl, GPT_IO_PIN_GTIOCA_AND_GTIOCB);
+ R_GPT_OutputDisable(&g_timer2_ctrl, GPT_IO_PIN_GTIOCA_AND_GTIOCB);
 
  // Makita battery wake-up sequence (if enabled)
  if (makita_battery_en) {
@@ -675,15 +689,10 @@ void hal_entry(void)
      R_BSP_SoftwareDelay(60, BSP_DELAY_UNITS_MILLISECONDS);
  }
 
- // Reset and enable DRV8302 gate driver (EN_GATE pin) BEFORE enabling PWM
- // Apply Low pulse for reset, then set High to enable
+ // Reset DRV8302 gate driver — keep DISABLED until E1 command
+ // EN_GATE LOW = FETs off, motor free-spinning
  R_IOPORT_PinWrite(&g_ioport_ctrl, EN_GATE_RESET, BSP_IO_LEVEL_LOW);
- // Wait for reset (1 second)
- R_BSP_SoftwareDelay(1, BSP_DELAY_UNITS_SECONDS);
-
- R_IOPORT_PinWrite(&g_ioport_ctrl, EN_GATE_RESET, BSP_IO_LEVEL_HIGH);
- // Wait for DRV8302 stabilization (10ms)
- R_BSP_SoftwareDelay(10, BSP_DELAY_UNITS_MILLISECONDS);
+ R_BSP_SoftwareDelay(100, BSP_DELAY_UNITS_MILLISECONDS);  // ensure reset completes
 
  // Set default ADC offset for current sensors (midpoint of 12-bit ADC = 2048)
  // This is the zero-current point for current sensors with VCC/2 bias
@@ -708,10 +717,9 @@ void hal_entry(void)
      Iab_offset[1] = (uint16_t)(sum_b / N_CAL);
  }
 
- // Enable PWM output
- R_GPT_OutputEnable(&g_timer0_ctrl, GPT_IO_PIN_GTIOCA_AND_GTIOCB);
- R_GPT_OutputEnable(&g_timer1_ctrl, GPT_IO_PIN_GTIOCA_AND_GTIOCB);
- R_GPT_OutputEnable(&g_timer2_ctrl, GPT_IO_PIN_GTIOCA_AND_GTIOCB);
+ // PWM output starts DISABLED (FET off, motor free-spinning)
+ // PWM is enabled on E1 command, disabled on E0 command
+ // This prevents regenerative braking when motor is not controlled
 
  R_GPT_Open(&g_timer4_ctrl, &g_timer4_cfg);
  R_GPT_Enable(&g_timer4_ctrl);
@@ -1073,8 +1081,8 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
             float electrical_speed = angle_diff / ((float)SPEED_EST_WINDOW * 0.0001f);  // [rad/s elec]
             float mechanical_speed = electrical_speed / pmsm.p;                          // [rad/s mech]
 
-            // Clamp negative/near-zero speed (forward-only bicycle application)
-            if (mechanical_speed < 0.5f) {
+            // Deadband: clamp near-zero speed to avoid noise at standstill
+            if (mechanical_speed > -0.5f && mechanical_speed < 0.5f) {
                 mechanical_speed = 0.0f;
             }
             f_mechanical_speed = mechanical_speed;
@@ -1082,7 +1090,7 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
             // Ring buffer not yet full: use FSP speed as fallback during startup
             if (isfinite(f_get_speed) && pmsm.p > 0.0f) {
                 f_mechanical_speed = f_get_speed / pmsm.p;
-                if (f_mechanical_speed < 0.5f) {
+                if (f_mechanical_speed > -0.5f && f_mechanical_speed < 0.5f) {
                     f_mechanical_speed = 0.0f;
                 }
             }
@@ -1143,8 +1151,7 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
         // Hand-written FOC Current Controller (verified minimal version)
         // ============================================================
         {
-            // Use Hall angle directly (PLL/smoother attempts were unstable)
-            // Hall transition spikes handled by I²t 100Hz decimation
+            // Use Hall angle directly (FSP interpolated)
             float hall_angle = f_get_angle + hall_angle_offset;
             debug_pll_theta = hall_angle;
             debug_hall_angle = hall_angle;
@@ -1177,22 +1184,48 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
             }
 
             static float Id_fb = 0.0f, Iq_fb_val = 0.0f;
-            Id_fb     += 0.1f * (Id_raw - Id_fb);
-            Iq_fb_val += 0.1f * (Iq_raw - Iq_fb_val);
+            Id_fb     += 0.1f * (Id_raw - Id_fb);     // α=0.1 (restored to proven value)
+            Iq_fb_val += 0.1f * (Iq_raw - Iq_fb_val); // increase later after stability confirmed
             IqFb = Iq_fb_val;
             IdFb = Id_fb;
             debug_Ialpha = Ialpha;
             debug_Ibeta  = Ibeta;
 
             static float Id_integral = 0.0f, Iq_integral = 0.0f;
-            static float Vq_ff_lpf = 0.0f;
             static uint8_t foc_was_enabled = 0;
+
+            // OC protection: check every 10kHz cycle (design v2 §3.1)
+            // FOC-safe: zero IdqRef only, don't touch Enable/Vabc
+            // Uses |I|² magnitude + 5ms sustain filter to ignore Hall spikes
+            if (Enable) {
+                oc_grace_count++;
+                if (oc_grace_count > OC_GRACE_CYCLES) {
+                    oc_grace_count = OC_GRACE_CYCLES + 1;  // prevent overflow
+                    float I2_now = IqFb * IqFb + IdFb * IdFb;
+                    if (I2_now > OC_TRIP_PU * OC_TRIP_PU) {
+                        oc_sustain_count++;
+                        if (oc_sustain_count >= OC_SUSTAIN_CYCLES) {
+                            overcurrent_fault = 1;
+                            float iq_abs = IqFb > 0 ? IqFb : -IqFb;
+                            float id_abs = IdFb > 0 ? IdFb : -IdFb;
+                            overcurrent_peak_iq = iq_abs;
+                            overcurrent_peak_id = id_abs;
+                            IdqRef[0] = 0.0f;
+                            IdqRef[1] = 0.0f;
+                        }
+                    } else {
+                        oc_sustain_count = 0;  // reset on below-threshold
+                    }
+                }
+            } else {
+                oc_grace_count = 0;   // reset grace on disable
+                oc_sustain_count = 0;
+            }
 
             if (Enable && EnCl_smooth) {
                 if (!foc_was_enabled) {
                     Id_integral = 0.0f;
                     Iq_integral = 0.0f;
-                    Vq_ff_lpf = 0.0f;
                     debug_i2_max = 0.0f;
                     debug_i2_avg = 0.0f;
                     debug_iq_raw_max = 0.0f;
@@ -1201,44 +1234,59 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
                     foc_was_enabled = 1;
                 }
 
-                // Back-EMF feedforward (LPF smoothed, enabled from start)
-                float speed_pu = SpeedFb_RPM / pmsm.N_base;
-                // FF gain = 0.52 (BEMF at N_base is 0.52 PU, not 1.0 PU)
-                // N_base=1559 is PU speed normalization, not voltage base
-                // Voltage base speed = 3004 RPM (where BEMF = 1.0 PU)
-                float Vq_ff_target = speed_pu * 0.52f;
-                Vq_ff_lpf += 0.005f * (Vq_ff_target - Vq_ff_lpf);  // α=0.005, τ=20ms
+                // OC fault: reset PI integrals to stop stall current
+                if (overcurrent_fault) {
+                    Id_integral = 0.0f;
+                    Iq_integral = 0.0f;
+                }
+
+                // ============================================================
+                // dq-axis cross-coupling decoupling (replaces old Vq_ff_lpf)
+                // Compensates rotational EMF: ωe×L×I cross terms + back-EMF
+                // Without this, Iq leaks into Id at speed → large Id, heating
+                // ============================================================
+                float omega_e = SpeedFb_RPM * (2.0f * 3.14159265f / 60.0f) * pmsm.p;
+                float Lq_pu = pmsm.Lq * inverter.ISenseMax / inverter.V_dc;
+                float Ld_pu = pmsm.Ld * inverter.ISenseMax / inverter.V_dc;
+                float FluxPM_pu = pmsm.FluxPM / inverter.V_dc;
+
+                float Vd_decouple = -omega_e * Lq_pu * Iq_fb_val;
+                float Vq_decouple = +omega_e * Ld_pu * Id_fb + omega_e * FluxPM_pu;
 
                 float Id_error = IdqRef[0] - Id_fb;
                 float Iq_error = IdqRef[1] - Iq_fb_val;
-                float Vd = PI_params.Kp_id * Id_error + Id_integral;
-                float Vq = PI_params.Kp_iq * Iq_error + Iq_integral + Vq_ff_lpf;
+                float Vd = PI_params.Kp_id * Id_error + Id_integral + Vd_decouple;
+                float Vq = PI_params.Kp_iq * Iq_error + Iq_integral + Vq_decouple;
 
-                // Circle limiter
-                float Vd_unsat = Vd, Vq_unsat = Vq;
+                // Circle limiter with back-calculation anti-windup
+                float Vd_sat = Vd, Vq_sat = Vq;
                 float Vmag2 = Vd * Vd + Vq * Vq;
                 if (Vmag2 > 0.9025f) {
                     float inv_mag = 0.95f / sqrtf(Vmag2);
-                    Vd *= inv_mag;
-                    Vq *= inv_mag;
+                    Vd_sat = Vd * inv_mag;
+                    Vq_sat = Vq * inv_mag;
+                    // Back-calculation: reduce integrator when voltage saturates
+                    float Kb = 1.0f / PI_params.Kp_id;  // ≈2.3
+                    Id_integral += Kb * (Vd_sat - Vd);
+                    Iq_integral += Kb * (Vq_sat - Vq);
                 }
 
-                // Integrator update with clamping anti-windup (Simulink style)
-                // Only update when Ki > 0
+                // Integrator update with clamping anti-windup
+                float int_lim = integrator_limit;
                 if (PI_params.Ki_id > 0.0f) {
                     Id_integral += PI_params.Ki_id * 0.0001f * Id_error;
-                    if (Id_integral >  0.05f) Id_integral =  0.05f;
-                    if (Id_integral < -0.05f) Id_integral = -0.05f;
+                    if (Id_integral >  int_lim) Id_integral =  int_lim;
+                    if (Id_integral < -int_lim) Id_integral = -int_lim;
                 }
                 if (PI_params.Ki_iq > 0.0f) {
                     Iq_integral += PI_params.Ki_iq * 0.0001f * Iq_error;
-                    if (Iq_integral >  0.05f) Iq_integral =  0.05f;
-                    if (Iq_integral < -0.05f) Iq_integral = -0.05f;
+                    if (Iq_integral >  int_lim) Iq_integral =  int_lim;
+                    if (Iq_integral < -int_lim) Iq_integral = -int_lim;
                 }
                 debug_Iq_integral = Iq_integral;
 
-                float Valpha = Vd * cos_theta - Vq * sin_theta;
-                float Vbeta  = Vq * cos_theta + Vd * sin_theta;
+                float Valpha = Vd_sat * cos_theta - Vq_sat * sin_theta;
+                float Vbeta  = Vq_sat * cos_theta + Vd_sat * sin_theta;
 
                 float Va = Valpha;
                 float Vb = 0.866025f * Vbeta - 0.5f * Valpha;
@@ -1539,16 +1587,31 @@ do_getall:
                 char resp[32];
                 if (v->type == VAR_FLOAT) {
                     float val = (float)atof(eq + 1);
-                    // Safety limits for critical parameters
+                    // Safety limits for critical parameters (design v2 §3.5)
                     if (v->ptr == (void*)&torque_ref_iq_max) {
-                        if (val > OC_TRIP_PU) val = OC_TRIP_PU;
+                        if (val > 0.30f) val = 0.30f;   // rated current limit
                         if (val < 0.0f) val = 0.0f;
                     } else if (v->ptr == (void*)&torque_ref_iq) {
-                        if (val > OC_TRIP_PU) val = OC_TRIP_PU;
-                        if (val < -OC_TRIP_PU) val = -OC_TRIP_PU;
+                        if (val > 0.30f) val = 0.30f;   // same as iq_max
+                        if (val < -0.30f) val = -0.30f;
                     } else if (v->ptr == (void*)&PI_params.Ki_id || v->ptr == (void*)&PI_params.Ki_iq) {
                         if (val > 50.0f) val = 50.0f;
                         if (val < 0.0f) val = 0.0f;
+                    } else if (v->ptr == (void*)&PI_params.Kp_id || v->ptr == (void*)&PI_params.Kp_iq) {
+                        if (val > 10.0f) val = 10.0f;
+                        if (val < 0.0f) val = 0.0f;
+                    } else if (v->ptr == (void*)&PI_params.Kp_speed || v->ptr == (void*)&PI_params.Ki_speed) {
+                        if (val > 10.0f) val = 10.0f;
+                        if (val < 0.0f) val = 0.0f;
+                    } else if (v->ptr == (void*)&hall_angle_offset) {
+                        if (val > 1.0f) val = 1.0f;    // ±1 rad ≈ ±57°
+                        if (val < -1.0f) val = -1.0f;
+                    } else if (v->ptr == (void*)&torque_max_speed_rpm) {
+                        if (val > 4000.0f) val = 4000.0f;  // below RPM limit (4500)
+                        if (val < 0.0f) val = 0.0f;
+                    } else if (v->ptr == (void*)&speed_filter_alpha) {
+                        if (val > 1.0f) val = 1.0f;
+                        if (val < 0.001f) val = 0.001f;
                     }
                     *(volatile float*)v->ptr = val;
                     char vbuf[12];
@@ -1593,6 +1656,9 @@ do_getall:
     } else if (cmd[0] == 'T' && (cmd[1] == '-' || (cmd[1] >= '0' && cmd[1] <= '9'))) {
         // Short torque set: "T18" = 18/1000 = 0.018 PU (integer milliPU, BLE-safe)
         torque_ref_iq = (float)atoi(cmd + 1) * 0.001f;
+        // Hard safety clamp at 0.30 PU (4.95A) regardless of torque_ref_iq_max
+        if (torque_ref_iq > 0.30f) torque_ref_iq = 0.30f;
+        if (torque_ref_iq < -0.30f) torque_ref_iq = -0.30f;
         if (torque_ref_iq > torque_ref_iq_max) torque_ref_iq = torque_ref_iq_max;
         if (torque_ref_iq < -torque_ref_iq_max) torque_ref_iq = -torque_ref_iq_max;
 
@@ -1603,17 +1669,41 @@ do_getall:
                 // Don't enable while overcurrent fault is latched
                 // Send "E0" first to clear the fault, then "E1" to enable
             } else {
+                // Reset FSP Hall module to clear stale CW-biased state
+                // Without this, CCW startup fails (angle stuck in CW direction)
+                RM_MOTOR_SENSE_HALL_Reset(&g_motor_angle0_ctrl);
+                // Clear diagnostic latches for fresh tracking
+                debug_enable_off_src = 0;
+                debug_stop_reason = 0;
+                // Re-enable DRV8302 gate driver + PWM output
+                R_IOPORT_PinWrite(&g_ioport_ctrl, EN_GATE_RESET, BSP_IO_LEVEL_HIGH);
+                R_BSP_SoftwareDelay(1, BSP_DELAY_UNITS_MILLISECONDS);
+                R_GPT_OutputEnable(&g_timer0_ctrl, GPT_IO_PIN_GTIOCA_AND_GTIOCB);
+                R_GPT_OutputEnable(&g_timer1_ctrl, GPT_IO_PIN_GTIOCA_AND_GTIOCB);
+                R_GPT_OutputEnable(&g_timer2_ctrl, GPT_IO_PIN_GTIOCA_AND_GTIOCB);
                 Enable = 1;
             }
         } else {
             Enable = 0;
             overcurrent_fault = 0;  // E0 clears the overcurrent fault
-            // Reset I²t to 50% — motor is still warm after trip
-            if (i2t_accumulator > I2T_THRESHOLD * 0.5f) {
-                i2t_accumulator = I2T_THRESHOLD * 0.5f;
+            // Disable PWM output + DRV8302 gate driver to fully release motor
+            R_GPT_OutputDisable(&g_timer0_ctrl, GPT_IO_PIN_GTIOCA_AND_GTIOCB);
+            R_GPT_OutputDisable(&g_timer1_ctrl, GPT_IO_PIN_GTIOCA_AND_GTIOCB);
+            R_GPT_OutputDisable(&g_timer2_ctrl, GPT_IO_PIN_GTIOCA_AND_GTIOCB);
+            R_IOPORT_PinWrite(&g_ioport_ctrl, EN_GATE_RESET, BSP_IO_LEVEL_LOW);
+            // Reset I²t to 70% — motor is still warm after trip
+            // 70% = warning zone → derating applies immediately on re-enable
+            if (i2t_accumulator > I2T_THRESHOLD * 0.70f) {
+                i2t_accumulator = I2T_THRESHOLD * 0.70f;
             }
             debug_enable_off_src = 5;
         }
+
+    } else if (cmd[0] == 'L' && (cmd[1] >= '0' && cmd[1] <= '9')) {
+        // Short Iq limit: "L60" = 60/1000 = 0.06 PU (torque_ref_iq_max)
+        torque_ref_iq_max = (float)atoi(cmd + 1) * 0.001f;
+        if (torque_ref_iq_max > 0.30f) torque_ref_iq_max = 0.30f;  // hard safety cap
+        if (torque_ref_iq_max < 0.01f) torque_ref_iq_max = 0.01f;
 
     } else if (cmd[0] == 'C' && (cmd[1] == '0' || cmd[1] == '1')) {
         // Short control mode: "C0" = speed, "C1" = torque (2 bytes, BLE-safe)
@@ -1761,7 +1851,7 @@ static void ble_uart_tick(void) {
                     }
                     // Compact: iq(int*100), vbat, IMU(milli-g, deci-dps) — no tinv/treg
                     pos += snprintf(resp + pos, sizeof(resp) - (size_t)pos,
-                             ",%d,%u,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
+                             ",%d,%u,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
                              (int)(IqFb * 100),
                              (int)(battery_voltage * 10 + 0.5f),
                              (int)(imu_accel_g[0] * 1000),
@@ -1774,7 +1864,8 @@ static void ble_uart_tick(void) {
                              (int)Enable,
                              (int)protection_state,
                              (int)(i2t_ratio * 100),
-                             (int)(debug_Iq_integral * 1000));
+                             (int)(debug_Iq_integral * 1000),
+                             (int)(IdqRef[1] * 1000));
                     // XOR checksum of payload (B...data), append *XX\r\n
                     {
                         uint8_t csum = 0;
@@ -1825,19 +1916,34 @@ void One_ms_Int(timer_callback_args_t *p_args)
 {
     timer_callback_count++;  // Debug counter
 
-    // Hall angle offset auto-sweep calibration
-    // Sweeps -0.3 to +0.3 in 0.05 steps (13 values), 2 seconds each
+    // Hall angle offset auto-sweep calibration (2-phase: coarse + fine)
+    // Phase 1: current_offset ± 0.20 in 0.05 rad steps (9 values)
+    // Phase 2: best ±0.05 in 0.005 rad steps (21 values)
+    // Total: (9+21) × 1.0s = 30 seconds
     if (cal_sweep_en && Enable) {
         static uint16_t cal_timer = 0;
         static float cal_id_sum = 0;
         static uint32_t cal_id_count = 0;
-        // Start near suspected optimal (-0.15), fine sweep ±0.20
-        static const float cal_offsets[] = {
-            -0.15f, -0.10f, -0.05f, 0.0f, 0.05f, 0.10f, 0.15f,
-            -0.20f, -0.25f, -0.30f, -0.35f, 0.20f, 0.25f
-        };
-        #define CAL_NUM_OFFSETS 13
-        #define CAL_DWELL_MS 1500  // 1.5 seconds per offset (total 19.5s)
+        static uint8_t cal_phase = 0;  // 0=coarse, 1=fine
+
+        // Coarse offsets: generated at runtime around current offset ± 0.20 rad
+        static float cal_coarse[9];    // center + (-4..+4)*0.05
+        static uint8_t cal_coarse_init = 0;
+        #define CAL_COARSE_NUM   9
+        // Fine offsets: generated at runtime around coarse best
+        static float cal_fine[21];     // center + (-10..+10)*0.005
+        #define CAL_FINE_NUM     21
+        #define CAL_DWELL_MS     1000  // 1.0s per offset (500ms settle + 500ms measure)
+
+        // Initialize coarse array on first entry (centered on current offset)
+        if (!cal_coarse_init) {
+            float center = hall_angle_offset;
+            for (int i = 0; i < CAL_COARSE_NUM; i++) {
+                cal_coarse[i] = center + (float)(i - 4) * 0.05f;
+            }
+            cal_coarse_init = 1;
+            hall_angle_offset = cal_coarse[0];
+        }
 
         cal_timer++;
         // Accumulate |Id| during dwell (skip first 500ms for settling)
@@ -1852,7 +1958,7 @@ void One_ms_Int(timer_callback_args_t *p_args)
             float id_avg = (cal_id_count > 0) ? cal_id_sum / (float)cal_id_count : 99.0f;
             if (id_avg < cal_sweep_id_min) {
                 cal_sweep_id_min = id_avg;
-                cal_sweep_best_offset = cal_offsets[cal_sweep_idx];
+                cal_sweep_best_offset = hall_angle_offset;  // current offset being tested
             }
 
             // Next offset
@@ -1861,13 +1967,31 @@ void One_ms_Int(timer_callback_args_t *p_args)
             cal_id_sum = 0;
             cal_id_count = 0;
 
-            if (cal_sweep_idx >= CAL_NUM_OFFSETS) {
-                // Sweep complete: apply best offset
-                hall_angle_offset = cal_sweep_best_offset;
-                cal_sweep_en = 0;
-                cal_sweep_idx = 0;
+            uint8_t num_offsets = (cal_phase == 0) ? CAL_COARSE_NUM : CAL_FINE_NUM;
+            if (cal_sweep_idx >= num_offsets) {
+                if (cal_phase == 0) {
+                    // Coarse complete → start fine sweep around best
+                    cal_phase = 1;
+                    cal_sweep_idx = 0;
+                    float center = cal_sweep_best_offset;
+                    for (int i = 0; i < CAL_FINE_NUM; i++) {
+                        cal_fine[i] = center + (float)(i - 10) * 0.005f;
+                    }
+                    cal_sweep_id_min = 99.0f;  // reset for fine phase
+                    hall_angle_offset = cal_fine[0];
+                } else {
+                    // Fine complete: apply best offset
+                    hall_angle_offset = cal_sweep_best_offset;
+                    cal_sweep_en = 0;
+                    cal_sweep_idx = 0;
+                    cal_phase = 0;
+                    cal_coarse_init = 0;  // reset for next calibration run
+                }
             } else {
-                hall_angle_offset = cal_offsets[cal_sweep_idx];
+                if (cal_phase == 0)
+                    hall_angle_offset = cal_coarse[cal_sweep_idx];
+                else
+                    hall_angle_offset = cal_fine[cal_sweep_idx];
             }
         }
     }
@@ -1883,27 +2007,55 @@ void One_ms_Int(timer_callback_args_t *p_args)
     bsp_io_level_t power_switch_pin;
 
     // Speed/Torque control mode selection (1kHz rate)
+    // ff_scale tracks how much IdqRef was reduced vs raw command (design v2 §3.3)
     if (control_mode == 0) {
         // Mode 0: Speed control (existing behavior)
+        float iq_raw_before = IdqRef[1];  // capture before SpeedControl modifies it
         SpeedControl_step(Enable, SpeedRefIn_PU, SpeedFb_Hall_PU, IqFb, Mode, IdqRef, &SpeedRefFinal_PU, &EnCl);
+        float iq_after_sc = IdqRef[1];    // after speed controller
         // Apply thermal derating to speed controller Iq output
         IdqRef[1] *= output_derating;
+        // Compute ff_scale for speed mode (derating effect on FF)
+        float iq_abs_raw = iq_after_sc > 0 ? iq_after_sc : -iq_after_sc;
+        float iq_abs_final = IdqRef[1] > 0 ? IdqRef[1] : -IdqRef[1];
+        if (iq_abs_raw > 0.001f)
+            ff_scale = iq_abs_final / iq_abs_raw;
+        else
+            ff_scale = 0.0f;
+        if (ff_scale > 1.0f) ff_scale = 1.0f;
     } else {
         // Mode 1: Torque control (direct Iq command, bypass speed PI loop)
-        float iq_cmd = torque_ref_iq;
+        //
+        // Startup sequence:
+        //   Phase 0 (0~100ms):   Alignment — Id=0.08, Iq=0 → lock rotor to d-axis
+        //   Phase 1 (100~200ms): Ramp — Id decays, Iq ramps to target
+        //   Phase 2 (200ms~):    Normal torque control
+        //
+        static uint16_t torque_startup_ms = 0;
+        static uint8_t torque_was_enabled = 0;
+
+        if (!Enable) {
+            torque_startup_ms = 0;
+            torque_was_enabled = 0;
+        } else if (!torque_was_enabled) {
+            torque_startup_ms = 0;
+            torque_was_enabled = 1;
+        }
+
+        float iq_cmd_raw = torque_ref_iq;
+        float iq_cmd = iq_cmd_raw;
         if (iq_cmd > torque_ref_iq_max)  iq_cmd = torque_ref_iq_max;
         if (iq_cmd < -torque_ref_iq_max) iq_cmd = -torque_ref_iq_max;
+        iq_cmd_raw = iq_cmd;  // raw = after clamp, before limiter/derating
 
         // Speed limiter: linearly reduce Iq when speed > 90% of max
         if (torque_max_speed_rpm > 0.0f) {
-            // Use filtered speed for limiter (reduces oscillation from speed estimation noise)
             float speed_rpm_filtered = SpeedFb_Hall_PU * pmsm.N_base;
             float speed_abs = speed_rpm_filtered > 0 ? speed_rpm_filtered : -speed_rpm_filtered;
             float limit_start = torque_max_speed_rpm * 0.9f;
             if (speed_abs > torque_max_speed_rpm) {
                 iq_cmd = 0.0f;  // hard cutoff above max
             } else if (speed_abs > limit_start) {
-                // Linear ramp-down: 90%→100% of max → Iq 100%→0%
                 float ratio = (torque_max_speed_rpm - speed_abs) / (torque_max_speed_rpm - limit_start);
                 iq_cmd *= ratio;
             }
@@ -1912,15 +2064,64 @@ void One_ms_Int(timer_callback_args_t *p_args)
         // Apply thermal derating to torque command
         iq_cmd *= output_derating;
 
-        IdqRef[0] = 0.0f;     // Id = 0 (no field weakening)
-        IdqRef[1] = iq_cmd;   // Iq = direct torque command
+        // Startup: soft ramp over 100ms (no d-axis alignment, Hall provides angle)
+        #define TORQUE_SOFTRAMP_MS 100
+        if (Enable && torque_startup_ms < TORQUE_SOFTRAMP_MS) {
+            torque_startup_ms++;
+            float ramp = (float)torque_startup_ms / (float)TORQUE_SOFTRAMP_MS;
+            IdqRef[0] = 0.0f;
+            IdqRef[1] = iq_cmd * ramp;
+            iq_cmd = iq_cmd * ramp;
+        } else {
+            IdqRef[0] = 0.0f;
+            IdqRef[1] = iq_cmd;
+        }
+
         SpeedRefFinal_PU = 0.0f;
         EnCl = Enable;         // Enable current control when motor is enabled
+
+        // ff_scale = |iq_cmd_final| / |iq_cmd_raw| (design v2 §3.3)
+        float iq_raw_abs = iq_cmd_raw > 0 ? iq_cmd_raw : -iq_cmd_raw;
+        if (iq_raw_abs > 0.001f)
+            ff_scale = (iq_cmd > 0 ? iq_cmd : -iq_cmd) / iq_raw_abs;
+        else
+            ff_scale = 0.0f;
+        if (ff_scale > 1.0f) ff_scale = 1.0f;
     }
 
-    // Speed controller output (IdqRef and EnCl) is used directly
-    // Do not override EnCl - let the speed controller state machine manage it
-    // The state machine will transition: Init -> OpenLoop -> ClosedLoopTemp -> ClosedLoop
+    // Overcurrent fault: force IdqRef=0 every 1ms (design v2 §3.1)
+    if (overcurrent_fault) {
+        IdqRef[0] = 0.0f;
+        IdqRef[1] = 0.0f;
+        ff_scale = 0.0f;
+    }
+
+    // Stall detection: RPM≈0 + current flowing for >3 seconds → fault
+    {
+        static uint16_t stall_count = 0;
+        float rpm_abs = SpeedFb_RPM > 0 ? SpeedFb_RPM : -SpeedFb_RPM;
+        float I2_now = IqFb * IqFb + IdFb * IdFb;
+        if (Enable && rpm_abs < 10.0f && I2_now > 0.01f) {
+            stall_count++;
+            if (stall_count >= 3000) {  // 3 seconds at 1kHz
+                overcurrent_fault = 1;
+                debug_enable_off_src = 10;  // Stall detection
+                stall_count = 0;
+            }
+        } else {
+            stall_count = 0;
+        }
+    }
+
+    // RPM limit protection: ultimate safety net (design v2 §3.4)
+    {
+        float rpm_abs = SpeedFb_RPM > 0 ? SpeedFb_RPM : -SpeedFb_RPM;
+        if (rpm_abs > 4500.0f) {
+            overcurrent_fault = 1;
+            Enable = 0;
+            debug_enable_off_src = 9;  // RPM limit
+        }
+    }
 
     // Power switch monitoring (PE14 -> DI_PON)
     // 3-second long press → PD07 (LATCH_OFF) HIGH → NMOS ON → TC7WH74FU PR~ LOW
@@ -1992,56 +2193,48 @@ void One_ms_Int(timer_callback_args_t *p_args)
         float new_derating = 1.0f;
 
         // Battery low voltage check (with debounce to ignore transient dips)
+        // Also treat battery_voltage ≈ 0 as ADC fault → emergency stop
         static uint16_t vbat_low_count = 0;
-        if(battery_voltage < VBAT_LOW_CUTOFF && battery_voltage > 1.0f) {
-            vbat_low_count++;
-            if (vbat_low_count >= 500) {  // 500ms continuous low → emergency stop
-                new_protection = 3;
-                new_derating = 0.0f;
+        if(battery_voltage < VBAT_LOW_CUTOFF) {
+            // battery < 12V includes ADC fault (0V) and genuine low battery
+            if (battery_voltage > 1.0f || battery_voltage < 0.5f) {
+                // > 1V: genuine low battery. < 0.5V: ADC fault (no reading)
+                vbat_low_count++;
+                if (vbat_low_count >= 500) {  // 500ms continuous low → emergency stop
+                    new_protection = 3;
+                    new_derating = 0.0f;
+                }
             }
         } else {
             vbat_low_count = 0;
         }
         if(battery_voltage < VBAT_LOW_WARNING && battery_voltage > 1.0f) {
-            // Below warning - reduce output
             if(new_protection < 1) new_protection = 1;
             if(new_derating > 0.5f) new_derating = 0.5f;
         }
 
-        // I²t motor winding thermal protection
-        // First-order model: dE/dt = I² - E/τ  (natural cooling when I<I_rated)
+        // I²t motor winding thermal protection (design v2 §3.2)
+        // Raw I² at 1kHz + clamp 0.12 PU² (Hall spike mitigation)
+        // First-order model: dE/dt = I²_clamped - E/τ
         {
             float iq = IqFb;
             float id = IdFb;
             float I2 = iq * iq + id * id;  // |I|² in PU²
             const float dt = 0.001f;        // 1ms
 
-            // Accumulate heat, subtract natural cooling (exponential decay)
             // Debug: track peak and average I² for diagnosis
             if (I2 > debug_i2_max) debug_i2_max = I2;
             debug_i2_avg += 0.001f * (I2 - debug_i2_avg);
 
-            // I²t: compute I² from 100Hz-decimated IqFb/IdFb
-            // Hall spikes at ~456Hz are aliased away at 100Hz → thermally correct
-            static uint8_t i2t_decim_count = 0;
-            static float i2t_iq_sum = 0, i2t_id_sum = 0;
-            float I2_for_i2t = 0.0f;
-            static float I2_100hz = 0.0f;
-            i2t_iq_sum += IqFb;
-            i2t_id_sum += IdFb;
-            i2t_decim_count++;
-            if (i2t_decim_count >= 10) {  // Every 10ms (100Hz)
-                float iq_avg10 = i2t_iq_sum / 10.0f;
-                float id_avg10 = i2t_id_sum / 10.0f;
-                I2_100hz = iq_avg10 * iq_avg10 + id_avg10 * id_avg10;
-                i2t_iq_sum = 0; i2t_id_sum = 0; i2t_decim_count = 0;
-            }
+            // Clamp I² at 0.12 PU² to handle Hall transition spikes
+            // Raw 0.57 PU² (spike) → clamped 0.12 → effective ~93% steady state → trip ~60s
+            // Without clamp: trips in 25s (too aggressive)
+            // With 100Hz decimation: never trips (too permissive, caused 3/23 incident)
+            float I2_clamped = I2 > 0.12f ? 0.12f : I2;
 
-            // Pause I²t during calibration sweep
-            if (cal_sweep_en) {
-                i2t_accumulator = 0.0f;
-            } else {
-                i2t_accumulator += (I2_100hz - i2t_accumulator / I2T_TAU_W) * dt;
+            // Pause accumulation during calibration (but don't zero — motor is still warm)
+            if (!cal_sweep_en) {
+                i2t_accumulator += (I2_clamped - i2t_accumulator / I2T_TAU_W) * dt;
                 if (i2t_accumulator < 0.0f) i2t_accumulator = 0.0f;
             }
 

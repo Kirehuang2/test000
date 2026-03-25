@@ -28,12 +28,12 @@ function ble_monitor()
         if isfield(s,'torque'), DEFAULT_TORQUE = s.torque; end
         if isfield(s,'max_speed'), DEFAULT_MAX_SPEED = s.max_speed; end
     end
-    CHAN_NAMES = {'(none)', 'RPM', 'Iq', 'Id', 'Vbat', 'Tinv', 'Treg', 'AccX', 'AccY', 'AccZ', 'GyrX', 'GyrY', 'GyrZ'};
+    CHAN_NAMES = {'(none)', 'RPM', 'Iq', 'Id', 'Vbat', 'Tinv', 'Treg', 'AccX', 'AccY', 'AccZ', 'GyrX', 'GyrY', 'GyrZ', 'IqRef'};
     CHAN_COLORS = {[0 0 0], [0 0.45 0.74], [0.85 0.33 0.1], [0.93 0.1 0.1], [0.47 0.67 0.19], ...
                   [0.49 0.18 0.56], [0.64 0.08 0.18], ...
                   [0.93 0.69 0.13], [0.3 0.75 0.93], [0.64 0.08 0.18], ...
-                  [0.47 0.67 0.19], [0.85 0.33 0.1], [0 0.45 0.74]};
-    CHAN_UNITS = {'', 'RPM', 'A', 'A', 'V', 'C', 'C', 'g', 'g', 'g', 'dps', 'dps', 'dps'};
+                  [0.47 0.67 0.19], [0.85 0.33 0.1], [0 0.45 0.74], [0.3 0.3 0.3]};
+    CHAN_UNITS = {'', 'RPM', 'PU', 'PU', 'V', 'C', 'C', 'g', 'g', 'g', 'dps', 'dps', 'dps', 'PU'};
     NUM_PLOTS = 5;
     defaultChans = [2, 3, 4, 5, 1];
 
@@ -65,6 +65,7 @@ function ble_monitor()
     csvAx = NaN(csvMaxRows,1); csvAy = NaN(csvMaxRows,1); csvAz = NaN(csvMaxRows,1);
     csvGx = NaN(csvMaxRows,1); csvGy = NaN(csvMaxRows,1); csvGz = NaN(csvMaxRows,1);
     csvId = NaN(csvMaxRows,1);
+    csvIqRef = NaN(csvMaxRows,1);
     csvIdx = 0;
 
     %% Screen layout
@@ -505,7 +506,9 @@ function ble_monitor()
             if numel(parts)>=es+5, gcx=str2double(parts{es+5})/10; end
             if numel(parts)>=es+6, gcy=str2double(parts{es+6})/10; end
             if numel(parts)>=es+7, gcz=str2double(parts{es+7})/10; end
-            if numel(parts)>=es+8, id=str2double(parts{es+8})/100; end  % Id*100 -> A
+            if numel(parts)>=es+8, id=str2double(parts{es+8})/100; end  % Id*100 -> PU
+            iqref=0;
+            if numel(parts)>=es+13, iqref=str2double(parts{es+13})/1000; end  % IdqRef[1]*1000 -> PU
             dt = 1.0/TARGET_HZ;
             tBurstStart = tNow-(n-1)*dt;
             if csvIdx>0 && ~isnan(csvTime(csvIdx))
@@ -525,6 +528,7 @@ function ble_monitor()
                     csvAz(end+1:csvMaxRows)=NaN; csvGx(end+1:csvMaxRows)=NaN;
                     csvGy(end+1:csvMaxRows)=NaN; csvGz(end+1:csvMaxRows)=NaN;
                     csvId(end+1:csvMaxRows)=NaN;
+                    csvIqRef(end+1:csvMaxRows)=NaN;
                 end
                 csvTime(csvIdx)=tBurstStart+(k-1)*dt;
                 csvRpm(csvIdx)=rpm; csvIq(csvIdx)=iq; csvVbat(csvIdx)=vb;
@@ -532,6 +536,7 @@ function ble_monitor()
                 csvAx(csvIdx)=acx; csvAy(csvIdx)=acy; csvAz(csvIdx)=acz;
                 csvGx(csvIdx)=gcx; csvGy(csvIdx)=gcy; csvGz(csvIdx)=gcz;
                 csvId(csvIdx)=id;
+                csvIqRef(csvIdx)=iqref;
             end
         elseif startsWith(line,'ALL ')
             appendLog(line);
@@ -620,6 +625,7 @@ function ble_monitor()
             case 5, data=csvVbat; case 6, data=csvTinv; case 7, data=csvTreg;
             case 8, data=csvAx; case 9, data=csvAy; case 10, data=csvAz;
             case 11, data=csvGx; case 12, data=csvGy; case 13, data=csvGz;
+            case 14, data=csvIqRef;
             otherwise, data=[];
         end
     end
@@ -664,9 +670,9 @@ function ble_monitor()
                 fname=fullfile(folder,sprintf('motor_log_%s.csv',datestr(now,'yyyymmdd_HHMMSS')));
                 vi=1:csvIdx;
                 T=table(csvTime(vi),csvRpm(vi),csvIq(vi),csvVbat(vi),csvTinv(vi),csvTreg(vi),...
-                    csvAx(vi),csvAy(vi),csvAz(vi),csvGx(vi),csvGy(vi),csvGz(vi),csvId(vi),...
-                    'VariableNames',{'Time_s','RPM','Iq_A','Vbat_V','Tinv_C','Treg_C',...
-                    'AccX_g','AccY_g','AccZ_g','GyrX_dps','GyrY_dps','GyrZ_dps','Id_A'});
+                    csvAx(vi),csvAy(vi),csvAz(vi),csvGx(vi),csvGy(vi),csvGz(vi),csvId(vi),csvIqRef(vi),...
+                    'VariableNames',{'Time_s','RPM','Iq_PU','Vbat_V','Tinv_C','Treg_C',...
+                    'AccX_g','AccY_g','AccZ_g','GyrX_dps','GyrY_dps','GyrZ_dps','Id_PU','IqRef_PU'});
                 writetable(T,fname);
                 fprintf('Saved %d samples to %s\n',csvIdx,fname);
                 appendLog(sprintf('Saved %d samples to %s',csvIdx,fname));
