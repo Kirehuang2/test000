@@ -169,7 +169,7 @@ volatile uint8_t drv8302_fault = 0;       // 0=Normal, 1=Fault detected
 volatile uint8_t drv8302_fault_latched = 0; // Latched fault (requires power cycle to clear)
 
 // Hall sensor angle offset (adjustable via debugger or BLE P43=<value>)
-volatile float hall_angle_offset = 0.25f;   // Calibrated offset (0.25 stable for CW, tunable via BLE)
+volatile float hall_angle_offset = 0.01f;   // Calibrated offset (tunable via BLE)
 
 // Auto-sweep for offset calibration (set cal_sweep_en=1 via debugger or BLE)
 volatile uint8_t cal_sweep_en = 0;        // 1=sweeping, 0=idle
@@ -1151,7 +1151,6 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
         // Hand-written FOC Current Controller (verified minimal version)
         // ============================================================
         {
-            // Use Hall angle directly (FSP interpolated)
             float hall_angle = f_get_angle + hall_angle_offset;
             debug_pll_theta = hall_angle;
             debug_hall_angle = hall_angle;
@@ -1675,6 +1674,19 @@ do_getall:
                 // Clear diagnostic latches for fresh tracking
                 debug_enable_off_src = 0;
                 debug_stop_reason = 0;
+                // Re-calibrate ADC offset (EN_GATE still OFF = zero current)
+                // Prevents drift from current sensor temperature change
+                {
+                    uint32_t sum_a = 0, sum_b = 0;
+                    const int N = 100;  // 100ms
+                    for (int i = 0; i < N; i++) {
+                        R_BSP_SoftwareDelay(1, BSP_DELAY_UNITS_MILLISECONDS);
+                        sum_a += Iab[0];
+                        sum_b += Iab[1];
+                    }
+                    Iab_offset[0] = (uint16_t)(sum_a / N);
+                    Iab_offset[1] = (uint16_t)(sum_b / N);
+                }
                 // Re-enable DRV8302 gate driver + PWM output
                 R_IOPORT_PinWrite(&g_ioport_ctrl, EN_GATE_RESET, BSP_IO_LEVEL_HIGH);
                 R_BSP_SoftwareDelay(1, BSP_DELAY_UNITS_MILLISECONDS);
