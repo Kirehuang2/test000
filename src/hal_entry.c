@@ -1863,7 +1863,7 @@ static void ble_uart_tick(void) {
                     }
                     // Compact: iq(int*100), vbat, IMU(milli-g, deci-dps) — no tinv/treg
                     pos += snprintf(resp + pos, sizeof(resp) - (size_t)pos,
-                             ",%d,%u,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
+                             ",%d,%u,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
                              (int)(IqFb * 100),
                              (int)(battery_voltage * 10 + 0.5f),
                              (int)(imu_accel_g[0] * 1000),
@@ -1877,7 +1877,8 @@ static void ble_uart_tick(void) {
                              (int)protection_state,
                              (int)(i2t_ratio * 100),
                              (int)(debug_Iq_integral * 1000),
-                             (int)(IdqRef[1] * 1000));
+                             (int)(IdqRef[1] * 1000),
+                             (int)(IdqRef[0] * 1000));
                     // XOR checksum of payload (B...data), append *XX\r\n
                     {
                         uint8_t csum = 0;
