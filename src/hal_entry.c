@@ -1245,9 +1245,9 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
                 // Without this, Iq leaks into Id at speed → large Id, heating
                 // ============================================================
                 float omega_e = SpeedFb_RPM * (2.0f * 3.14159265f / 60.0f) * pmsm.p;
-                float Lq_pu = pmsm.Lq * inverter.ISenseMax / inverter.V_dc;
-                float Ld_pu = pmsm.Ld * inverter.ISenseMax / inverter.V_dc;
-                float FluxPM_pu = pmsm.FluxPM / inverter.V_dc;
+                float Lq_pu = pmsm.Lq * inverter.ISenseMax * 1.7320508f / inverter.V_dc;
+                float Ld_pu = pmsm.Ld * inverter.ISenseMax * 1.7320508f / inverter.V_dc;
+                float FluxPM_pu = pmsm.FluxPM * 1.7320508f / inverter.V_dc;
 
                 float Vd_decouple = -omega_e * Lq_pu * Iq_fb_val;
                 float Vq_decouple = +omega_e * Ld_pu * Id_fb + omega_e * FluxPM_pu;
