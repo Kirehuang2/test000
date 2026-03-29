@@ -42,11 +42,12 @@ float Mode = 2.0f;  // Mode >= 2 required to start speed control state machine
 // the interpolated f_get_angle from FSP Hall module.
 // ============================================================
 #define SPEED_EST_WINDOW  100  // Window size in calls (100 = 10ms at 10kHz, was 200=20ms)
-static float angle_history[SPEED_EST_WINDOW];  // Ring buffer of unwrapped angles
+static float angle_history[SPEED_EST_WINDOW];  // Ring buffer of angle DELTAS (not accumulated)
 static uint16_t angle_hist_idx = 0;
 static uint8_t angle_hist_filled = 0;
 static float prev_angle_for_unwrap = 0.0f;
-static float angle_accumulated = 0.0f;         // Monotonic unwrapped angle [rad electrical]
+static float angle_accumulated = 0.0f;         // Monotonic unwrapped angle [rad electrical] (debug only)
+static float angle_delta_sum = 0.0f;           // Running sum of deltas in window
 
 // Debug variables for improved speed estimation
 volatile float debug_speed_from_angle = 0.0f;  // Speed from angle derivative [rad/s mechanical]
@@ -203,6 +204,10 @@ static float pll_integrator = 0.0f;       // PI integrator state [rad/s]
 volatile float pll_Kp = 50.0f;            // PLL proportional gain (wn=25, zeta=1.0)
 volatile float pll_Ki = 625.0f;           // PLL integral gain (wn^2=625)
 volatile uint8_t pll_enable = 0;          // 0=bypass (raw Hall), 1=PLL active
+volatile uint8_t mode_change_pending = 0; // Set by C0/C1 command, cleared by FOC/speed loops after reset
+static uint16_t torque_startup_ms = 0;   // Torque mode soft ramp counter (file scope for mode-change reset)
+static uint8_t torque_was_enabled = 0;   // Torque mode startup detection (file scope for mode-change reset)
+static float omega_e_filt = 0.0f;       // Decoupling LPF state (file scope for mode-change reset)
 volatile float decouple_lpf_alpha = 0.006f; // LPF alpha for omega_e in decoupling (~10Hz @10kHz)
 volatile uint8_t decouple_enable = 1;       // 0=disable decoupling (debug), 1=enable
 volatile float debug_Vd_decouple = 0.0f;    // Vd decoupling term (for diagnosis)
@@ -1144,24 +1149,25 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
             angle_delta += 6.28318530f;   // Wrapped from ~0 to ~2PI
         }
         prev_angle_for_unwrap = angle_now;
-        angle_accumulated += angle_delta;
+        angle_accumulated += angle_delta;  // kept for debug only
         debug_angle_unwrapped = angle_accumulated;
 
-        // Step 2: Store in ring buffer, retrieve oldest value
-        float old_accumulated = angle_history[angle_hist_idx];
-        angle_history[angle_hist_idx] = angle_accumulated;
+        // Step 2: Store delta in ring buffer, maintain running sum
+        // (Avoids catastrophic cancellation from subtracting large accumulated angles)
+        float old_delta = angle_history[angle_hist_idx];
+        angle_history[angle_hist_idx] = angle_delta;
+        angle_delta_sum += angle_delta - old_delta;
         angle_hist_idx++;
         if (angle_hist_idx >= SPEED_EST_WINDOW) {
             angle_hist_idx = 0;
             angle_hist_filled = 1;
         }
 
-        // Step 3: Compute speed from angle change over window
+        // Step 3: Compute speed from sum of deltas over window
         float f_mechanical_speed = 0.0f;
         if (angle_hist_filled) {
-            float angle_diff = angle_accumulated - old_accumulated;
-            float electrical_speed = angle_diff / ((float)SPEED_EST_WINDOW * 0.0001f);  // [rad/s elec]
-            float mechanical_speed = electrical_speed / pmsm.p;                          // [rad/s mech]
+            float electrical_speed = angle_delta_sum / ((float)SPEED_EST_WINDOW * 0.0001f);  // [rad/s elec]
+            float mechanical_speed = electrical_speed / pmsm.p;                               // [rad/s mech]
 
             // Deadband: clamp near-zero speed to avoid noise at standstill
             if (mechanical_speed > -0.5f && mechanical_speed < 0.5f) {
@@ -1363,9 +1369,11 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
             }
 
             if (Enable && EnCl_smooth) {
-                if (!foc_was_enabled) {
+                // Reset FOC state on enable transition or mode change (C0↔C1)
+                if (!foc_was_enabled || mode_change_pending) {
                     Id_integral = 0.0f;
                     Iq_integral = 0.0f;
+                    omega_e_filt = 0.0f;
                     debug_i2_max = 0.0f;
                     debug_i2_avg = 0.0f;
                     debug_iq_raw_max = 0.0f;
@@ -1391,7 +1399,6 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
                 // omega_e is low-pass filtered (~10Hz) to prevent speed
                 // estimation noise from injecting voltage disturbance
                 // ============================================================
-                static float omega_e_filt = 0.0f;
                 float omega_e_raw = SpeedFb_RPM * (2.0f * 3.14159265f / 60.0f) * pmsm.p;
                 omega_e_filt += decouple_lpf_alpha * (omega_e_raw - omega_e_filt);
                 float omega_e = omega_e_filt;
@@ -1875,6 +1882,14 @@ do_getall:
                     Iab_offset[0] = (uint16_t)(sum_a / N);
                     Iab_offset[1] = (uint16_t)(sum_b / N);
                 }
+                // Reset speed estimation state (prevent stale deltas from previous run)
+                for (int i = 0; i < SPEED_EST_WINDOW; i++) angle_history[i] = 0.0f;
+                angle_hist_idx = 0;
+                angle_hist_filled = 0;
+                angle_delta_sum = 0.0f;
+                prev_angle_for_unwrap = f_get_angle;  // sync to current FSP angle
+                angle_accumulated = 0.0f;
+
                 // Re-enable DRV8302 gate driver + PWM output
                 R_IOPORT_PinWrite(&g_ioport_ctrl, EN_GATE_RESET, BSP_IO_LEVEL_HIGH);
                 R_BSP_SoftwareDelay(1, BSP_DELAY_UNITS_MILLISECONDS);
@@ -1908,6 +1923,7 @@ do_getall:
     } else if (cmd[0] == 'C' && (cmd[1] == '0' || cmd[1] == '1')) {
         // Short control mode: "C0" = speed, "C1" = torque (2 bytes, BLE-safe)
         control_mode = (uint8_t)(cmd[1] - '0');
+        mode_change_pending = 1;  // trigger state reset in FOC/speed loops
 
     } else if (strcmp(cmd, "A") == 0) {
         // Short alias for GETALL (1 byte = reliable over BLE)
@@ -2223,6 +2239,19 @@ void One_ms_Int(timer_callback_args_t *p_args)
     bsp_io_level_t power_switch_pin;
 
     // Speed/Torque control mode selection (1kHz rate)
+    // Reset controller state on mode change (C0↔C1) to prevent stale integrators
+    if (mode_change_pending) {
+        mode_change_pending = 0;
+        // Speed PI: reset integrator and state machine
+        FOCSpeedControl_DW.Integrator_DSTATE = 0.0f;
+        FOCSpeedControl_DW.Integrator_IC_LOADING = 1U;
+        FOCSpeedControl_DW.is_Run = 0U;   // NO_ACTIVE_CHILD
+        FOCSpeedControl_DW.is_c1_FOCSpeedControl = 1U;  // Init
+        FOCSpeedControl_DW.UnitDelay_DSTATE = 0.0f;
+        // Torque mode: reset soft ramp so it re-triggers on next entry
+        torque_startup_ms = 0;
+        torque_was_enabled = 0;
+    }
     // ff_scale tracks how much IdqRef was reduced vs raw command (design v2 §3.3)
     if (control_mode == 0) {
         // Mode 0: Speed control (existing behavior)
@@ -2248,9 +2277,7 @@ void One_ms_Int(timer_callback_args_t *p_args)
         //   Phase 1 (100~200ms): Ramp — Id decays, Iq ramps to target
         //   Phase 2 (200ms~):    Normal torque control
         //
-        static uint16_t torque_startup_ms = 0;
-        static uint8_t torque_was_enabled = 0;
-
+        // Reset soft ramp on disable or mode change
         if (!Enable) {
             torque_startup_ms = 0;
             torque_was_enabled = 0;
