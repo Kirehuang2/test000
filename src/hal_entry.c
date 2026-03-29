@@ -68,7 +68,7 @@ volatile float torque_max_speed_rpm = 500.0f;   // Speed limit for torque mode [
 
 // Integrator limits (tunable via debugger/BLE for safe bring-up)
 // Start conservative (0.15), increase to 0.50 after stability confirmed
-volatile float integrator_limit = 0.15f;        // PI integrator clamp [PU] (log_111029 stable at 0.15)
+volatile float integrator_limit = 0.50f;        // PI integrator clamp [PU] (was 0.15, 0.5 needed for high-speed Iq tracking)
 
 // Debug counters
 volatile uint32_t adc_callback_count = 0;
@@ -134,6 +134,23 @@ volatile uint16_t debug_stop_rpm = 0;         // RPM at moment of stop
 volatile uint8_t debug_enable_off_src = 0;    // Who set Enable=0: 1=drv_fault, 2=shutdown, 3=makita, 4=protection, 5=ble_cmd, 6=overcurrent
 
 // ============================================================
+// Sector-binned diagnostics: accumulate Id/Iq per Hall sector
+// Read via BLE: GET sec0_id .. sec5_id, sec0_iq .. sec5_iq, sec0_n .. sec5_n
+// Reset via BLE: SET sec_reset 1
+// ============================================================
+#define DIAG_SECTORS 6
+volatile float   diag_id_sum[DIAG_SECTORS] = {0};
+volatile float   diag_iq_sum[DIAG_SECTORS] = {0};
+volatile uint32_t diag_count[DIAG_SECTORS] = {0};
+volatile float   diag_id_avg[DIAG_SECTORS] = {0};  // computed on read
+volatile float   diag_iq_avg[DIAG_SECTORS] = {0};
+volatile float   diag_ia_sum[DIAG_SECTORS] = {0};   // Ialpha per sector
+volatile float   diag_ib_sum[DIAG_SECTORS] = {0};   // Ibeta per sector
+volatile float   diag_ia_avg[DIAG_SECTORS] = {0};
+volatile float   diag_ib_avg[DIAG_SECTORS] = {0};
+volatile uint8_t diag_sec_reset = 0;                // SET sec_reset 1 to clear
+
+// ============================================================
 // Software overcurrent protection (CRITICAL SAFETY)
 // Monitors actual Id/Iq feedback current every 10kHz cycle
 // Trips immediately if current exceeds limit
@@ -174,6 +191,29 @@ volatile uint8_t drv8302_fault_latched = 0; // Latched fault (requires power cyc
 
 // Hall sensor angle offset (adjustable via debugger or BLE P43=<value>)
 volatile float hall_angle_offset = 0.20f;   // Calibrated offset (tunable via BLE)
+
+// ============================================================
+// Hall PLL: smooth angle estimation from coarse Hall edges
+// Type-II PI PLL with feed-forward from speed estimate
+// Solves: high-speed current oscillation due to 60°-step Hall angle
+// ============================================================
+static float pll_theta = 0.0f;            // PLL output angle [rad], [0, 2*pi)
+static float pll_omega = 0.0f;            // PLL estimated elec. speed [rad/s]
+static float pll_integrator = 0.0f;       // PI integrator state [rad/s]
+volatile float pll_Kp = 50.0f;            // PLL proportional gain (wn=25, zeta=1.0)
+volatile float pll_Ki = 625.0f;           // PLL integral gain (wn^2=625)
+volatile uint8_t pll_enable = 0;          // 0=bypass (raw Hall), 1=PLL active
+volatile float decouple_lpf_alpha = 0.006f; // LPF alpha for omega_e in decoupling (~10Hz @10kHz)
+volatile uint8_t decouple_enable = 1;       // 0=disable decoupling (debug), 1=enable
+volatile float debug_Vd_decouple = 0.0f;    // Vd decoupling term (for diagnosis)
+volatile float debug_Vq_decouple = 0.0f;    // Vq decoupling term (for diagnosis)
+
+// Dead time compensation
+// Triangle symmetric PWM: dead time affects both rising and falling edges
+// Effective voltage loss = 2 * t_dead / T_pwm = 2 * 500ns / 50us = 0.02
+// Phase mapping: Vabc_out[0]=C, [1]=B, [2]=A; Iab[0]=A, Iab[1]=B, Ic=-(Ia+Ib)
+volatile float dtc_comp = 0.02f;            // Dead time compensation [duty ratio]
+volatile uint8_t dtc_enable = 1;            // 0=disable, 1=enable
 
 // Auto-sweep for offset calibration (set cal_sweep_en=1 via debugger or BLE)
 volatile uint8_t cal_sweep_en = 0;        // 1=sweeping, 0=idle
@@ -635,6 +675,42 @@ static const var_entry_t var_registry[] = {
     {"pll_err_max",         (void*)&debug_pll_error_max, VAR_FLOAT,  0},
     {"Iq_integ",            (void*)&debug_Iq_integral,   VAR_FLOAT,  0},
     {"spd_integ",           (void*)&debug_speed_integ,   VAR_FLOAT,  0},
+    {"decouple_alpha",      (void*)&decouple_lpf_alpha,  VAR_FLOAT,  1},
+    {"pll_Kp",              (void*)&pll_Kp,              VAR_FLOAT,  1},
+    {"pll_Ki",              (void*)&pll_Ki,              VAR_FLOAT,  1},
+    {"pll_enable",          (void*)&pll_enable,          VAR_UINT8,  1},
+    {"pll_omega",           (void*)&pll_omega,           VAR_FLOAT,  0},
+    {"decouple_en",         (void*)&decouple_enable,     VAR_UINT8,  1},
+    {"Vd_decouple",         (void*)&debug_Vd_decouple,   VAR_FLOAT,  0},
+    {"Vq_decouple",         (void*)&debug_Vq_decouple,   VAR_FLOAT,  0},
+    {"sec0_id",             (void*)&diag_id_avg[0],      VAR_FLOAT,  0},
+    {"sec1_id",             (void*)&diag_id_avg[1],      VAR_FLOAT,  0},
+    {"sec2_id",             (void*)&diag_id_avg[2],      VAR_FLOAT,  0},
+    {"sec3_id",             (void*)&diag_id_avg[3],      VAR_FLOAT,  0},
+    {"sec4_id",             (void*)&diag_id_avg[4],      VAR_FLOAT,  0},
+    {"sec5_id",             (void*)&diag_id_avg[5],      VAR_FLOAT,  0},
+    {"sec0_iq",             (void*)&diag_iq_avg[0],      VAR_FLOAT,  0},
+    {"sec1_iq",             (void*)&diag_iq_avg[1],      VAR_FLOAT,  0},
+    {"sec2_iq",             (void*)&diag_iq_avg[2],      VAR_FLOAT,  0},
+    {"sec3_iq",             (void*)&diag_iq_avg[3],      VAR_FLOAT,  0},
+    {"sec4_iq",             (void*)&diag_iq_avg[4],      VAR_FLOAT,  0},
+    {"sec5_iq",             (void*)&diag_iq_avg[5],      VAR_FLOAT,  0},
+    {"dtc_comp",            (void*)&dtc_comp,            VAR_FLOAT,  1},
+    {"dtc_enable",          (void*)&dtc_enable,          VAR_UINT8,  1},
+    {"sec0_ia",             (void*)&diag_ia_avg[0],      VAR_FLOAT,  0},
+    {"sec1_ia",             (void*)&diag_ia_avg[1],      VAR_FLOAT,  0},
+    {"sec2_ia",             (void*)&diag_ia_avg[2],      VAR_FLOAT,  0},
+    {"sec3_ia",             (void*)&diag_ia_avg[3],      VAR_FLOAT,  0},
+    {"sec4_ia",             (void*)&diag_ia_avg[4],      VAR_FLOAT,  0},
+    {"sec5_ia",             (void*)&diag_ia_avg[5],      VAR_FLOAT,  0},
+    {"sec0_ib",             (void*)&diag_ib_avg[0],      VAR_FLOAT,  0},
+    {"sec1_ib",             (void*)&diag_ib_avg[1],      VAR_FLOAT,  0},
+    {"sec2_ib",             (void*)&diag_ib_avg[2],      VAR_FLOAT,  0},
+    {"sec3_ib",             (void*)&diag_ib_avg[3],      VAR_FLOAT,  0},
+    {"sec4_ib",             (void*)&diag_ib_avg[4],      VAR_FLOAT,  0},
+    {"sec5_ib",             (void*)&diag_ib_avg[5],      VAR_FLOAT,  0},
+    {"sec0_n",              (void*)&diag_count[0],       VAR_UINT32, 0},
+    {"sec_reset",           (void*)&diag_sec_reset,      VAR_UINT8,  1},
 };
 #define VAR_REGISTRY_SIZE (sizeof(var_registry)/sizeof(var_registry[0]))
 
@@ -1157,9 +1233,44 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
         // Hand-written FOC Current Controller (verified minimal version)
         // ============================================================
         {
-            float hall_angle = f_get_angle + hall_angle_offset;
+            // ---- Hall PLL: smooth angle estimation ----
+            float hall_raw = f_get_angle + hall_angle_offset;
+            float hall_angle;
+            debug_hall_angle = hall_raw;
+
+            if (pll_enable) {
+                // Phase detector: error = wrap(hall_raw - pll_theta)
+                float phase_err = hall_raw - pll_theta;
+                if (phase_err >  3.14159265f) phase_err -= 6.28318530f;
+                if (phase_err < -3.14159265f) phase_err += 6.28318530f;
+
+                // PI loop filter (no feed-forward: integrator tracks speed)
+                pll_integrator += pll_Ki * 0.0001f * phase_err;
+                // Anti-windup: clamp to ±2x max electrical speed (~4000RPM)
+                if (pll_integrator >  8400.0f) pll_integrator =  8400.0f;
+                if (pll_integrator < -8400.0f) pll_integrator = -8400.0f;
+
+                pll_omega = pll_Kp * phase_err + pll_integrator;
+
+                // VCO: integrate frequency to get angle
+                pll_theta += pll_omega * 0.0001f;
+                // Wrap to [0, 2*pi)
+                if (pll_theta >= 6.28318530f) pll_theta -= 6.28318530f;
+                if (pll_theta <  0.0f)        pll_theta += 6.28318530f;
+
+                // Debug
+                debug_pll_error_max = (phase_err > 0 ? phase_err : -phase_err) > debug_pll_error_max
+                    ? (phase_err > 0 ? phase_err : -phase_err) : debug_pll_error_max;
+
+                hall_angle = pll_theta;
+            } else {
+                // Bypass: raw Hall angle, seed PLL for seamless switch-on
+                hall_angle = hall_raw;
+                pll_theta = hall_raw;
+                pll_integrator = SpeedFb_RPM * (2.0f * 3.14159265f / 60.0f) * pmsm.p;
+                pll_omega = pll_integrator;
+            }
             debug_pll_theta = hall_angle;
-            debug_hall_angle = hall_angle;
 
             float sin_theta = sinf(hall_angle);
             float cos_theta = cosf(hall_angle);
@@ -1172,6 +1283,30 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
 
             float Id_raw =  Ialpha * cos_theta + Ibeta * sin_theta;
             float Iq_raw = Ibeta * cos_theta - Ialpha * sin_theta;
+
+            // Sector-binned diagnostics: accumulate Id/Iq raw per Hall sector
+            {
+                if (diag_sec_reset) {
+                    for (int s = 0; s < DIAG_SECTORS; s++) {
+                        diag_id_sum[s] = 0; diag_iq_sum[s] = 0; diag_count[s] = 0;
+                        diag_id_avg[s] = 0; diag_iq_avg[s] = 0;
+                        diag_ia_sum[s] = 0; diag_ib_sum[s] = 0;
+                        diag_ia_avg[s] = 0; diag_ib_avg[s] = 0;
+                    }
+                    diag_sec_reset = 0;
+                }
+                float angle_mod = f_get_angle;
+                if (angle_mod < 0.0f) angle_mod += 6.28318530f;
+                if (angle_mod >= 6.28318530f) angle_mod -= 6.28318530f;
+                int sec = (int)(angle_mod * 0.954929658f);  // angle / (π/3) = angle * 3/π
+                if (sec < 0) sec = 0;
+                if (sec >= DIAG_SECTORS) sec = DIAG_SECTORS - 1;
+                diag_id_sum[sec] += Id_raw;
+                diag_iq_sum[sec] += Iq_raw;
+                diag_ia_sum[sec] += Ialpha;
+                diag_ib_sum[sec] += Ibeta;
+                diag_count[sec]++;
+            }
 
             // Debug: record RAW peak values and ADC data at spike
             {
@@ -1189,8 +1324,8 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
             }
 
             static float Id_fb = 0.0f, Iq_fb_val = 0.0f;
-            Id_fb     += 0.1f * (Id_raw - Id_fb);     // α=0.1 (restored to proven value)
-            Iq_fb_val += 0.1f * (Iq_raw - Iq_fb_val); // increase later after stability confirmed
+            Id_fb     += 0.1f * (Id_raw - Id_fb);     // α=0.1 → fc≈159Hz
+            Iq_fb_val += 0.1f * (Iq_raw - Iq_fb_val); // α=0.3 tested: oscillation 2x worse
             IqFb = Iq_fb_val;
             IdFb = Id_fb;
             debug_Ialpha = Ialpha;
@@ -1236,6 +1371,10 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
                     debug_iq_raw_max = 0.0f;
                     debug_id_raw_max = 0.0f;
                     debug_pll_error_max = 0.0f;
+                    // Reset PLL state to current Hall angle, seed speed for instant lock
+                    pll_theta = f_get_angle + hall_angle_offset;
+                    pll_integrator = SpeedFb_RPM * (2.0f * 3.14159265f / 60.0f) * pmsm.p;
+                    pll_omega = pll_integrator;
                     foc_was_enabled = 1;
                 }
 
@@ -1249,14 +1388,27 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
                 // dq-axis cross-coupling decoupling (replaces old Vq_ff_lpf)
                 // Compensates rotational EMF: ωe×L×I cross terms + back-EMF
                 // Without this, Iq leaks into Id at speed → large Id, heating
+                // omega_e is low-pass filtered (~10Hz) to prevent speed
+                // estimation noise from injecting voltage disturbance
                 // ============================================================
-                float omega_e = SpeedFb_RPM * (2.0f * 3.14159265f / 60.0f) * pmsm.p;
+                static float omega_e_filt = 0.0f;
+                float omega_e_raw = SpeedFb_RPM * (2.0f * 3.14159265f / 60.0f) * pmsm.p;
+                omega_e_filt += decouple_lpf_alpha * (omega_e_raw - omega_e_filt);
+                float omega_e = omega_e_filt;
                 float Lq_pu = pmsm.Lq * inverter.ISenseMax * 1.7320508f / inverter.V_dc;
                 float Ld_pu = pmsm.Ld * inverter.ISenseMax * 1.7320508f / inverter.V_dc;
                 float FluxPM_pu = pmsm.FluxPM * 1.7320508f / inverter.V_dc;
 
-                float Vd_decouple = -omega_e * Lq_pu * Iq_fb_val;
-                float Vq_decouple = +omega_e * Ld_pu * Id_fb + omega_e * FluxPM_pu;
+                float Vd_decouple, Vq_decouple;
+                if (decouple_enable) {
+                    Vd_decouple = -omega_e * Lq_pu * Iq_fb_val;
+                    Vq_decouple = +omega_e * Ld_pu * Id_fb + omega_e * FluxPM_pu;
+                } else {
+                    Vd_decouple = 0.0f;
+                    Vq_decouple = 0.0f;
+                }
+                debug_Vd_decouple = Vd_decouple;
+                debug_Vq_decouple = Vq_decouple;
 
                 float Id_error = IdqRef[0] - Id_fb;
                 float Iq_error = IdqRef[1] - Iq_fb_val;
@@ -1305,6 +1457,33 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
                 Vabc_out[0] = 0.5f * (Va + Voff) * 1.15470052f + 0.5f;
                 Vabc_out[1] = 0.5f * (Vb + Voff) * 1.15470052f + 0.5f;
                 Vabc_out[2] = 0.5f * (Vc + Voff) * 1.15470052f + 0.5f;
+                // Dead time compensation: correct duty based on current direction
+                // Positive current → actual voltage is lower → add compensation
+                // Negative current → actual voltage is higher → subtract compensation
+                // Dead time compensation (6-PWM, triangle symmetric)
+                // Positive current: actual voltage < commanded → increase duty
+                // Phase mapping: Vabc_out[0]=C, [1]=B, [2]=A
+                // Use filtered dq currents → inverse Park for stable phase current estimate
+                // Linear interpolation near zero crossing (SPRAA87 method):
+                //   |I| > threshold: full ±dtc_comp
+                //   |I| < threshold: dtc_comp * I / threshold (smooth transition)
+                if (dtc_enable) {
+                    float Ialpha_c = Id_fb * cos_theta - Iq_fb_val * sin_theta;
+                    float Ibeta_c  = Id_fb * sin_theta + Iq_fb_val * cos_theta;
+                    float Ia_comp = Ialpha_c;
+                    float Ib_comp = -0.5f * Ialpha_c + 0.8660254f * Ibeta_c;
+                    float Ic_comp = -(Ia_comp + Ib_comp);
+                    float c = dtc_comp;
+                    float thr = 0.01f;  // linear zone: ±0.01 PU (±0.165A)
+                    float inv_thr = 1.0f / thr;
+                    // Linear ramp: saturates at ±c, smooth through zero
+                    float da = Ia_comp * inv_thr; if (da > 1.0f) da = 1.0f; if (da < -1.0f) da = -1.0f;
+                    float db = Ib_comp * inv_thr; if (db > 1.0f) db = 1.0f; if (db < -1.0f) db = -1.0f;
+                    float dc = Ic_comp * inv_thr; if (dc > 1.0f) dc = 1.0f; if (dc < -1.0f) dc = -1.0f;
+                    Vabc_out[2] += c * da;  // A相
+                    Vabc_out[1] += c * db;  // B相
+                    Vabc_out[0] += c * dc;  // C相
+                }
             } else {
                 Vabc_out[0] = 0.5f; Vabc_out[1] = 0.5f; Vabc_out[2] = 0.5f;
                 foc_was_enabled = 0;
@@ -1735,6 +1914,19 @@ do_getall:
         goto do_getall;
 
     } else if (strcmp(cmd, "D") == 0) {
+        // Compute sector averages before dump
+        for (int s = 0; s < DIAG_SECTORS; s++) {
+            if (diag_count[s] > 0) {
+                float inv_n = 1.0f / (float)diag_count[s];
+                diag_id_avg[s] = diag_id_sum[s] * inv_n;
+                diag_iq_avg[s] = diag_iq_sum[s] * inv_n;
+                diag_ia_avg[s] = diag_ia_sum[s] * inv_n;
+                diag_ib_avg[s] = diag_ib_sum[s] * inv_n;
+            } else {
+                diag_id_avg[s] = 0; diag_iq_avg[s] = 0;
+                diag_ia_avg[s] = 0; diag_ib_avg[s] = 0;
+            }
+        }
         // DUMP: send all var_registry values as V<idx>=<value> (1 per ms tick)
         // Uses reliable MCU→MATLAB notification path, ~35ms for all params
         dump_send_idx = 0;

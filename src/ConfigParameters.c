@@ -25,8 +25,8 @@ struct_DWWWf6N21VtITTqdrqSn0 PI_params = {
   0.0F,       // Ki_id = 0: P-only on Id axis prevents integrator drift from Hall angle error
   0.50F,      // Kp_iq
   0.1F,       // Ki_iq - safe proven value (increase via BLE: SET Ki_iq <val>)
-  1.0F,       // Kp_speed - proven working value
-  0.1F,       // Ki_speed - proven working value
+  0.78F,      // Kp_speed - tuned for N_base=4750 (was 1.0)
+  1.5F,       // Ki_speed - tuned for N_base=4750 (was 0.1)
   2,
   20,
   2
