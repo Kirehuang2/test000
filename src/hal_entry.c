@@ -41,7 +41,7 @@ float Mode = 2.0f;  // Mode >= 2 required to start speed control state machine
 // compute speed as d(angle)/dt using a sliding window over
 // the interpolated f_get_angle from FSP Hall module.
 // ============================================================
-#define SPEED_EST_WINDOW  100  // Window size in calls (100 = 10ms at 10kHz, was 200=20ms)
+#define SPEED_EST_WINDOW  200  // Window size in calls (200 = 20ms at 10kHz, ~8RPM resolution)
 static float angle_history[SPEED_EST_WINDOW];  // Ring buffer of angle DELTAS (not accumulated)
 static uint16_t angle_hist_idx = 0;
 static uint8_t angle_hist_filled = 0;
@@ -219,6 +219,7 @@ volatile float debug_Vq_decouple = 0.0f;    // Vq decoupling term (for diagnosis
 // Phase mapping: Vabc_out[0]=C, [1]=B, [2]=A; Iab[0]=A, Iab[1]=B, Ic=-(Ia+Ib)
 volatile float dtc_comp = 0.02f;            // Dead time compensation [duty ratio]
 volatile uint8_t dtc_enable = 1;            // 0=disable, 1=enable
+volatile float dtc_sign = 1.0f;            // +1 or -1: current polarity for DTC (BLE tunable)
 
 // Auto-sweep for offset calibration (set cal_sweep_en=1 via debugger or BLE)
 volatile uint8_t cal_sweep_en = 0;        // 1=sweeping, 0=idle
@@ -296,6 +297,7 @@ volatile float ff_scale = 1.0f;              // 0.0~1.0: diagnostic only
 
 // JOG speed reference (settable via debugger or BLE)
 volatile float speed_ref_rpm = 0.0f;         // Target speed [RPM]
+volatile float speed_ramp_rate = 0.00004f;   // Speed ramp rate [PU/call @10kHz] (0.00004=1900RPM/s)
 
 // Assist level and turbo mode
 volatile uint8_t assist_level = 0;           // 0=Low, 1=Mid, 2=High
@@ -636,6 +638,7 @@ static const var_entry_t var_registry[] = {
     {"enable",              (void*)&Enable,              VAR_UINT8,  0},  // Read-only: use E0/E1 commands (OC fault check)
     {"control_mode",        (void*)&control_mode,        VAR_UINT8,  1},
     {"speed_ref_rpm",       (void*)&speed_ref_rpm,       VAR_FLOAT,  1},
+    {"speed_ramp_rate",     (void*)&speed_ramp_rate,     VAR_FLOAT,  1},
     {"torque_ref_iq",       (void*)&torque_ref_iq,       VAR_FLOAT,  1},
     {"torque_ref_iq_max",   (void*)&torque_ref_iq_max,   VAR_FLOAT,  1},
     {"torque_max_speed",    (void*)&torque_max_speed_rpm, VAR_FLOAT, 1},
@@ -702,6 +705,7 @@ static const var_entry_t var_registry[] = {
     {"sec5_iq",             (void*)&diag_iq_avg[5],      VAR_FLOAT,  0},
     {"dtc_comp",            (void*)&dtc_comp,            VAR_FLOAT,  1},
     {"dtc_enable",          (void*)&dtc_enable,          VAR_UINT8,  1},
+    {"dtc_sign",            (void*)&dtc_sign,            VAR_FLOAT,  1},
     {"sec0_ia",             (void*)&diag_ia_avg[0],      VAR_FLOAT,  0},
     {"sec1_ia",             (void*)&diag_ia_avg[1],      VAR_FLOAT,  0},
     {"sec2_ia",             (void*)&diag_ia_avg[2],      VAR_FLOAT,  0},
@@ -1108,8 +1112,9 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
             if (target_pu < 0.0f) target_pu = 0.0f;
             if (target_pu > 1.0f) target_pu = 1.0f;
 
-            // Rate limiter: 0.00002 PU/call = 0.2 PU/s at 10kHz (~312 RPM/s)
-            const float ramp_rate = 0.00002f;
+            // Rate limiter: speed_ramp_rate PU/call at 10kHz
+            // Default 0.00004 = 0.4 PU/s = ~1900 RPM/s (M0→M2000 in ~1s)
+            float ramp_rate = speed_ramp_rate;
             if (SpeedRefIn_PU < target_pu) {
                 SpeedRefIn_PU += ramp_rate;
                 if (SpeedRefIn_PU > target_pu) SpeedRefIn_PU = target_pu;
@@ -1475,18 +1480,20 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
                 //   |I| > threshold: full ±dtc_comp
                 //   |I| < threshold: dtc_comp * I / threshold (smooth transition)
                 if (dtc_enable) {
-                    float Ialpha_c = Id_fb * cos_theta - Iq_fb_val * sin_theta;
-                    float Ibeta_c  = Id_fb * sin_theta + Iq_fb_val * cos_theta;
-                    float Ia_comp = Ialpha_c;
-                    float Ib_comp = -0.5f * Ialpha_c + 0.8660254f * Ibeta_c;
-                    float Ic_comp = -(Ia_comp + Ib_comp);
+                    // Use measured physical phase currents directly (not inverse Park)
+                    // Avoids phase mapping ambiguity between Clarke/SVPWM conventions
+                    // Ia_pu, Ib_pu are raw ADC measurements (physical A, B phase currents)
+                    // dtc_sign: +1 or -1, adjustable via BLE to match ADC polarity
+                    float Ia_dtc = Ia_pu * dtc_sign;
+                    float Ib_dtc = Ib_pu * dtc_sign;
+                    float Ic_dtc = -(Ia_dtc + Ib_dtc);
                     float c = dtc_comp;
                     float thr = 0.01f;  // linear zone: ±0.01 PU (±0.165A)
                     float inv_thr = 1.0f / thr;
-                    // Linear ramp: saturates at ±c, smooth through zero
-                    float da = Ia_comp * inv_thr; if (da > 1.0f) da = 1.0f; if (da < -1.0f) da = -1.0f;
-                    float db = Ib_comp * inv_thr; if (db > 1.0f) db = 1.0f; if (db < -1.0f) db = -1.0f;
-                    float dc = Ic_comp * inv_thr; if (dc > 1.0f) dc = 1.0f; if (dc < -1.0f) dc = -1.0f;
+                    // Linear ramp: saturates at ±c, smooth through zero (SPRAA87)
+                    float da = Ia_dtc * inv_thr; if (da > 1.0f) da = 1.0f; if (da < -1.0f) da = -1.0f;
+                    float db = Ib_dtc * inv_thr; if (db > 1.0f) db = 1.0f; if (db < -1.0f) db = -1.0f;
+                    float dc = Ic_dtc * inv_thr; if (dc > 1.0f) dc = 1.0f; if (dc < -1.0f) dc = -1.0f;
                     Vabc_out[2] += c * da;  // A相
                     Vabc_out[1] += c * db;  // B相
                     Vabc_out[0] += c * dc;  // C相
