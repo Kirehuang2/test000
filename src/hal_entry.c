@@ -221,6 +221,15 @@ volatile float dtc_comp = 0.02f;            // Dead time compensation [duty rati
 volatile uint8_t dtc_enable = 1;            // 0=disable, 1=enable
 volatile float dtc_sign = 1.0f;            // +1 or -1: current polarity for DTC (BLE tunable)
 
+// Angle advance compensation for computational delay
+// FOC pipeline: ADC sample → compute → duty update → next PWM edge
+// Total delay ≈ 1.0 × Ts_pwm = 50μs (center-aligned PWM, double-buffered)
+// At high speed, this delay causes angle mismatch between measured current
+// and applied voltage, leaking back-EMF into d-axis → excess current
+// Compensation: advance hall_angle by ω_e × (angle_advance_us × 1e-6)
+// Tunable via BLE: SET angle_advance_us <value>  (unit: microseconds)
+volatile float angle_advance_us = 200.0f;  // Delay compensation [μs] (optimized: 200 = 2.0 × Ts_foc, |I|=0.071A@M2000)
+
 // Auto-sweep for offset calibration (set cal_sweep_en=1 via debugger or BLE)
 volatile uint8_t cal_sweep_en = 0;        // 1=sweeping, 0=idle
 volatile uint8_t cal_sweep_idx = 0;       // current sweep index
@@ -706,6 +715,7 @@ static const var_entry_t var_registry[] = {
     {"dtc_comp",            (void*)&dtc_comp,            VAR_FLOAT,  1},
     {"dtc_enable",          (void*)&dtc_enable,          VAR_UINT8,  1},
     {"dtc_sign",            (void*)&dtc_sign,            VAR_FLOAT,  1},
+    {"angle_advance_us",    (void*)&angle_advance_us,    VAR_FLOAT,  1},
     {"sec0_ia",             (void*)&diag_ia_avg[0],      VAR_FLOAT,  0},
     {"sec1_ia",             (void*)&diag_ia_avg[1],      VAR_FLOAT,  0},
     {"sec2_ia",             (void*)&diag_ia_avg[2],      VAR_FLOAT,  0},
@@ -1281,6 +1291,14 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
                 pll_integrator = SpeedFb_RPM * (2.0f * 3.14159265f / 60.0f) * pmsm.p;
                 pll_omega = pll_integrator;
             }
+            // Angle advance: compensate computational delay
+            // omega_e_filt is the LPF'd electrical speed [rad/s] from decoupling
+            // At M2000: advance = 1675 * 75μs = 0.126 rad (7.2°)
+            // At M500:  advance = 419 * 75μs = 0.031 rad (1.8°)
+            // hall_angle_offset was calibrated at M500 including its 1.8° delay,
+            // so this advance corrects the ADDITIONAL delay at higher speeds.
+            hall_angle += omega_e_filt * (angle_advance_us * 0.000001f);
+
             debug_pll_theta = hall_angle;
 
             float sin_theta = sinf(hall_angle);
