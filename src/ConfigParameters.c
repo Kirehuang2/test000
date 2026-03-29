@@ -67,7 +67,7 @@ struct_hXFaRMdP3p9q6ruHP5AkdC pmsm = {
   6.0F,
   1.81e-5F,
   0.001F,
-  0.00413496653F,
+  0.002915F,
   3.29F,
   1000.0F,
   4750.0F,

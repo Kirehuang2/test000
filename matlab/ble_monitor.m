@@ -28,12 +28,12 @@ function ble_monitor()
         if isfield(s,'torque'), DEFAULT_TORQUE = s.torque; end
         if isfield(s,'max_speed'), DEFAULT_MAX_SPEED = s.max_speed; end
     end
-    CHAN_NAMES = {'(none)', 'RPM', 'Iq', 'Id', 'Vbat', 'Tinv', 'Treg', 'AccX', 'AccY', 'AccZ', 'GyrX', 'GyrY', 'GyrZ', 'IqRef', 'IdRef'};
+    CHAN_NAMES = {'(none)', 'RPM', 'Iq', 'Id', 'Vbat', 'Tinv', 'Treg', 'AccX', 'AccY', 'AccZ', 'GyrX', 'GyrY', 'GyrZ', 'IqRef', 'IdRef', 'SpdInteg', 'Vmag2'};
     CHAN_COLORS = {[0 0 0], [0 0.45 0.74], [0.85 0.33 0.1], [0.93 0.1 0.1], [0.47 0.67 0.19], ...
                   [0.49 0.18 0.56], [0.64 0.08 0.18], ...
                   [0.93 0.69 0.13], [0.3 0.75 0.93], [0.64 0.08 0.18], ...
-                  [0.47 0.67 0.19], [0.85 0.33 0.1], [0 0.45 0.74], [0.3 0.3 0.3], [0.6 0.2 0.2]};
-    CHAN_UNITS = {'', 'RPM', 'PU', 'PU', 'V', 'C', 'C', 'g', 'g', 'g', 'dps', 'dps', 'dps', 'PU', 'PU'};
+                  [0.47 0.67 0.19], [0.85 0.33 0.1], [0 0.45 0.74], [0.3 0.3 0.3], [0.6 0.2 0.2], [0.1 0.6 0.5], [0.8 0.4 0.0]};
+    CHAN_UNITS = {'', 'RPM', 'PU', 'PU', 'V', 'C', 'C', 'g', 'g', 'g', 'dps', 'dps', 'dps', 'PU', 'PU', 'PU', 'PU^2'};
     NUM_PLOTS = 5;
     defaultChans = [2, 3, 4, 5, 1];
 
@@ -67,6 +67,8 @@ function ble_monitor()
     csvId = NaN(csvMaxRows,1);
     csvIqRef = NaN(csvMaxRows,1);
     csvIdRef = NaN(csvMaxRows,1);
+    csvSpdInteg = NaN(csvMaxRows,1);
+    csvVmag2 = NaN(csvMaxRows,1);
     csvIdx = 0;
 
     %% Screen layout
@@ -499,7 +501,7 @@ function ble_monitor()
             tNow = toc(t0);
             es = n + 2;
             iq=0; vb=0; ti=0; tr=0; acx=0; acy=0; acz=0; gcx=0; gcy=0; gcz=0; id=0;
-            if numel(parts)>=es,   iq=str2double(parts{es})/100; end
+            if numel(parts)>=es,   iq=str2double(parts{es})/1000; end
             if numel(parts)>=es+1, vb=str2double(parts{es+1}) / 10; end  % vbat*10 -> V
             if numel(parts)>=es+2, acx=str2double(parts{es+2})/1000; end
             if numel(parts)>=es+3, acy=str2double(parts{es+3})/1000; end
@@ -507,10 +509,12 @@ function ble_monitor()
             if numel(parts)>=es+5, gcx=str2double(parts{es+5})/10; end
             if numel(parts)>=es+6, gcy=str2double(parts{es+6})/10; end
             if numel(parts)>=es+7, gcz=str2double(parts{es+7})/10; end
-            if numel(parts)>=es+8, id=str2double(parts{es+8})/100; end  % Id*100 -> PU
-            iqref=0; idref=0;
+            if numel(parts)>=es+8, id=str2double(parts{es+8})/1000; end  % Id*1000 -> PU
+            iqref=0; idref=0; spdinteg=0; vmag2=0;
             if numel(parts)>=es+13, iqref=str2double(parts{es+13})/1000; end  % IdqRef[1]*1000 -> PU
             if numel(parts)>=es+14, idref=str2double(parts{es+14})/1000; end  % IdqRef[0]*1000 -> PU
+            if numel(parts)>=es+15, spdinteg=str2double(parts{es+15})/1000; end  % speed PI integrator*1000 -> PU
+            if numel(parts)>=es+16, vmag2=str2double(parts{es+16})/1000; end  % Vmag2*1000
             dt = 1.0/TARGET_HZ;
             tBurstStart = tNow-(n-1)*dt;
             if csvIdx>0 && ~isnan(csvTime(csvIdx))
@@ -532,6 +536,8 @@ function ble_monitor()
                     csvId(end+1:csvMaxRows)=NaN;
                     csvIqRef(end+1:csvMaxRows)=NaN;
                     csvIdRef(end+1:csvMaxRows)=NaN;
+                    csvSpdInteg(end+1:csvMaxRows)=NaN;
+                    csvVmag2(end+1:csvMaxRows)=NaN;
                 end
                 csvTime(csvIdx)=tBurstStart+(k-1)*dt;
                 csvRpm(csvIdx)=rpm; csvIq(csvIdx)=iq; csvVbat(csvIdx)=vb;
@@ -541,6 +547,8 @@ function ble_monitor()
                 csvId(csvIdx)=id;
                 csvIqRef(csvIdx)=iqref;
                 csvIdRef(csvIdx)=idref;
+                csvSpdInteg(csvIdx)=spdinteg;
+                csvVmag2(csvIdx)=vmag2;
             end
         elseif startsWith(line,'ALL ')
             appendLog(line);
@@ -631,6 +639,8 @@ function ble_monitor()
             case 11, data=csvGx; case 12, data=csvGy; case 13, data=csvGz;
             case 14, data=csvIqRef;
             case 15, data=csvIdRef;
+            case 16, data=csvSpdInteg;
+            case 17, data=csvVmag2;
             otherwise, data=[];
         end
     end
@@ -675,9 +685,9 @@ function ble_monitor()
                 fname=fullfile(folder,sprintf('motor_log_%s.csv',datestr(now,'yyyymmdd_HHMMSS')));
                 vi=1:csvIdx;
                 T=table(csvTime(vi),csvRpm(vi),csvIq(vi),csvVbat(vi),csvTinv(vi),csvTreg(vi),...
-                    csvAx(vi),csvAy(vi),csvAz(vi),csvGx(vi),csvGy(vi),csvGz(vi),csvId(vi),csvIqRef(vi),csvIdRef(vi),...
+                    csvAx(vi),csvAy(vi),csvAz(vi),csvGx(vi),csvGy(vi),csvGz(vi),csvId(vi),csvIqRef(vi),csvIdRef(vi),csvSpdInteg(vi),csvVmag2(vi),...
                     'VariableNames',{'Time_s','RPM','Iq_PU','Vbat_V','Tinv_C','Treg_C',...
-                    'AccX_g','AccY_g','AccZ_g','GyrX_dps','GyrY_dps','GyrZ_dps','Id_PU','IqRef_PU','IdRef_PU'});
+                    'AccX_g','AccY_g','AccZ_g','GyrX_dps','GyrY_dps','GyrZ_dps','Id_PU','IqRef_PU','IdRef_PU','SpdInteg_PU','Vmag2'});
                 writetable(T,fname);
                 fprintf('Saved %d samples to %s\n',csvIdx,fname);
                 appendLog(sprintf('Saved %d samples to %s',csvIdx,fname));

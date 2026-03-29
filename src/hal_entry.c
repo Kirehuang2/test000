@@ -109,6 +109,10 @@ volatile float debug_speed_error = 0.0f;      // SpeedRef - SpeedFb (should be p
 volatile float debug_Ialpha = 0.0f;           // Clarke transform output
 volatile float debug_Ibeta = 0.0f;            // Clarke transform output
 volatile float debug_Iq_integral = 0.0f;      // For streaming diagnostic
+volatile float debug_speed_integ = 0.0f;      // Speed PI integrator state
+volatile float debug_Vmag2 = 0.0f;           // Voltage vector magnitude squared (0.9025=saturated)
+volatile float debug_Vd_sat = 0.0f;          // Vd after circle limiter
+volatile float debug_Vq_sat = 0.0f;          // Vq after circle limiter
 volatile float debug_i2_max = 0.0f;           // Peak I² seen by I²t (LPF後)
 volatile float debug_i2_avg = 0.0f;           // Running average I²
 volatile float debug_pll_theta = 0.0f;        // PLL output angle [rad]
@@ -169,7 +173,7 @@ volatile uint8_t drv8302_fault = 0;       // 0=Normal, 1=Fault detected
 volatile uint8_t drv8302_fault_latched = 0; // Latched fault (requires power cycle to clear)
 
 // Hall sensor angle offset (adjustable via debugger or BLE P43=<value>)
-volatile float hall_angle_offset = 0.01f;   // Calibrated offset (tunable via BLE)
+volatile float hall_angle_offset = 0.20f;   // Calibrated offset (tunable via BLE)
 
 // Auto-sweep for offset calibration (set cal_sweep_en=1 via debugger or BLE)
 volatile uint8_t cal_sweep_en = 0;        // 1=sweeping, 0=idle
@@ -629,6 +633,8 @@ static const var_entry_t var_registry[] = {
     {"pll_theta",           (void*)&debug_pll_theta,     VAR_FLOAT,  0},
     {"hall_angle",          (void*)&debug_hall_angle,     VAR_FLOAT,  0},
     {"pll_err_max",         (void*)&debug_pll_error_max, VAR_FLOAT,  0},
+    {"Iq_integ",            (void*)&debug_Iq_integral,   VAR_FLOAT,  0},
+    {"spd_integ",           (void*)&debug_speed_integ,   VAR_FLOAT,  0},
 };
 #define VAR_REGISTRY_SIZE (sizeof(var_registry)/sizeof(var_registry[0]))
 
@@ -1283,6 +1289,9 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
                     if (Iq_integral < -int_lim) Iq_integral = -int_lim;
                 }
                 debug_Iq_integral = Iq_integral;
+                debug_Vmag2 = Vmag2;
+                debug_Vd_sat = Vd_sat;
+                debug_Vq_sat = Vq_sat;
 
                 float Valpha = Vd_sat * cos_theta - Vq_sat * sin_theta;
                 float Vbeta  = Vq_sat * cos_theta + Vd_sat * sin_theta;
@@ -1863,8 +1872,8 @@ static void ble_uart_tick(void) {
                     }
                     // Compact: iq(int*100), vbat, IMU(milli-g, deci-dps) — no tinv/treg
                     pos += snprintf(resp + pos, sizeof(resp) - (size_t)pos,
-                             ",%d,%u,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
-                             (int)(IqFb * 100),
+                             ",%d,%u,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
+                             (int)(IqFb * 1000),
                              (int)(battery_voltage * 10 + 0.5f),
                              (int)(imu_accel_g[0] * 1000),
                              (int)(imu_accel_g[1] * 1000),
@@ -1872,13 +1881,15 @@ static void ble_uart_tick(void) {
                              (int)(imu_gyro_dps[0] * 10),
                              (int)(imu_gyro_dps[1] * 10),
                              (int)(imu_gyro_dps[2] * 10),
-                             (int)(IdFb * 100),
+                             (int)(IdFb * 1000),
                              (int)Enable,
                              (int)protection_state,
                              (int)(i2t_ratio * 100),
                              (int)(debug_Iq_integral * 1000),
                              (int)(IdqRef[1] * 1000),
-                             (int)(IdqRef[0] * 1000));
+                             (int)(IdqRef[0] * 1000),
+                             (int)(debug_speed_integ * 1000),
+                             (int)(debug_Vmag2 * 1000));
                     // XOR checksum of payload (B...data), append *XX\r\n
                     {
                         uint8_t csum = 0;
@@ -2026,6 +2037,7 @@ void One_ms_Int(timer_callback_args_t *p_args)
         float iq_raw_before = IdqRef[1];  // capture before SpeedControl modifies it
         SpeedControl_step(Enable, SpeedRefIn_PU, SpeedFb_Hall_PU, IqFb, Mode, IdqRef, &SpeedRefFinal_PU, &EnCl);
         float iq_after_sc = IdqRef[1];    // after speed controller
+        debug_speed_integ = FOCSpeedControl_DW.Integrator_DSTATE;
         // Apply thermal derating to speed controller Iq output
         IdqRef[1] *= output_derating;
         // Compute ff_scale for speed mode (derating effect on FF)

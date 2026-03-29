@@ -181,23 +181,23 @@ void SpeedControl_step(boolean_T arg_Enable, real32_T arg_SpeedRef_PU, real32_T
   /* Saturate: '<S44>/Saturation' incorporates:
    *  DeadZone: '<S30>/DeadZone'
    */
-  if (rtb_DeadZone > 0.193939403F) {
+  if (rtb_DeadZone > 0.20F) {
     /* Outport: '<Root>/IdqRef_PU' */
-    arg_IdqRef_PU[1] = 0.193939403F;
-    rtb_DeadZone -= 0.193939403F;
+    arg_IdqRef_PU[1] = 0.20F;
+    rtb_DeadZone -= 0.20F;
   } else {
-    if (rtb_DeadZone < -0.193939403F) {
+    if (rtb_DeadZone < -0.20F) {
       /* Outport: '<Root>/IdqRef_PU' */
-      arg_IdqRef_PU[1] = -0.193939403F;
+      arg_IdqRef_PU[1] = -0.20F;
     } else {
       /* Outport: '<Root>/IdqRef_PU' */
       arg_IdqRef_PU[1] = rtb_DeadZone;
     }
 
-    if (rtb_DeadZone >= -0.193939403F) {
+    if (rtb_DeadZone >= -0.20F) {
       rtb_DeadZone = 0.0F;
     } else {
-      rtb_DeadZone -= -0.193939403F;
+      rtb_DeadZone -= -0.20F;
     }
   }
 
@@ -208,49 +208,17 @@ void SpeedControl_step(boolean_T arg_Enable, real32_T arg_SpeedRef_PU, real32_T
    */
   rtb_IProdOut *= PI_params.Ki_speed * (real32_T)Ts_speed;
 
+  /* Back-calculation anti-windup (replaces Simulink clamping method)
+   * rtb_DeadZone = (PI_output - saturated_output), non-zero when saturated.
+   * Kb = 1/Kp_speed: pulls integrator back toward the saturation boundary.
+   * This actively unwinds the integrator, unlike clamping which only stops it. */
+  {
+    float Kb_speed = (PI_params.Kp_speed > 0.01f) ? (1.0f / PI_params.Kp_speed) : 1.0f;
+    rtb_IProdOut -= Kb_speed * rtb_DeadZone;
+  }
+
   /* Update for DiscreteIntegrator: '<S37>/Integrator' */
   FOCSpeedControl_DW.Integrator_IC_LOADING = 0U;
-
-  /* Switch: '<S28>/Switch1' incorporates:
-   *  Constant: '<S28>/Clamping_zero'
-   *  Constant: '<S28>/Constant'
-   *  Constant: '<S28>/Constant2'
-   *  RelationalOperator: '<S28>/fix for DT propagation issue'
-   */
-  if (rtb_DeadZone > 0.0F) {
-    tmp = 1;
-  } else {
-    tmp = -1;
-  }
-
-  /* Switch: '<S28>/Switch2' incorporates:
-   *  Constant: '<S28>/Clamping_zero'
-   *  Constant: '<S28>/Constant3'
-   *  Constant: '<S28>/Constant4'
-   *  RelationalOperator: '<S28>/fix for DT propagation issue1'
-   */
-  if (rtb_IProdOut > 0.0F) {
-    tmp_0 = 1;
-  } else {
-    tmp_0 = -1;
-  }
-
-  /* Switch: '<S28>/Switch' incorporates:
-   *  Constant: '<S28>/Clamping_zero'
-   *  Constant: '<S28>/Constant1'
-   *  Logic: '<S28>/AND3'
-   *  RelationalOperator: '<S28>/Equal1'
-   *  RelationalOperator: '<S28>/Relational Operator'
-   *  Switch: '<S28>/Switch1'
-   *  Switch: '<S28>/Switch2'
-   */
-  if ((rtb_DeadZone != 0.0F) && (tmp == tmp_0)) {
-    rtb_IProdOut = 0.0F;
-  }
-
-  /* Update for DiscreteIntegrator: '<S37>/Integrator' incorporates:
-   *  Switch: '<S28>/Switch'
-   */
   FOCSpeedControl_DW.Integrator_DSTATE += rtb_IProdOut;
   FOCSpeedControl_DW.Integrator_PrevResetState = (int8_T)rtb_AND;
 }
