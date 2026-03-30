@@ -1487,8 +1487,11 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
                 // Works regardless of dq alignment — uses raw measured current
                 // ============================================================
                 {
-                    float I2_meas = Ia_pu * Ia_pu + Ib_pu * Ib_pu;  // |I|² from ADC (unfiltered, fast)
-                    float I2_limit = I2T_I_RATED_PU * I2T_I_RATED_PU;  // 0.04 (= 3.29A²)
+                    float I2_meas = Ialpha * Ialpha + Ibeta * Ibeta;  // |I|² from Clarke (correct magnitude)
+                    // Limit at 2× rated (6.58A) — prevents catastrophic overcurrent from angle error
+                    // Rated current protection is handled by i2t (thermal) and IqRef saturation
+                    // Setting too low (=I_rated) kills torque at low speed due to Hall angle error
+                    float I2_limit = 4.0f * I2T_I_RATED_PU * I2T_I_RATED_PU;  // 0.16 (= 6.58A²)
                     if (I2_meas > I2_limit) {
                         // Scale voltage so current stays at limit
                         // Use sqrt for accurate scaling, runs only when overlimit
