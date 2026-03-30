@@ -353,10 +353,15 @@ static uint16_t sw_in2_debounce = 0;         // Debounce counter for IN2
 // ============================================================
 #define I2T_I_RATED_PU    0.20f              // Rated continuous current [PU] (3.29A / 16.5A)
 #define I2T_TAU_W         43.1f              // Winding thermal time constant [s]
+// Threshold = I_rated² × τ = 0.04 × 43.1 = 1.724 PU²·s
+// First-order thermal model: dE/dt = I² - E/τ → steady-state E = I²×τ
+// At rated current (3.29A): ratio → 1.0 (asymptotic, never exceeds)
+// Above rated: ratio > 1.0 → derating → trip
+// Warning/Derating/Trip thresholds set above 1.0 so rated current is always allowed
 #define I2T_THRESHOLD     (I2T_I_RATED_PU * I2T_I_RATED_PU * I2T_TAU_W)  // 0.04 × 43.1 = 1.724 PU²·s
-#define I2T_WARNING_PCT   0.70f              // Warning at 70% (~88°C rise)
-#define I2T_DERATING_PCT  0.85f              // Derating at 85% (~106°C rise)
-#define I2T_TRIP_PCT      1.00f              // Trip at 100% (125°C winding)
+#define I2T_WARNING_PCT   1.02f              // Warning at I > 3.33A continuous
+#define I2T_DERATING_PCT  1.05f              // Derating at I > 3.37A continuous
+#define I2T_TRIP_PCT      1.10f              // Trip at I > 3.45A continuous (~90s)
 volatile float i2t_accumulator = 0.0f;       // Thermal energy accumulator [PU²·s]
 volatile float i2t_ratio = 0.0f;             // Thermal load ratio (0.0~1.0+), 1.0=trip
 
@@ -1118,8 +1123,8 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
             if (pmsm.N_base > 0.0f) {
                 target_pu = speed_ref_rpm / pmsm.N_base;
             }
-            // Clamp target to [0, 1] PU (forward only)
-            if (target_pu < 0.0f) target_pu = 0.0f;
+            // Clamp target to [-1, 1] PU (bidirectional)
+            if (target_pu < -1.0f) target_pu = -1.0f;
             if (target_pu > 1.0f) target_pu = 1.0f;
 
             // Rate limiter: speed_ramp_rate PU/call at 10kHz
@@ -1474,6 +1479,27 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
                 debug_Vmag2 = Vmag2;
                 debug_Vd_sat = Vd_sat;
                 debug_Vq_sat = Vq_sat;
+
+                // ============================================================
+                // Real-time current magnitude limiter
+                // Protects motor when FOC angle is inaccurate (stall, mech limit)
+                // If measured |I| > I_rated, scale down voltage to keep current safe
+                // Works regardless of dq alignment — uses raw measured current
+                // ============================================================
+                {
+                    float I2_meas = Ia_pu * Ia_pu + Ib_pu * Ib_pu;  // |I|² from ADC (unfiltered, fast)
+                    float I2_limit = I2T_I_RATED_PU * I2T_I_RATED_PU;  // 0.04 (= 3.29A²)
+                    if (I2_meas > I2_limit) {
+                        // Scale voltage so current stays at limit
+                        // Use sqrt for accurate scaling, runs only when overlimit
+                        float scale = I2T_I_RATED_PU / sqrtf(I2_meas);
+                        Vd_sat *= scale;
+                        Vq_sat *= scale;
+                        // Pull back integrators to prevent windup during limiting
+                        Id_integral *= scale;
+                        Iq_integral *= scale;
+                    }
+                }
 
                 float Valpha = Vd_sat * cos_theta - Vq_sat * sin_theta;
                 float Vbeta  = Vq_sat * cos_theta + Vd_sat * sin_theta;
@@ -1931,10 +1957,10 @@ do_getall:
             R_GPT_OutputDisable(&g_timer1_ctrl, GPT_IO_PIN_GTIOCA_AND_GTIOCB);
             R_GPT_OutputDisable(&g_timer2_ctrl, GPT_IO_PIN_GTIOCA_AND_GTIOCB);
             R_IOPORT_PinWrite(&g_ioport_ctrl, EN_GATE_RESET, BSP_IO_LEVEL_LOW);
-            // Reset I²t to 70% — motor is still warm after trip
-            // 70% = warning zone → derating applies immediately on re-enable
-            if (i2t_accumulator > I2T_THRESHOLD * 0.70f) {
-                i2t_accumulator = I2T_THRESHOLD * 0.70f;
+            // Reset I²t to rated steady-state level — motor is still warm after trip
+            // ratio=1.0 = rated current equivalent → derating on re-enable if above rated
+            if (i2t_accumulator > I2T_THRESHOLD) {
+                i2t_accumulator = I2T_THRESHOLD;
             }
             debug_enable_off_src = 5;
         }
@@ -2365,12 +2391,14 @@ void One_ms_Int(timer_callback_args_t *p_args)
         ff_scale = 0.0f;
     }
 
-    // Stall detection: RPM≈0 + current flowing for >3 seconds → fault
+    // Stall detection: RPM≈0 + current ABOVE rated for >3 seconds → fault
+    // Rated current 3.29A = 0.20PU → I²=0.04. Threshold set above rated so
+    // continuous stall at rated current is allowed (i2t handles thermal safety).
     {
         static uint16_t stall_count = 0;
         float rpm_abs = SpeedFb_RPM > 0 ? SpeedFb_RPM : -SpeedFb_RPM;
         float I2_now = IqFb * IqFb + IdFb * IdFb;
-        if (Enable && rpm_abs < 10.0f && I2_now > 0.01f) {
+        if (Enable && rpm_abs < 10.0f && I2_now > 0.05f) {
             stall_count++;
             if (stall_count >= 3000) {  // 3 seconds at 1kHz
                 overcurrent_fault = 1;
