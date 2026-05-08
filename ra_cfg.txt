@@ -281,7 +281,7 @@ FSP Configuration
     Instance "Three-Phase PWM (r_gpt_three_phase)"
       General: Name: g_three_phase0
       General: Mode: Triangle-Wave Symmetric PWM
-      General: Period: 10
+      General: Period: 18
       General: Period Unit: Kilohertz
       General: GPT U-Channel: 6
       General: GPT V-Channel: 5
@@ -297,7 +297,7 @@ FSP Configuration
         General: Name: g_timer0
         General: Channel: 6
         General: Mode: Triangle-wave PWM (symmetric, Mode 1)
-        General: Period: 10
+        General: Period: 18
         General: Compare Match: Compare Match A: Status: Disabled
         General: Compare Match: Compare Match A: Compare match value: 0
         General: Compare Match: Compare Match B: Status: Disabled
@@ -349,7 +349,7 @@ FSP Configuration
         General: Name: g_timer1
         General: Channel: 5
         General: Mode: Triangle-wave PWM (symmetric, Mode 1)
-        General: Period: 10
+        General: Period: 18
         General: Compare Match: Compare Match A: Status: Disabled
         General: Compare Match: Compare Match A: Compare match value: 0
         General: Compare Match: Compare Match B: Status: Disabled
@@ -401,7 +401,7 @@ FSP Configuration
         General: Name: g_timer2
         General: Channel: 4
         General: Mode: Triangle-wave PWM (symmetric, Mode 1)
-        General: Period: 10
+        General: Period: 18
         General: Compare Match: Compare Match A: Status: Disabled
         General: Compare Match: Compare Match A: Compare match value: 0
         General: Compare Match: Compare Match B: Status: Disabled

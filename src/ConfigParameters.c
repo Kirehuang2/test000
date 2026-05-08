@@ -41,10 +41,10 @@ struct_DWWWf6N21VtITTqdrqSn0 PI_params = {
    PI_params.delay_Currents - Delay in current measurement [sec]
    PI_params.delay_Speed - Delay in speed measurement [sec]
    PI_params.delay_Position - Delay in position measurement [sec] */
-real_T T_pwm = 5.0E-5;                 /* Referenced by: '<S1>/Gain2' */
+real_T T_pwm = 5.556E-5;               /* Referenced by: '<S1>/Gain2' */ /* 18kHz */
 
 /* T_pwm - PWM period [sec] */
-real_T Ts = 0.0001;                    /* Referenced by: '<S1>/Gain' */
+real_T Ts = 5.556E-5;                  /* Referenced by: '<S1>/Gain' */ /* FOC@18kHz, dead code (Simulink dummy) */
 
 /* Ts - Current controller sample time [sec] */
 real_T Ts_speed = 0.001;               /* Referenced by: '<S1>/Gain1' */
