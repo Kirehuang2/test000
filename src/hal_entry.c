@@ -238,6 +238,12 @@ volatile float debug_Vq_decouple = 0.0f;    // Vq decoupling term (for diagnosis
 //   10kHz (T_pwm=100us): optimum 0.020 → effective t_dead ≈ 1.0us
 //   18kHz (T_pwm=55.6us): optimum 0.045 → effective t_dead ≈ 1.25us
 // Default below tracks 18kHz operation; if PWM_FREQ_HZ changes, re-sweep.
+//
+// Known trade-off (issue #19): high dtc_comp minimizes |I| at speed but
+// causes audible chatter at M0+E1 (zero-current sign flips in the linear
+// blend zone). For silent idle, SET dtc_comp 0 via BLE or detect M0/zero
+// command and gate DTC. See doc/ソフト管理表.md for adaptive-DTC ideas.
+//
 // Phase mapping: Vabc_out[0]=C, [1]=B, [2]=A; Iab[0]=A, Iab[1]=B, Ic=-(Ia+Ib)
 volatile float dtc_comp = 0.045f;           // 18kHz empirical optimum (re-sweep if PWM changes)
 volatile uint8_t dtc_enable = 1;            // 0=disable, 1=enable
