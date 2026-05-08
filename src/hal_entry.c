@@ -215,7 +215,10 @@ volatile float debug_Vq_decouple = 0.0f;    // Vq decoupling term (for diagnosis
 
 // Dead time compensation
 // Triangle symmetric PWM: dead time affects both rising and falling edges
-// Effective voltage loss = 2 * t_dead / T_pwm = 2 * 500ns / 50us = 0.02
+// Theoretical: 2 * t_dead / T_pwm = 2 * 500ns / 100us = 0.01
+// Empirical optimum at 10kHz: 0.020 (M2000 sweep 2026-05-08, |I|=0.0645A min)
+//   → suggests effective dead time ≈ 1us (FET turn-on/off + parasitic delays)
+// At 18kHz target: theoretical 0.018, empirical estimated ~0.036 (re-sweep needed)
 // Phase mapping: Vabc_out[0]=C, [1]=B, [2]=A; Iab[0]=A, Iab[1]=B, Ic=-(Ia+Ib)
 volatile float dtc_comp = 0.02f;            // Dead time compensation [duty ratio]
 volatile uint8_t dtc_enable = 1;            // 0=disable, 1=enable
