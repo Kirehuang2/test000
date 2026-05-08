@@ -256,7 +256,7 @@
     <module id="module.driver.three_phase_on_gpt_three_phase.630992066">
       <property id="module.driver.three_phase.name" value="g_three_phase0"/>
       <property id="module.driver.three_phase.mode" value="module.driver.three_phase.mode.mode_symmetric_pwm"/>
-      <property id="module.driver.three_phase.period" value="10"/>
+      <property id="module.driver.three_phase.period" value="14"/>
       <property id="module.driver.three_phase.unit" value="module.driver.three_phase.unit.unit_frequency_khz"/>
       <property id="module.driver.three_phase.channel_u" value="6"/>
       <property id="module.driver.three_phase.channel_v" value="5"/>

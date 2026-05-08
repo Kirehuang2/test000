@@ -16,7 +16,7 @@
 //   `module.driver.three_phase.period`. They must match.
 // All time-based constants below derive from PWM_FREQ_HZ.
 // ============================================================
-#define PWM_FREQ_HZ      10000              // FOC ISR rate [Hz], must match configuration.xml
+#define PWM_FREQ_HZ      14000              // FOC ISR rate [Hz], must match configuration.xml
 #define PWM_TS_F         (1.0f / (float)PWM_FREQ_HZ)   // FOC sample time [s]
 #define MS_TO_CYCLES(ms) ((uint32_t)((ms) * PWM_FREQ_HZ / 1000))  // ms → ISR cycle count
 
@@ -1064,9 +1064,10 @@ FSP_CPP_FOOTER
 /* Callback function */
 void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
 {
-    // PWM period for triangle wave symmetric mode (0x1770 = 6000)
-    // Timer is configured with period_counts = 6000
-    const float PWMPeriod = 6000.0f;
+    // PWM period derived from FSP timer config (single source of truth).
+    // At 10kHz: 6000, 14kHz: 4286, 18kHz: 3333. Auto-tracks configuration.xml.
+    const uint32_t PWM_PERIOD_COUNTS = g_timer0_cfg.period_counts;
+    const float    PWMPeriod         = (float)PWM_PERIOD_COUNTS;
     three_phase_duty_cycle_t p_duty_cycle;
     // DRV8302 reset is now handled in hal_entry() before PWM output is enabled
     if(p_args->group_mask==ADC_GROUP_MASK_0)
@@ -1652,10 +1653,10 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
         p_duty_cycle.duty[1] = (uint32_t)(PWMPeriod * Vabc_out[1]);
         p_duty_cycle.duty[2] = (uint32_t)(PWMPeriod * Vabc_out[2]);
 
-        // Clamp to valid range [0, 6000]
-        if(p_duty_cycle.duty[0] > 6000) p_duty_cycle.duty[0] = 6000;
-        if(p_duty_cycle.duty[1] > 6000) p_duty_cycle.duty[1] = 6000;
-        if(p_duty_cycle.duty[2] > 6000) p_duty_cycle.duty[2] = 6000;
+        // Clamp to valid range [0, period_counts] (frequency-tracking)
+        if(p_duty_cycle.duty[0] > PWM_PERIOD_COUNTS) p_duty_cycle.duty[0] = PWM_PERIOD_COUNTS;
+        if(p_duty_cycle.duty[1] > PWM_PERIOD_COUNTS) p_duty_cycle.duty[1] = PWM_PERIOD_COUNTS;
+        if(p_duty_cycle.duty[2] > PWM_PERIOD_COUNTS) p_duty_cycle.duty[2] = PWM_PERIOD_COUNTS;
 
         // Store debug values
         debug_vabc[0] = Vabc_out[0];
