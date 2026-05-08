@@ -79,6 +79,14 @@ volatile uint32_t timer_callback_count = 0;
 static uint32_t adc_count_at_1s = 0;        // snapshot at timer=1000
 volatile uint32_t adc_rate_result = 0;       // callbacks per second (10000=10kHz, 20000=20kHz)
 
+// FOC ISR timing measurement via DWT cycle counter (CPU 120MHz, 1 cycle = 8.33ns)
+// Used for 18kHz feasibility check: ISR must complete in < ~45us (45*120=5400 cycles)
+volatile uint32_t isr_cycles_last = 0;       // Last observed ISR duration [CPU cycles]
+volatile uint32_t isr_cycles_max = 0;        // Max observed ISR duration since reset
+volatile float    isr_us_last = 0.0f;        // Last ISR duration [us]
+volatile float    isr_us_max  = 0.0f;        // Max ISR duration [us]
+volatile uint8_t  isr_max_reset = 0;         // Write 1 via BLE to clear max
+
 // V_dc voltage compensation
 #define V_DC_NOMINAL  18.0f              // Nominal voltage the PU system is calibrated for
 volatile uint8_t vdc_compensation_en = 0;  // default OFF
@@ -738,6 +746,11 @@ static const var_entry_t var_registry[] = {
     {"sec5_ib",             (void*)&diag_ib_avg[5],      VAR_FLOAT,  0},
     {"sec0_n",              (void*)&diag_count[0],       VAR_UINT32, 0},
     {"sec_reset",           (void*)&diag_sec_reset,      VAR_UINT8,  1},
+    // FOC ISR timing (DWT cycle counter, CPU 120MHz)
+    {"isr_us_last",         (void*)&isr_us_last,         VAR_FLOAT,  0},
+    {"isr_us_max",          (void*)&isr_us_max,          VAR_FLOAT,  0},
+    {"isr_cyc_max",         (void*)&isr_cycles_max,      VAR_UINT32, 0},
+    {"isr_max_reset",       (void*)&isr_max_reset,       VAR_UINT8,  1},
 };
 #define VAR_REGISTRY_SIZE (sizeof(var_registry)/sizeof(var_registry[0]))
 
@@ -763,6 +776,12 @@ void hal_entry(void)
 {
     extern sci_b_baud_setting_t g_uart3_baud_setting;
     /* TODO: add your own code here */
+
+ // Enable DWT cycle counter for FOC ISR timing measurement
+ // (Cortex-M33 debug subsystem; 120MHz CPU clock → 1 cycle = 8.33ns)
+ CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+ DWT->CYCCNT = 0;
+ DWT->CTRL  |= DWT_CTRL_CYCCNTENA_Msk;
 
  // Initialize Hall sensor FIRST (before ADC interrupts can call AngleSpeedGet)
  RM_MOTOR_SENSE_HALL_Open(&g_motor_angle0_ctrl, &g_motor_angle0_cfg);
@@ -1043,6 +1062,9 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
     if(p_args->group_mask==ADC_GROUP_MASK_0)
     {
         adc_callback_count++;  // Debug counter
+        // ISR timing: capture entry cycle count (DWT cycle counter)
+        uint32_t isr_t0 = DWT->CYCCNT;
+        if (isr_max_reset) { isr_cycles_max = 0; isr_us_max = 0.0f; isr_max_reset = 0; }
         // Check DRV8302 nFAULT pin status (PB00)
         // nFAULT is active-low: Low = fault, High = normal
         bsp_io_level_t fault_pin;
@@ -1634,6 +1656,15 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
         debug_duty[2] = p_duty_cycle.duty[2];
 
         R_GPT_THREE_PHASE_DutyCycleSet(&g_three_phase0_ctrl, &p_duty_cycle);
+
+        // ISR timing: capture exit cycle count and update last/max
+        uint32_t isr_dt = DWT->CYCCNT - isr_t0;
+        isr_cycles_last = isr_dt;
+        isr_us_last = (float)isr_dt * (1.0f / 120.0f);  // 120MHz CPU
+        if (isr_dt > isr_cycles_max) {
+            isr_cycles_max = isr_dt;
+            isr_us_max = isr_us_last;
+        }
     }
 }
 
