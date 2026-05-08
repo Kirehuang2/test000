@@ -16,7 +16,7 @@
 //   `module.driver.three_phase.period`. They must match.
 // All time-based constants below derive from PWM_FREQ_HZ.
 // ============================================================
-#define PWM_FREQ_HZ      14000              // FOC ISR rate [Hz], must match configuration.xml
+#define PWM_FREQ_HZ      18000              // FOC ISR rate [Hz], must match configuration.xml
 #define PWM_TS_F         (1.0f / (float)PWM_FREQ_HZ)   // FOC sample time [s]
 #define MS_TO_CYCLES(ms) ((uint32_t)((ms) * PWM_FREQ_HZ / 1000))  // ms → ISR cycle count
 
