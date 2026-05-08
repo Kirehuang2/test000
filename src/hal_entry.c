@@ -10,6 +10,16 @@
 
 #include "r_three_phase_api.h"
 
+// ============================================================
+// PWM frequency parameter — single source of truth for FOC timing.
+// To migrate frequency: update both this value AND configuration.xml
+//   `module.driver.three_phase.period`. They must match.
+// All time-based constants below derive from PWM_FREQ_HZ.
+// ============================================================
+#define PWM_FREQ_HZ      10000              // FOC ISR rate [Hz], must match configuration.xml
+#define PWM_TS_F         (1.0f / (float)PWM_FREQ_HZ)   // FOC sample time [s]
+#define MS_TO_CYCLES(ms) ((uint32_t)((ms) * PWM_FREQ_HZ / 1000))  // ms → ISR cycle count
+
 unsigned char Enable = 0;
 
 float SpeedRef_RPM = 0.0f;
@@ -41,7 +51,7 @@ float Mode = 2.0f;  // Mode >= 2 required to start speed control state machine
 // compute speed as d(angle)/dt using a sliding window over
 // the interpolated f_get_angle from FSP Hall module.
 // ============================================================
-#define SPEED_EST_WINDOW  200  // Window size in calls (200 = 20ms at 10kHz, ~8RPM resolution)
+#define SPEED_EST_WINDOW  MS_TO_CYCLES(20)  // 20ms window, ~8RPM resolution
 static float angle_history[SPEED_EST_WINDOW];  // Ring buffer of angle DELTAS (not accumulated)
 static uint16_t angle_hist_idx = 0;
 static uint8_t angle_hist_filled = 0;
@@ -164,9 +174,9 @@ volatile uint8_t diag_sec_reset = 0;                // SET sec_reset 1 to clear
 // Monitors actual Id/Iq feedback current every 10kHz cycle
 // Trips immediately if current exceeds limit
 // ============================================================
-#define OC_TRIP_PU        0.40f   // OC trip threshold: 0.40 PU = 6.6A
-#define OC_GRACE_CYCLES   5000    // 500ms grace period after Enable (5000 × 0.1ms at 10kHz)
-#define OC_SUSTAIN_CYCLES 50      // 5ms sustain filter (50 × 0.1ms at 10kHz)
+#define OC_TRIP_PU        0.40f                // OC trip threshold: 0.40 PU = 6.6A
+#define OC_GRACE_CYCLES   MS_TO_CYCLES(500)    // 500ms grace period after Enable
+#define OC_SUSTAIN_CYCLES MS_TO_CYCLES(5)      // 5ms sustain filter
 volatile uint8_t overcurrent_fault = 0;       // 0=OK, 1=tripped (latched, requires E0 to clear)
 volatile float overcurrent_peak_iq = 0.0f;    // Peak |Iq| at trip [PU]
 volatile float overcurrent_peak_id = 0.0f;    // Peak |Id| at trip [PU]
@@ -216,7 +226,7 @@ volatile uint8_t mode_change_pending = 0; // Set by C0/C1 command, cleared by FO
 static uint16_t torque_startup_ms = 0;   // Torque mode soft ramp counter (file scope for mode-change reset)
 static uint8_t torque_was_enabled = 0;   // Torque mode startup detection (file scope for mode-change reset)
 static float omega_e_filt = 0.0f;       // Decoupling LPF state (file scope for mode-change reset)
-volatile float decouple_lpf_alpha = 0.006f; // LPF alpha for omega_e in decoupling (~10Hz @10kHz)
+volatile float decouple_lpf_alpha = 0.006f * 10000.0f / (float)PWM_FREQ_HZ; // ~10Hz LPF (frequency-scaled)
 volatile uint8_t decouple_enable = 1;       // 0=disable decoupling (debug), 1=enable
 volatile float debug_Vd_decouple = 0.0f;    // Vd decoupling term (for diagnosis)
 volatile float debug_Vq_decouple = 0.0f;    // Vq decoupling term (for diagnosis)
@@ -317,7 +327,7 @@ volatile float ff_scale = 1.0f;              // 0.0~1.0: diagnostic only
 
 // JOG speed reference (settable via debugger or BLE)
 volatile float speed_ref_rpm = 0.0f;         // Target speed [RPM]
-volatile float speed_ramp_rate = 0.00004f;   // Speed ramp rate [PU/call @10kHz] (0.00004=1900RPM/s)
+volatile float speed_ramp_rate = 0.4f * PWM_TS_F;   // 0.4 PU/s = ~1900 RPM/s (frequency-scaled)
 
 // Assist level and turbo mode
 volatile uint8_t assist_level = 0;           // 0=Low, 1=Mid, 2=High
@@ -1211,7 +1221,7 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
         // Step 3: Compute speed from sum of deltas over window
         float f_mechanical_speed = 0.0f;
         if (angle_hist_filled) {
-            float electrical_speed = angle_delta_sum / ((float)SPEED_EST_WINDOW * 0.0001f);  // [rad/s elec]
+            float electrical_speed = angle_delta_sum / ((float)SPEED_EST_WINDOW * PWM_TS_F);  // [rad/s elec]
             float mechanical_speed = electrical_speed / pmsm.p;                               // [rad/s mech]
 
             // Deadband: clamp near-zero speed to avoid noise at standstill
@@ -1296,7 +1306,7 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
                 if (phase_err < -3.14159265f) phase_err += 6.28318530f;
 
                 // PI loop filter (no feed-forward: integrator tracks speed)
-                pll_integrator += pll_Ki * 0.0001f * phase_err;
+                pll_integrator += pll_Ki * PWM_TS_F * phase_err;
                 // Anti-windup: clamp to ±2x max electrical speed (~4000RPM)
                 if (pll_integrator >  8400.0f) pll_integrator =  8400.0f;
                 if (pll_integrator < -8400.0f) pll_integrator = -8400.0f;
@@ -1304,7 +1314,7 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
                 pll_omega = pll_Kp * phase_err + pll_integrator;
 
                 // VCO: integrate frequency to get angle
-                pll_theta += pll_omega * 0.0001f;
+                pll_theta += pll_omega * PWM_TS_F;
                 // Wrap to [0, 2*pi)
                 if (pll_theta >= 6.28318530f) pll_theta -= 6.28318530f;
                 if (pll_theta <  0.0f)        pll_theta += 6.28318530f;
@@ -1491,12 +1501,12 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
                 // Integrator update with clamping anti-windup
                 float int_lim = integrator_limit;
                 if (PI_params.Ki_id > 0.0f) {
-                    Id_integral += PI_params.Ki_id * 0.0001f * Id_error;
+                    Id_integral += PI_params.Ki_id * PWM_TS_F * Id_error;
                     if (Id_integral >  int_lim) Id_integral =  int_lim;
                     if (Id_integral < -int_lim) Id_integral = -int_lim;
                 }
                 if (PI_params.Ki_iq > 0.0f) {
-                    Iq_integral += PI_params.Ki_iq * 0.0001f * Iq_error;
+                    Iq_integral += PI_params.Ki_iq * PWM_TS_F * Iq_error;
                     if (Iq_integral >  int_lim) Iq_integral =  int_lim;
                     if (Iq_integral < -int_lim) Iq_integral = -int_lim;
                 }
@@ -1583,7 +1593,7 @@ void rm_motor_driver_cyclic(adc_callback_args_t *p_args)
         // ============================================================
         if(log_running) {
             log_counter++;
-            if(log_counter >= 100) {  // 10kHz / 100 = 100Hz
+            if(log_counter >= MS_TO_CYCLES(10)) {  // log at 100Hz (every 10ms)
                 log_counter = 0;
 
                 // Record current state
