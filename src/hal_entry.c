@@ -286,10 +286,16 @@ volatile uint8_t  pe_diag_reset = 0;            // write 1 via BLE to clear coun
 
 // Software CTS: respect DA14531 RTS (PE03 input) before draining TX ring.
 // cts_enable=0 keeps current behavior (no flow control); =1 pauses TX while
-// PE03 == cts_stop_level. Try cts_stop_level=0 (active-LOW RTS, standard) and
-// =1 (active-HIGH RTS, FSP convention) under load to determine correct polarity.
-volatile uint8_t cts_enable     = 0;
-volatile uint8_t cts_stop_level = 0;
+// PE03 == cts_stop_level. Polarity 1 (LOW=stop) gave 97% packet integrity
+// but blocked LOG START response for 60s (PE03 sometimes stays asserted
+// indefinitely). cts_timeout_ms is a deadlock guard: if blocked for that
+// long while data is queued, force TX through (one byte may drop, channel
+// recovers). Set cts_timeout_ms=0 to disable the guard.
+volatile uint8_t  cts_enable      = 0;
+volatile uint8_t  cts_stop_level  = 0;
+volatile uint32_t cts_timeout_ms  = 100;
+volatile uint32_t cts_wait_ms     = 0;     // current wait time while blocked (read-only)
+volatile uint32_t cts_force_count = 0;     // diagnostic: TX overrides due to timeout
 
 // Debug variables for power switch (volatile for debugger visibility)
 volatile uint8_t debug_pe14_state = 0;          // Current state of PE14 input (0=Low, 1=High)
@@ -798,6 +804,9 @@ static const var_entry_t var_registry[] = {
     // Software CTS (TX flow control via PE03/DA14531 RTS)
     {"cts_enable",          (void*)&cts_enable,          VAR_UINT8,  1},
     {"cts_stop_level",      (void*)&cts_stop_level,      VAR_UINT8,  1},
+    {"cts_timeout_ms",      (void*)&cts_timeout_ms,      VAR_UINT32, 1},
+    {"cts_wait_ms",         (void*)&cts_wait_ms,         VAR_UINT32, 0},
+    {"cts_force_count",     (void*)&cts_force_count,     VAR_UINT32, 0},
 };
 #define VAR_REGISTRY_SIZE (sizeof(var_registry)/sizeof(var_registry[0]))
 
@@ -1054,9 +1063,12 @@ void hal_entry(void)
 
         // Drain TX ring buffer via SCI3 hardware UART
         // tx_spacing_timer ensures DA14531 has time to forward previous message to BLE
-        // Software CTS: when cts_enable, also wait while PE03 (DA14531 RTS) == cts_stop_level
-        uint8_t cts_blocked = (cts_enable && debug_pe03_state == cts_stop_level);
-        if (tx_ring_count > 0 && !uart_tx_busy && tx_spacing_timer == 0 && !cts_blocked) {
+        // Software CTS: when cts_enable, wait while PE03 == cts_stop_level, but
+        // override after cts_timeout_ms to avoid deadlock when DA14531 holds the line.
+        uint8_t cts_blocked  = (cts_enable && debug_pe03_state == cts_stop_level);
+        uint8_t cts_override = (cts_blocked && cts_timeout_ms > 0 && cts_wait_ms >= cts_timeout_ms);
+        if (tx_ring_count > 0 && !uart_tx_busy && tx_spacing_timer == 0 && (!cts_blocked || cts_override)) {
+            if (cts_override) { cts_force_count++; cts_wait_ms = 0; }
             uint16_t len = (uint16_t)strlen(tx_ring[tx_ring_tail]);
             if (len > 0) {
                 uart_tx_busy = 1;
@@ -2130,6 +2142,13 @@ static void ble_uart_tick(void) {
     // TX spacing countdown (gives DA14531 time to forward to BLE)
     if (tx_spacing_timer > 0) {
         tx_spacing_timer--;
+    }
+
+    // CTS deadlock guard: count ms while we have data to send but PE03 is blocking
+    if (cts_enable && tx_ring_count > 0 && debug_pe03_state == cts_stop_level) {
+        if (cts_wait_ms < 0xFFFF) cts_wait_ms++;
+    } else {
+        cts_wait_ms = 0;
     }
 
     // Timeout: if bytes in buffer and no CR/LF for 200ms, treat as complete
