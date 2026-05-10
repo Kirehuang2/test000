@@ -272,6 +272,18 @@ static uint8_t shutdown_requested = 0;          // Shutdown latch (once set, nev
 volatile uint8_t debug_pe03_state = 0;          // PE03 (DA14531 RTS/P0_7): 0=LOW, 1=HIGH
 volatile uint8_t debug_pe04_state = 0;          // PE04 (DA14531 CTS/P0_8): 0=LOW, 1=HIGH
 
+// Diagnostic: confirm DA14531 firmware actually drives RTS (PE03 input).
+// If pe03_edges stays 0 under heavy TX load (LOG START 100), DA14531 is NOT
+// asserting flow control — adding HW CTS in FSP would have no effect.
+// Sampled at main-loop rate (sub-microsecond when idle).
+volatile uint32_t pe03_samples = 0;
+volatile uint32_t pe03_highs   = 0;
+volatile uint32_t pe03_edges   = 0;
+volatile uint32_t pe04_samples = 0;
+volatile uint32_t pe04_highs   = 0;
+volatile uint32_t pe04_edges   = 0;
+volatile uint8_t  pe_diag_reset = 0;            // write 1 via BLE to clear counters
+
 // Debug variables for power switch (volatile for debugger visibility)
 volatile uint8_t debug_pe14_state = 0;          // Current state of PE14 input (0=Low, 1=High)
 volatile uint32_t debug_pe14_counter = 0;       // PE14 high duration counter (ms)
@@ -768,6 +780,14 @@ static const var_entry_t var_registry[] = {
     {"isr_us_max",          (void*)&isr_us_max,          VAR_FLOAT,  0},
     {"isr_cyc_max",         (void*)&isr_cycles_max,      VAR_UINT32, 0},
     {"isr_max_reset",       (void*)&isr_max_reset,       VAR_UINT8,  1},
+    // DA14531 flow-control pin diagnosis (PE03=DA14531 RTS, PE04=DA14531 CTS)
+    {"pe03_samples",        (void*)&pe03_samples,        VAR_UINT32, 0},
+    {"pe03_highs",          (void*)&pe03_highs,          VAR_UINT32, 0},
+    {"pe03_edges",          (void*)&pe03_edges,          VAR_UINT32, 0},
+    {"pe04_samples",        (void*)&pe04_samples,        VAR_UINT32, 0},
+    {"pe04_highs",          (void*)&pe04_highs,          VAR_UINT32, 0},
+    {"pe04_edges",          (void*)&pe04_edges,          VAR_UINT32, 0},
+    {"pe_diag_reset",       (void*)&pe_diag_reset,       VAR_UINT8,  1},
 };
 #define VAR_REGISTRY_SIZE (sizeof(var_registry)/sizeof(var_registry[0]))
 
@@ -941,13 +961,32 @@ void hal_entry(void)
 
     while(1)
     {
-        // Read DA14531 flow control pin states
+        // Read DA14531 flow control pin states + diagnostic counters
         {
+            static uint8_t pe03_prev = 0xFF;  // 0xFF = first iteration sentinel
+            static uint8_t pe04_prev = 0xFF;
             bsp_io_level_t lvl;
+
+            if (pe_diag_reset) {
+                pe_diag_reset = 0;
+                pe03_samples = 0; pe03_highs = 0; pe03_edges = 0;
+                pe04_samples = 0; pe04_highs = 0; pe04_edges = 0;
+                pe03_prev = 0xFF; pe04_prev = 0xFF;
+            }
+
             R_IOPORT_PinRead(&g_ioport_ctrl, BSP_IO_PORT_14_PIN_03, &lvl);
             debug_pe03_state = (lvl == BSP_IO_LEVEL_HIGH) ? 1 : 0;
+            pe03_samples++;
+            if (debug_pe03_state) pe03_highs++;
+            if (pe03_prev != 0xFF && pe03_prev != debug_pe03_state) pe03_edges++;
+            pe03_prev = debug_pe03_state;
+
             R_IOPORT_PinRead(&g_ioport_ctrl, BSP_IO_PORT_14_PIN_04, &lvl);
             debug_pe04_state = (lvl == BSP_IO_LEVEL_HIGH) ? 1 : 0;
+            pe04_samples++;
+            if (debug_pe04_state) pe04_highs++;
+            if (pe04_prev != 0xFF && pe04_prev != debug_pe04_state) pe04_edges++;
+            pe04_prev = debug_pe04_state;
         }
 
         // Baud rate measurement using DWT cycle counter (precise)
