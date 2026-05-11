@@ -97,12 +97,13 @@
       <configSetting altId="pd15.output.high" configurationId="pd15"/>
       <configSetting altId="pe01.output.low" configurationId="pe01"/>
       <configSetting altId="pe02.output.high" configurationId="pe02"/>
-      <configSetting altId="pe04.output.low" configurationId="pe04"/>
       <configSetting altId="pe08.output.low" configurationId="pe08"/>
       <configSetting altId="pe09.output.high" configurationId="pe09"/>
       <configSetting altId="pe10.output.high" configurationId="pe10"/>
       <configSetting altId="pe14.input" configurationId="pe14"/>
+      <configSetting altId="sci3.cts3.pe03" configurationId="sci3.cts3" isUsedByDriver="true" peripheral="SCI3"/>
       <configSetting altId="sci3.rxd3.pe05" configurationId="sci3.rxd3" isUsedByDriver="true" peripheral="SCI3"/>
+      <configSetting altId="sci3.ss_cts_rts3.pe04" configurationId="sci3.ss_cts_rts3" isUsedByDriver="true" peripheral="SCI3"/>
       <configSetting altId="sci3.txd3.pe06" configurationId="sci3.txd3" isUsedByDriver="true" peripheral="SCI3"/>
       <configSetting altId="sci4.rxd4.pe15" configurationId="sci4.rxd4" peripheral="SCI4"/>
       <configSetting altId="sci4.txd4.pb10" configurationId="sci4.txd4" peripheral="SCI4"/>

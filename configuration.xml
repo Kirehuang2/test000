@@ -1234,7 +1234,7 @@
       <property id="module.driver.uart.baud" value="921600"/>
       <property id="module.driver.uart.baudrate_modulation" value="module.driver.uart.baudrate_modulation.disabled"/>
       <property id="module.driver.uart.baudrate_max_err" value="5"/>
-      <property id="module.driver.uart.flow_control" value="module.driver.uart.flow_control.rts"/>
+      <property id="module.driver.uart.flow_control" value="module.driver.uart.flow_control.hardware.ctsrts"/>
       <property id="module.driver.uart.pin_control_port" value="module.driver.uart.pin_control_port.PORT_DISABLE"/>
       <property id="module.driver.uart.pin_control_pin" value="module.driver.uart.pin_control_pin.PIN_DISABLE"/>
       <property id="module.driver.uart.clk_src" value="module.driver.uart.clk_src.int_clk"/>
@@ -1563,8 +1563,10 @@
       <configSetting altId="pe02.output.high" configurationId="pe02"/>
       <configSetting altId="pe02.gpio_speed.gpio_speed_h" configurationId="pe02.gpio_drivecapacity"/>
       <configSetting altId="pe02.gpio_mode.gpio_mode_out.high" configurationId="pe02.gpio_mode"/>
-      <configSetting altId="pe04.output.low" configurationId="pe04"/>
-      <configSetting altId="pe04.gpio_mode.gpio_mode_out.low" configurationId="pe04.gpio_mode"/>
+      <configSetting altId="pe03.sci3.cts3" configurationId="pe03"/>
+      <configSetting altId="pe03.gpio_mode.gpio_mode_peripheral" configurationId="pe03.gpio_mode"/>
+      <configSetting altId="pe04.sci3.ss_cts_rts3" configurationId="pe04"/>
+      <configSetting altId="pe04.gpio_mode.gpio_mode_peripheral" configurationId="pe04.gpio_mode"/>
       <configSetting altId="pe05.sci3.rxd3" configurationId="pe05"/>
       <configSetting altId="pe05.gpio_mode.gpio_mode_peripheral" configurationId="pe05.gpio_mode"/>
       <configSetting altId="pe06.sci3.txd3" configurationId="pe06"/>
@@ -1579,8 +1581,10 @@
       <configSetting altId="pe14.gpio_mode.gpio_mode_in" configurationId="pe14.gpio_mode"/>
       <configSetting altId="pe15.sci4.rxd4" configurationId="pe15"/>
       <configSetting altId="pe15.gpio_mode.gpio_mode_peripheral" configurationId="pe15.gpio_mode"/>
+      <configSetting altId="sci3.cts3.pe03" configurationId="sci3.cts3"/>
       <configSetting altId="sci3.mode.asynchronous.free" configurationId="sci3.mode"/>
       <configSetting altId="sci3.rxd3.pe05" configurationId="sci3.rxd3"/>
+      <configSetting altId="sci3.ss_cts_rts3.pe04" configurationId="sci3.ss_cts_rts3"/>
       <configSetting altId="sci3.txd3.pe06" configurationId="sci3.txd3"/>
       <configSetting altId="sci4.mode.simplei2c.a" configurationId="sci4.mode"/>
       <configSetting altId="sci4.pairing.a" configurationId="sci4.pairing"/>
@@ -1611,7 +1615,9 @@
       <lockSetting id="jtag_fslash_swd.swclk" lock="true"/>
       <lockSetting id="jtag_fslash_swd.swdio" lock="true"/>
       <lockSetting id="jtag_fslash_swd.swo" lock="true"/>
+      <lockSetting id="sci3.cts3" lock="true"/>
       <lockSetting id="sci3.rxd3" lock="true"/>
+      <lockSetting id="sci3.ss_cts_rts3" lock="true"/>
       <lockSetting id="sci3.txd3" lock="true"/>
       <lockSetting id="sci4.rxd4" lock="true"/>
       <lockSetting id="sci4.txd4" lock="true"/>
