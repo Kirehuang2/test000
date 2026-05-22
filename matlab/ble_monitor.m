@@ -591,8 +591,6 @@ function ble_monitor()
             appendLog(line);
         elseif startsWith(line,'OK ')
             appendLog(line);
-        elseif startsWith(line,'ERR unknown')
-            % BLE corruption noise - ignore
         elseif startsWith(line,'ERR ')
             appendLog(line);
         elseif line(1)=='L' && ~startsWith(line,'LIST')
