@@ -235,7 +235,7 @@ FSP Configuration
     
   Module "UART (r_sci_b_uart)"
     Parameter Checking: Default (BSP)
-    FIFO Support: Disable
+    FIFO Support: Enable
     DTC Support: Disable
     Flow Control Support: Disable
     
@@ -1265,7 +1265,7 @@ FSP Configuration
       Extra: Clock Source: Internal Clock
       Extra: Start bit detection: Falling Edge
       Extra: Noise Filter: Disable
-      Extra: Receive FIFO Trigger Level: Max
+      Extra: Receive FIFO Trigger Level: Four
       Extra: RS-485: DE Pin: Disable
       Extra: RS-485: DE Pin Polarity: Active High
       Extra: RS-485: DE Pin Assertion Time: 1

@@ -169,7 +169,7 @@ sci_b_baud_setting_t g_uart3_baud_setting =
 const sci_b_uart_extended_cfg_t g_uart3_cfg_extend =
 { .clock = SCI_B_UART_CLOCK_INT, .rx_edge_start = SCI_B_UART_START_BIT_FALLING_EDGE, .noise_cancel =
           SCI_B_UART_NOISE_CANCELLATION_DISABLE,
-  .rx_fifo_trigger = SCI_B_UART_RX_FIFO_TRIGGER_MAX, .p_baud_setting = &g_uart3_baud_setting, .flow_control =
+  .rx_fifo_trigger = SCI_B_UART_RX_FIFO_TRIGGER_4, .p_baud_setting = &g_uart3_baud_setting, .flow_control =
           SCI_B_UART_FLOW_CONTROL_HARDWARE_CTSRTS,
 #if 0xFF != 0xFF
                 .flow_control_pin       = BSP_IO_PORT_FF_PIN_0xFF,
