@@ -515,6 +515,8 @@ function ble_monitor()
             if numel(parts)>=es+14, idref=str2double(parts{es+14})/1000; end  % IdqRef[0]*1000 -> PU
             if numel(parts)>=es+15, spdinteg=str2double(parts{es+15})/1000; end  % speed PI integrator*1000 -> PU
             if numel(parts)>=es+16, vmag2=str2double(parts{es+16})/1000; end  % Vmag2*1000
+            if numel(parts)>=es+17, ti=str2double(parts{es+17})/10; end  % temp_inverter*10 -> °C
+            if numel(parts)>=es+18, tr=str2double(parts{es+18})/10; end  % temp_regen*10 -> °C
             dt = 1.0/TARGET_HZ;
             tBurstStart = tNow-(n-1)*dt;
             if csvIdx>0 && ~isnan(csvTime(csvIdx))

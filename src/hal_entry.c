@@ -2224,9 +2224,9 @@ static void ble_uart_tick(void) {
                     for (uint8_t i = 0; i < PACK_SIZE; i++) {
                         pos += snprintf(resp + pos, sizeof(resp) - (size_t)pos, ",%d", pack_rpm[i]);
                     }
-                    // Compact: iq(int*100), vbat, IMU(milli-g, deci-dps) — no tinv/treg
+                    // Compact: iq(int*100), vbat, IMU(milli-g, deci-dps), tinv/treg(deci-°C)
                     pos += snprintf(resp + pos, sizeof(resp) - (size_t)pos,
-                             ",%d,%u,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
+                             ",%d,%u,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
                              (int)(IqFb * 1000),
                              (int)(battery_voltage * 10 + 0.5f),
                              (int)(imu_accel_g[0] * 1000),
@@ -2243,7 +2243,9 @@ static void ble_uart_tick(void) {
                              (int)(IdqRef[1] * 1000),
                              (int)(IdqRef[0] * 1000),
                              (int)(debug_speed_integ * 1000),
-                             (int)(debug_Vmag2 * 1000));
+                             (int)(debug_Vmag2 * 1000),
+                             (int)(temp_inverter * 10 + 0.5f),
+                             (int)(temp_regen    * 10 + 0.5f));
                     // XOR checksum of payload (B...data), append *XX\r\n
                     {
                         uint8_t csum = 0;
