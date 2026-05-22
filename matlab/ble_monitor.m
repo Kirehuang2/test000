@@ -825,6 +825,17 @@ function ble_monitor()
         if ~bleConnected, appendLog('Not connected.'); return; end
         cmd=strtrim(get(efCmd,'String'));
         if isempty(cmd), return; end
+        % Route LOG START via startLog() so logActive/timers/counters get set
+        % up. Otherwise the main loop skips RX bookkeeping (line ~325).
+        if startsWith(cmd, 'LOG START', 'IgnoreCase', true)
+            tokens = regexp(cmd, 'LOG\s+START\s+(\d+)', 'tokens', 'ignorecase');
+            if ~isempty(tokens)
+                set(efHz, 'String', tokens{1}{1});
+            end
+            set(efCmd, 'String', '');
+            startLog();
+            return;
+        end
         sendShort(cmd); appendLog(['TX> ' cmd]); set(efCmd,'String','');
     end
 
